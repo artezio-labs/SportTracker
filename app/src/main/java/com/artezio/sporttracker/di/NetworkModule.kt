@@ -15,9 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object NetworkModule {
 
     @Provides
-    fun providesBaseUrl() {
-        // TODO: 19.01.2022 Нужно будет запровайдить базовую урлу
-    }
+    fun providesBaseUrl() = ""
 
     @Provides
     fun providesOkHttpClient() = OkHttpClient.Builder()
