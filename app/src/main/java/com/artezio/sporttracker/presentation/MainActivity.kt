@@ -1,62 +1,60 @@
 package com.artezio.sporttracker.presentation
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.artezio.sporttracker.R
+import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), SensorEventListener {
+class MainActivity : AppCompatActivity() {
 
     private val binding: ActivityMainBinding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    // тут сенсор временно, просто для теста
-    private var running = false
-    private val sensorManager: SensorManager by lazy {
-        getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-    }
 
-    override fun onResume() {
-        super.onResume()
-        running = true
+        requestPermissions()
 
-        val stepsSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
-        if (stepsSensor == null) {
-            Toast.makeText(this, "No Step Counter Sensor !", Toast.LENGTH_SHORT).show()
-        } else {
-            sensorManager.registerListener(this, stepsSensor, SensorManager.SENSOR_DELAY_UI)
+        binding.startStepCounter.setOnClickListener {
+            val intent = Intent(this, TrackService::class.java)
+            startService(intent)
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        running = false
-        sensorManager.unregisterListener(this)
-    }
-
-    override fun onSensorChanged(event: SensorEvent?) {
-        if(running) {
-            Log.i("step_count", "Steps: ${event?.values?.get(0) ?: "Ничего"}")
-            binding.textViewSteps.setText(event?.values?.get(0).toString())
+    private fun requestPermissions() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) == PackageManager.PERMISSION_DENIED
+        ) {
+            //ask for permission
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+                    9465
+                )
+            };
         }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
     }
 }

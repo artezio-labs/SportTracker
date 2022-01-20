@@ -1,5 +1,6 @@
 package com.artezio.sporttracker.data.trackservice
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -16,7 +17,9 @@ import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.presentation.MainActivity
 
@@ -82,11 +85,12 @@ class TrackService : Service() {
             }
         }
         if (stepSensor != null) {
-            sensorManager.registerListener(
+            val register = sensorManager.registerListener(
                 sensorEventListener,
                 stepSensor,
                 SensorManager.SENSOR_DELAY_FASTEST
             )
+            Log.d(STEPS_TAG, "Is listener registered: $register")
         } else {
             Toast.makeText(this, NO_SENSOR, Toast.LENGTH_SHORT).show()
         }
@@ -129,11 +133,17 @@ class TrackService : Service() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        sensorManager.unregisterListener(sensorEventListener)
+    }
+
     companion object {
         private const val CHANNEL_ID = "com.artezio.sporttracker.CHANNEL_ID"
         private const val STEPS = "steps"
         private const val FOREGROUND_SERVICE_ID = 1234
         private const val STEPS_TAG = "STEPS_TAG"
         private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
+        private const val PHYISCAL_ACTIVITY = 9876
     }
 }
