@@ -12,7 +12,7 @@
         android:theme="@style/Theme.SportTracker">
 
         <service
-            android:name=".data.pedometer.PedometerService"
+            android:name=".data.trackservice.TrackService"
             android:enabled="true"
             android:exported="false" />
 
