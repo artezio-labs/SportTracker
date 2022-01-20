@@ -47,23 +47,23 @@ class TrackService : Service() {
         startForegroundService()
 
         var stepSensor: Sensor? = null
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_COUNTER)) {
-            Log.d(STEPS_TAG, "Step counter sensor is exists")
-            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-            sensorEventListener = object : SensorEventListener {
-                override fun onSensorChanged(event: SensorEvent?) {
-                    event?.let { e ->
-                        stepCount = e.values[0].toInt()
-                        Log.d(STEPS_TAG, "Steps: $stepCount")
-                    }
-                }
-
-                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-                    // это нам не нужно
-                }
-
-            }
-        } else if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) {
+//        if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_COUNTER)) {
+//            Log.d(STEPS_TAG, "Step counter sensor is exists")
+//            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+//            sensorEventListener = object : SensorEventListener {
+//                override fun onSensorChanged(event: SensorEvent?) {
+//                    event?.let { e ->
+//                        stepCount = e.values[0].toInt()
+//                        Log.d(STEPS_TAG, "Steps: $stepCount")
+//                    }
+//                }
+//
+//                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+//                    // это нам не нужно
+//                }
+//
+//            }
+//        } else if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) {
             Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
             stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             val stepDetector = StepDetector(object : StepDetector.StepListener {
@@ -83,7 +83,7 @@ class TrackService : Service() {
 
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
             }
-        }
+//        }
         if (stepSensor != null) {
             val register = sensorManager.registerListener(
                 sensorEventListener,
