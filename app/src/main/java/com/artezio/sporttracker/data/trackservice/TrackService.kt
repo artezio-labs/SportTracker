@@ -1,6 +1,5 @@
 package com.artezio.sporttracker.data.trackservice
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -8,25 +7,21 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
+import android.hardware.*
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import com.artezio.sporttracker.R
+import com.artezio.sporttracker.data.trackservice.pedometer.StepDetector
 import com.artezio.sporttracker.presentation.MainActivity
 
 // сервис для шагомера
 // но возможно здесь же буду делать всё остальное
 // надо над этим подумать
-class TrackService : Service() {
+class TrackService : Service(), SensorEventListener {
 
     private val notificationManager: NotificationManager by lazy {
         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -47,28 +42,30 @@ class TrackService : Service() {
         startForegroundService()
 
         var stepSensor: Sensor? = null
-//        if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_COUNTER)) {
-//            Log.d(STEPS_TAG, "Step counter sensor is exists")
-//            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-//            sensorEventListener = object : SensorEventListener {
-//                override fun onSensorChanged(event: SensorEvent?) {
-//                    event?.let { e ->
-//                        stepCount = e.values[0].toInt()
-//                        Log.d(STEPS_TAG, "Steps: $stepCount")
-//                    }
-//                }
-//
-//                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-//                    // это нам не нужно
-//                }
-//
-//            }
-//        } else if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_DETECTOR)) {
+            Log.d(STEPS_TAG, "Step detector sensor is exists")
+            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+            sensorEventListener = object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent?) {
+                    if (event?.sensor?.type == Sensor.TYPE_STEP_DETECTOR) {
+                        stepCount += 1
+                        passData(stepCount)
+                        Log.d(STEPS_TAG, "Steps: $stepCount")
+                    }
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+                    // это нам не нужно
+                }
+
+            }
+        } else if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) {
             Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
             stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             val stepDetector = StepDetector(object : StepDetector.StepListener {
                 override fun step(timeNs: Long) {
                     stepCount += 1
+                    passData(stepCount)
                     Log.d(STEPS_TAG, "Steps: $stepCount")
                 }
             })
@@ -83,12 +80,12 @@ class TrackService : Service() {
 
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
             }
-//        }
+        }
         if (stepSensor != null) {
             val register = sensorManager.registerListener(
                 sensorEventListener,
                 stepSensor,
-                SensorManager.SENSOR_DELAY_FASTEST
+                SensorManager.SENSOR_DELAY_NORMAL
             )
             Log.d(STEPS_TAG, "Is listener registered: $register")
         } else {
@@ -98,6 +95,14 @@ class TrackService : Service() {
 
     override fun onBind(intent: Intent): IBinder? = null
     override fun onUnbind(intent: Intent?): Boolean = super.onUnbind(intent)
+
+    private fun passData(steps: Int) {
+        val intent = Intent().apply {
+            putExtra("steps", steps)
+            action = "STEPS_FILTER"
+        }
+        sendBroadcast(intent)
+    }
 
 
     private fun startForegroundService() {
@@ -145,5 +150,15 @@ class TrackService : Service() {
         private const val STEPS_TAG = "STEPS_TAG"
         private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
         private const val PHYISCAL_ACTIVITY = 9876
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        when(event?.sensor?.type) {
+
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        TODO("Not yet implemented")
     }
 }

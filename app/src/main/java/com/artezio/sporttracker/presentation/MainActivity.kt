@@ -1,8 +1,10 @@
 package com.artezio.sporttracker.presentation
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -27,6 +29,14 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
+    private var data: Int? = null
+
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            data = intent?.getIntExtra("steps", -1)
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,11 +44,23 @@ class MainActivity : AppCompatActivity() {
 
         requestPermissions()
 
+        binding.textViewSteps.setText("$data")
 
         binding.startStepCounter.setOnClickListener {
             val intent = Intent(this, TrackService::class.java)
             startService(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter("STEPS_FILTER")
+        registerReceiver(receiver, filter)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(receiver)
     }
 
     private fun requestPermissions() {

@@ -1,4 +1,4 @@
-package com.artezio.sporttracker.data.trackservice
+package com.artezio.sporttracker.data.trackservice.pedometer
 
 import kotlin.math.min
 import kotlin.math.sqrt
