@@ -1,18 +1,25 @@
 package com.artezio.sporttracker.domain.model
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "events"
+    tableName = "events",
+    foreignKeys = [
+        ForeignKey(
+            entity = User::class,
+            parentColumns = arrayOf("userId"),
+            childColumns = arrayOf("sportsmanId"),
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 data class Event(
     val name: String,
-    @ColumnInfo(name = "start_date")
     val startDate: Long,
-    @ColumnInfo(name = "end_date")
-    val endDate: Long
+    val endDate: Long,
+    val sportsmanId: Long
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0

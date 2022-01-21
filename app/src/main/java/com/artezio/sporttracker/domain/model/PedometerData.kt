@@ -5,7 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "location_data",
+    tableName = "pedometer_data",
     foreignKeys = [
         ForeignKey(
             entity = Event::class,
@@ -15,15 +15,11 @@ import androidx.room.PrimaryKey
         )
     ]
 )
-data class LocationPointData(
-    val latitude: Double,
-    val longitude: Double,
-    val altitude: Double,
-    val accuracy: Double,
-    val speed: Double,
+data class PedometerData(
+    val stepCount: Int,
     val time: Long,
-    val eventId: Long,
+    val eventId: Long
 ) {
     @PrimaryKey(autoGenerate = true)
-    var pointId: Long = 0
+    var id: Long = 0
 }

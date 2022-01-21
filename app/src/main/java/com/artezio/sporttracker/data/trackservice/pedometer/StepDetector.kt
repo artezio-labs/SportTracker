@@ -3,7 +3,8 @@ package com.artezio.sporttracker.data.trackservice.pedometer
 import kotlin.math.min
 import kotlin.math.sqrt
 
-// Класс, на тот случай, когда нет сенсора в телефоне
+// Класс, на тот случай, когда нет степ-сенсора в телефоне
+// Использует акселлерометр, который есть в каждом смартфоне
 class StepDetector(
     private val listener: StepListener
 ) {

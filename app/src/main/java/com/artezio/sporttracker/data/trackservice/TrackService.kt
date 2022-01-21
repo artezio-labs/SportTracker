@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.*
+import android.location.LocationRequest
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -17,11 +18,12 @@ import androidx.core.app.NotificationCompat
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.pedometer.StepDetector
 import com.artezio.sporttracker.presentation.MainActivity
+import com.google.android.gms.location.LocationListener
 
 // сервис для шагомера
 // но возможно здесь же буду делать всё остальное
 // надо над этим подумать
-class TrackService : Service(), SensorEventListener {
+class TrackService : Service() {
 
     private val notificationManager: NotificationManager by lazy {
         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -34,12 +36,16 @@ class TrackService : Service(), SensorEventListener {
     private var notificationBuilder: NotificationCompat.Builder? = null
     private var sensorEventListener: SensorEventListener? = null
 
+    private var configurationChange = false
+    private var serviceRunningInForeground = false
+
     private var stepCount: Int = 0
 
     override fun onCreate() {
         super.onCreate()
 
         startForegroundService()
+
 
         var stepSensor: Sensor? = null
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_DETECTOR)) {
@@ -150,15 +156,5 @@ class TrackService : Service(), SensorEventListener {
         private const val STEPS_TAG = "STEPS_TAG"
         private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
         private const val PHYISCAL_ACTIVITY = 9876
-    }
-
-    override fun onSensorChanged(event: SensorEvent?) {
-        when(event?.sensor?.type) {
-
-        }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        TODO("Not yet implemented")
     }
 }
