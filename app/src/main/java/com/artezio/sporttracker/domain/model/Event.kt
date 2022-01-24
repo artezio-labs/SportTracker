@@ -3,6 +3,7 @@ package com.artezio.sporttracker.domain.model
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import java.util.*
 
 @Entity(
     tableName = "events",
@@ -21,6 +22,6 @@ data class Event(
     val endDate: Long,
     val sportsmanId: Long
 ) {
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
+    @PrimaryKey
+    var id: String = UUID.randomUUID().toString()
 }

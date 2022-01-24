@@ -2,6 +2,7 @@ package com.artezio.sporttracker.domain.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.*
 
 @Entity(tableName = "track_data")
 data class TrackData(
@@ -12,6 +13,6 @@ data class TrackData(
     val notSentPoints: Int,
     val state: Int
 ) {
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
+    @PrimaryKey
+    var id: String = UUID.randomUUID().toString()
 }

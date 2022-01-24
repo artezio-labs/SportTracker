@@ -20,15 +20,27 @@ import androidx.core.app.NotificationCompat
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.pedometer.StepDetector
 import com.artezio.sporttracker.domain.model.LocationPointData
+import com.artezio.sporttracker.domain.usecases.InsertLocationDataUseCase
+import com.artezio.sporttracker.domain.usecases.InsertPedometerDataUseCase
 import com.artezio.sporttracker.presentation.MainActivity
 import com.artezio.sporttracker.util.hasLocationPermission
 import com.artezio.sporttracker.util.millisecondsToDateFormat
 import com.google.android.gms.location.*
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // сервис для шагомера
 // но возможно здесь же буду делать всё остальное
 // надо над этим подумать
+@AndroidEntryPoint
 class TrackService : Service() {
+
+    private val serviceJob = Job()
+    private val serviceIoScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
     private val notificationManager: NotificationManager by lazy {
         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -48,6 +60,12 @@ class TrackService : Service() {
     private var configurationChange = false
     private var serviceRunningInForeground = false
 
+    @Inject
+    lateinit var insertLocationDataUseCase: InsertLocationDataUseCase
+
+    @Inject
+    lateinit var insertPedometerDataUseCase: InsertPedometerDataUseCase
+
     private val localBinder = LocalBinder()
 
     private var locationCallback: LocationCallback = object: LocationCallback() {
@@ -65,12 +83,12 @@ class TrackService : Service() {
             )
             Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
             // todo сохранять в бд
-
+            serviceIoScope.launch {
+                insertLocationDataUseCase.execute(locationPoint)
+            }
         }
     }
     private var locationRequest: LocationRequest? = null
-
-    private var currentLocation: Location? = null
 
     private var stepCount: Int = 0
 

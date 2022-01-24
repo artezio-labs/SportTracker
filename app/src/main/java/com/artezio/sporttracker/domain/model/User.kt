@@ -1,12 +1,13 @@
 package com.artezio.sporttracker.domain.model
 
 import androidx.room.*
+import java.util.*
 
 @Entity(tableName = "users")
 data class User(
     val name: String,
     val age: String,
 ) {
-    @PrimaryKey(autoGenerate = true)
-    var userId: Int = 0
+    @PrimaryKey
+    var userId: String = UUID.randomUUID().toString()
 }

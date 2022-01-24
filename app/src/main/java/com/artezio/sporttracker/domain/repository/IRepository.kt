@@ -7,13 +7,12 @@ import com.artezio.sporttracker.domain.model.User
 
 interface IRepository {
 
-    interface TrackStorageRepository {
-        suspend fun addUser(user: User)
-        suspend fun addEvent(event: Event)
+    interface IPedometerRepository {
         suspend fun addPedometerData(pedometerData: PedometerData)
+    }
+
+    interface ILocationRepository {
         suspend fun addLocationPointData(locationPointData: LocationPointData)
-
-
     }
 
     interface TrackNetworkRepository {
