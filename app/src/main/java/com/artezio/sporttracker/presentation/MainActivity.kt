@@ -20,7 +20,9 @@ import androidx.core.content.ContextCompat
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.ActivityMainBinding
+import com.artezio.sporttracker.util.hasLocationPermission
 import dagger.hilt.android.AndroidEntryPoint
+import pub.devrel.easypermissions.EasyPermissions
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -42,7 +44,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        requestPermissions()
+        requestLocationPermissions()
+        requestPedometerPermissions()
 
         binding.textViewSteps.setText("$data")
 
@@ -63,20 +66,35 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(receiver)
     }
 
-    private fun requestPermissions() {
-        if (ContextCompat.checkSelfPermission(
+    private fun requestPedometerPermissions() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            EasyPermissions.requestPermissions(
                 this,
+                "You need to accept activity recognition permissions to use this app.",
+                4836,
                 Manifest.permission.ACTIVITY_RECOGNITION
-            ) == PackageManager.PERMISSION_DENIED
-        ) {
-            //ask for permission
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
-                    9465
-                )
-            };
+            )
+        }
+    }
+
+    private fun requestLocationPermissions() {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            EasyPermissions.requestPermissions(
+                this,
+                "You need to accept location permissions to use this app.",
+                9465,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        } else {
+            EasyPermissions.requestPermissions(
+                this,
+                "You need to accept location permissions to use this app.",
+                9465,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            )
         }
     }
 }

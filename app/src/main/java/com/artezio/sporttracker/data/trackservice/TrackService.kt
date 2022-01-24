@@ -8,17 +8,22 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.*
-import android.location.LocationRequest
+import android.location.Location
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.pedometer.StepDetector
+import com.artezio.sporttracker.domain.model.LocationPointData
 import com.artezio.sporttracker.presentation.MainActivity
-import com.google.android.gms.location.LocationListener
+import com.artezio.sporttracker.util.hasLocationPermission
+import com.artezio.sporttracker.util.millisecondsToDateFormat
+import com.google.android.gms.location.*
 
 // сервис для шагомера
 // но возможно здесь же буду делать всё остальное
@@ -33,11 +38,39 @@ class TrackService : Service() {
         getSystemService(Context.SENSOR_SERVICE) as SensorManager
     }
 
+    private val fusedLocationProviderClient: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(this)
+    }
+
     private var notificationBuilder: NotificationCompat.Builder? = null
     private var sensorEventListener: SensorEventListener? = null
 
     private var configurationChange = false
     private var serviceRunningInForeground = false
+
+    private val localBinder = LocalBinder()
+
+    private var locationCallback: LocationCallback = object: LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            super.onLocationResult(result)
+            val lastLocation = result.lastLocation
+            val locationPoint = LocationPointData(
+                lastLocation.latitude,
+                lastLocation.longitude,
+                lastLocation.altitude,
+                lastLocation.accuracy,
+                lastLocation.speed,
+                System.currentTimeMillis(),
+                1234
+            )
+            Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
+            // todo сохранять в бд
+
+        }
+    }
+    private var locationRequest: LocationRequest? = null
+
+    private var currentLocation: Location? = null
 
     private var stepCount: Int = 0
 
@@ -46,17 +79,40 @@ class TrackService : Service() {
 
         startForegroundService()
 
+    }
 
+    private fun subscribeToLocationUpdates() {
+        if (hasLocationPermission(this)) {
+            Log.d(STEPS_TAG, "Permissions granted")
+            locationRequest = LocationRequest.create().apply {
+                // на адроид 8+, если приложение не в foreground'е, интервал может быть тольше, чем заданное значение
+                interval = 3000L
+                fastestInterval = 1000L
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            }
+            try {
+                fusedLocationProviderClient.requestLocationUpdates(
+                    locationRequest!!, locationCallback, Looper.getMainLooper()
+                )
+            } catch (ex: SecurityException) {
+                Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
+            }
+        }
+    }
+    private fun runPedometer() {
         var stepSensor: Sensor? = null
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_DETECTOR)) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_COUNTER)) {
             Log.d(STEPS_TAG, "Step detector sensor is exists")
-            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
             sensorEventListener = object : SensorEventListener {
                 override fun onSensorChanged(event: SensorEvent?) {
                     if (event?.sensor?.type == Sensor.TYPE_STEP_DETECTOR) {
                         stepCount += 1
                         passData(stepCount)
-                        Log.d(STEPS_TAG, "Steps: $stepCount")
+                        Log.d(
+                            STEPS_TAG,
+                            "Steps: $stepCount, time: ${millisecondsToDateFormat(System.currentTimeMillis())}"
+                        )
                     }
                 }
 
@@ -99,8 +155,22 @@ class TrackService : Service() {
         }
     }
 
-    override fun onBind(intent: Intent): IBinder? = null
+    override fun onBind(intent: Intent): IBinder {
+        Log.d(STEPS_TAG, "onBind: ")
+
+        stopForeground(true)
+        serviceRunningInForeground = false
+        configurationChange = false
+        return localBinder
+    }
+
     override fun onUnbind(intent: Intent?): Boolean = super.onUnbind(intent)
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        subscribeToLocationUpdates()
+        runPedometer()
+        return START_NOT_STICKY
+    }
 
     private fun passData(steps: Int) {
         val intent = Intent().apply {
@@ -109,7 +179,6 @@ class TrackService : Service() {
         }
         sendBroadcast(intent)
     }
-
 
     private fun startForegroundService() {
         val notificationIntent = Intent(this, MainActivity::class.java)
@@ -147,6 +216,12 @@ class TrackService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         sensorManager.unregisterListener(sensorEventListener)
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+    }
+
+    inner class LocalBinder : Binder() {
+        internal val service: TrackService
+            get() = this@TrackService
     }
 
     companion object {

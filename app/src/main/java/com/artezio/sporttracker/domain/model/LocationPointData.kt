@@ -19,8 +19,8 @@ data class LocationPointData(
     val latitude: Double,
     val longitude: Double,
     val altitude: Double,
-    val accuracy: Double,
-    val speed: Double,
+    val accuracy: Float,
+    val speed: Float,
     val time: Long,
     val eventId: Long,
 ) {
