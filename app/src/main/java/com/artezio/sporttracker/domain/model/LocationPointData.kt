@@ -7,14 +7,6 @@ import java.util.*
 
 @Entity(
     tableName = "location_data",
-    foreignKeys = [
-        ForeignKey(
-            entity = Event::class,
-            parentColumns = ["id"],
-            childColumns = ["eventId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
 )
 data class LocationPointData(
     val latitude: Double,
@@ -25,6 +17,6 @@ data class LocationPointData(
     val time: Long,
     val eventId: Long,
 ) {
-    @PrimaryKey
-    var pointId: String = UUID.randomUUID().toString()
+    @PrimaryKey(autoGenerate = true)
+    var pointId: Long = 0
 }

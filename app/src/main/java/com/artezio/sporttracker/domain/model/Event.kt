@@ -1,20 +1,10 @@
 package com.artezio.sporttracker.domain.model
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
+import androidx.room.*
 import java.util.*
 
 @Entity(
     tableName = "events",
-    foreignKeys = [
-        ForeignKey(
-            entity = User::class,
-            parentColumns = arrayOf("userId"),
-            childColumns = arrayOf("sportsmanId"),
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
 )
 data class Event(
     val name: String,
@@ -22,6 +12,29 @@ data class Event(
     val endDate: Long,
     val sportsmanId: Long
 ) {
-    @PrimaryKey
-    var id: String = UUID.randomUUID().toString()
+    @PrimaryKey(autoGenerate = true)
+    var id: Long = 0
 }
+
+data class EventWithData(
+    @Embedded val event: Event,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "eventId",
+        entity = LocationPointData::class
+    )
+    val locationDataList: List<LocationPointData>,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "eventId",
+        entity = PedometerData::class
+    )
+    val pedometerDataList: List<PedometerData>,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "eventId",
+        entity = TrackData::class
+    )
+    val trackDataList: List<TrackData>
+
+)

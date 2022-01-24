@@ -13,6 +13,6 @@ data class TrackData(
     val notSentPoints: Int,
     val state: Int
 ) {
-    @PrimaryKey
-    var id: String = UUID.randomUUID().toString()
+    @PrimaryKey(autoGenerate = true)
+    var id: Long = 0
 }

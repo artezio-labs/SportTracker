@@ -8,6 +8,15 @@ data class User(
     val name: String,
     val age: String,
 ) {
-    @PrimaryKey
-    var userId: String = UUID.randomUUID().toString()
+    @PrimaryKey(autoGenerate = true)
+    var userId: Long = 0
 }
+
+data class UserWithEvents(
+    @Embedded val user: User,
+    @Relation(
+        parentColumn = "userId",
+        entityColumn = "sportsmanId"
+    )
+    val events: List<Event>
+)
