@@ -20,6 +20,7 @@ import androidx.core.app.NotificationCompat
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.pedometer.StepDetector
 import com.artezio.sporttracker.domain.model.LocationPointData
+import com.artezio.sporttracker.domain.model.PedometerData
 import com.artezio.sporttracker.domain.usecases.InsertLocationDataUseCase
 import com.artezio.sporttracker.domain.usecases.InsertPedometerDataUseCase
 import com.artezio.sporttracker.presentation.MainActivity
@@ -127,10 +128,12 @@ class TrackService : Service() {
                     if (event?.sensor?.type == Sensor.TYPE_STEP_DETECTOR) {
                         stepCount += 1
                         passData(stepCount)
-                        Log.d(
-                            STEPS_TAG,
-                            "Steps: $stepCount, time: ${millisecondsToDateFormat(System.currentTimeMillis())}"
-                        )
+                        serviceIoScope.launch {
+                            insertPedometerDataUseCase.execute(
+                                PedometerData(stepCount, System.currentTimeMillis(), 0)
+                            )
+                        }
+
                     }
                 }
 
@@ -147,6 +150,11 @@ class TrackService : Service() {
                     stepCount += 1
                     passData(stepCount)
                     Log.d(STEPS_TAG, "Steps: $stepCount")
+                    serviceIoScope.launch {
+                        insertPedometerDataUseCase.execute(
+                            PedometerData(stepCount, System.currentTimeMillis(), 0)
+                        )
+                    }
                 }
             })
             sensorEventListener = object : SensorEventListener {
