@@ -10,6 +10,7 @@ data class Event(
     val name: String,
     val startDate: Long,
     val endDate: Long,
+    var status: EventStatus,
     val sportsmanId: Long
 ) {
     @PrimaryKey(autoGenerate = true)
@@ -36,5 +37,11 @@ data class EventWithData(
         entity = TrackData::class
     )
     val trackDataList: List<TrackData>
-
 )
+
+enum class EventStatus {
+    PLANNED,
+    ACTIVE,
+    COMPLETED
+}
+
