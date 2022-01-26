@@ -25,3 +25,6 @@ fun hasLocationPermission(context: Context) =
             Manifest.permission.ACCESS_BACKGROUND_LOCATION
         )
     }
+
+const val START_FOREGROUND_SERVICE = "START_FOREGROUND"
+const val STOP_FOREGROUND_SERVICE = "STOP_FOREGROUND"

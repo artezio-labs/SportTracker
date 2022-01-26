@@ -30,6 +30,11 @@ class AccelerometerStepCounter {
             calculatedList.add(data)
         }
         var highPoints = findHighPoints()
+        highPoints = removeNearHighPoints(highPoints)
+        examineStepTypeAndSendResponse(highPoints)
+
+        calculatedList.clear()
+        newAccelerationDataList.clear()
     }
 
     private fun calculateValueAndTime(data: AccelerationData): AccelerationData {
@@ -59,7 +64,6 @@ class AccelerometerStepCounter {
                 aboveWalkingThresholdList.add(calculatedDataSet)
                 wasAboveThreshold = true
             } else {
-                // erst, wenn es einen Wert unter WALKINGTHRESHOLD gibt
                 if (wasAboveThreshold && aboveWalkingThresholdList.size > 0) {
                     Collections.sort(aboveWalkingThresholdList, AccelerationDataSorter())
                     highPoints.add(aboveWalkingThresholdList[aboveWalkingThresholdList.size - 1])
