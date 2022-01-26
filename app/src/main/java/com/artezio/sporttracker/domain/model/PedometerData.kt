@@ -10,10 +10,7 @@ import java.util.*
     tableName = "pedometer_data",
 )
 data class PedometerData(
-    val amountStepCount: Int,
-    val walkingStepCount: Int,
-    val joggingStepCount: Int,
-    val runningStepCount: Int,
+    val stepCount: Int,
     val time: Long,
     val eventId: Long
 ) {

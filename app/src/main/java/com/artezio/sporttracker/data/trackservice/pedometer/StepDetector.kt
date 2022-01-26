@@ -83,7 +83,7 @@ class StepDetector(
     companion object {
         private const val ACCEL_RING_SIZE = 50
         private const val VEL_RING_SIZE = 10
-        private const val STEP_THRESHOLD = 50f
+        private const val STEP_THRESHOLD = 15f
         private const val STEP_DELAY_NS = 250000000
 
     }

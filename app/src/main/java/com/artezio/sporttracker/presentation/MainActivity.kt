@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.stopStepCounter.setOnClickListener {
             val intent = Intent(this, TrackService::class.java).apply {
-                STOP_FOREGROUND_SERVICE
+                action = STOP_FOREGROUND_SERVICE
             }
             stopService(intent)
         }

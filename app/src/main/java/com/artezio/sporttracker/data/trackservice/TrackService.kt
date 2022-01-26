@@ -41,7 +41,7 @@ import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class TrackService : Service(), SensorEventListener, AccelerometerStepCounter.StepListener {
+class TrackService : Service() {
 
     private val serviceJob = Job()
     private val serviceIoScope = CoroutineScope(Dispatchers.IO + serviceJob)
@@ -94,10 +94,7 @@ class TrackService : Service(), SensorEventListener, AccelerometerStepCounter.St
     }
     private var locationRequest: LocationRequest? = null
 
-    private var amountStepCount: Int = 0
-    private var joggingStepCount: Int = 0
-    private var walkingStepCount: Int = 0
-    private var runningStepCount: Int = 0
+    private var stepCount = 0
 
     private var stepDetector: AccelerometerStepCounter = AccelerometerStepCounter()
 
@@ -106,7 +103,6 @@ class TrackService : Service(), SensorEventListener, AccelerometerStepCounter.St
     override fun onCreate() {
         super.onCreate()
 
-        stepDetector.registerStepListener(this)
     }
 
     private fun subscribeToLocationUpdates() {
@@ -153,42 +149,35 @@ class TrackService : Service(), SensorEventListener, AccelerometerStepCounter.St
 //
 //            }
 //        } else if (packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) {
-//            Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
-//            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-//            val stepDetector = StepDetector(object : StepDetector.StepListener {
-//                override fun step(timeNs: Long) {
-//                    stepCount += 1
-//                    passData(stepCount)
-//                    Log.d(STEPS_TAG, "Steps: $stepCount")
-//                    serviceIoScope.launch {
-//                        insertPedometerDataUseCase.execute(
-//                            PedometerData(stepCount, System.currentTimeMillis(), 0)
-//                        )
-//                    }
-//                }
-//            })
-//            sensorEventListener = object : SensorEventListener {
-//                override fun onSensorChanged(event: SensorEvent?) {
-//                    if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-//                        stepDetector.updateAccel(
-//                            event.timestamp, event.values[0], event.values[1], event.values[2]
-//                        )
-//                    }
-//                }
-//
-//                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-//            }
-//        }
-//        if (stepSensor != null) {
-//            val register = sensorManager.registerListener(
-//                sensorEventListener,
-//                stepSensor,
-//                SensorManager.SENSOR_DELAY_NORMAL
-//            )
-//            Log.d(STEPS_TAG, "Is listener registered: $register")
-//        } else {
-//            Toast.makeText(this, NO_SENSOR, Toast.LENGTH_SHORT).show()
-//        }
+        Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
+        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val stepDetector = StepDetector(object : StepDetector.StepListener {
+            override fun step(timeNs: Long) {
+                stepCount += 1
+                Log.d(STEPS_TAG, "Steps: $stepCount")
+            }
+        })
+        sensorEventListener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) {
+                if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+                    stepDetector.updateAccel(
+                        event.timestamp, event.values[0], event.values[1], event.values[2]
+                    )
+                }
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        if (stepSensor != null) {
+            val register = sensorManager.registerListener(
+                sensorEventListener,
+                stepSensor,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+            Log.d(STEPS_TAG, "Is listener registered: $register")
+        } else {
+            Toast.makeText(this, NO_SENSOR, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onBind(intent: Intent): IBinder {
@@ -208,18 +197,7 @@ class TrackService : Service(), SensorEventListener, AccelerometerStepCounter.St
                 startForegroundService()
             }
             STOP_FOREGROUND_SERVICE -> {
-                serviceIoScope.launch {
-                    insertPedometerDataUseCase.execute(
-                        PedometerData(
-                            amountStepCount,
-                            walkingStepCount,
-                            joggingStepCount,
-                            runningStepCount,
-                            System.currentTimeMillis(),
-                            0
-                        )
-                    )
-                }
+                Log.d(STEPS_TAG, "Service stopped!")
                 stopForeground(true)
                 stopSelfResult(startId)
             }
@@ -264,7 +242,17 @@ class TrackService : Service(), SensorEventListener, AccelerometerStepCounter.St
 
     override fun onDestroy() {
         super.onDestroy()
-        sensorManager.unregisterListener(this)
+        Log.d(STEPS_TAG, "onDestroy: ")
+        serviceIoScope.launch {
+            insertPedometerDataUseCase.execute(
+                PedometerData(
+                    stepCount,
+                    System.currentTimeMillis(),
+                    0
+                )
+            )
+        }
+        sensorManager.unregisterListener(sensorEventListener)
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 
@@ -280,32 +268,5 @@ class TrackService : Service(), SensorEventListener, AccelerometerStepCounter.St
         private const val STEPS_TAG = "STEPS_TAG"
         private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
         private const val PHYISCAL_ACTIVITY = 9876
-    }
-
-    override fun onSensorChanged(event: SensorEvent) {
-        val data = AccelerationData(
-            x = event.values[0],
-            y = event.values[1],
-            z = event.values[2],
-            time = event.timestamp
-        )
-        accelerationDataList.add(data)
-        stepDetector.addAccelerationData(data)
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-    }
-
-    override fun step(data: AccelerationData, stepType: StepType) {
-        amountStepCount += 1
-        when (stepType) {
-            StepType.WALKING -> walkingStepCount += 1
-            StepType.JOGGING -> joggingStepCount += 1
-            StepType.RUNNING -> runningStepCount += 1
-        }
-        Log.d(STEPS_TAG, "amountStepCount: $amountStepCount")
-        Log.d(STEPS_TAG, "walkingStepCount: $walkingStepCount")
-        Log.d(STEPS_TAG, "joggingStepCount: $joggingStepCount")
-        Log.d(STEPS_TAG, "runningStepCount: $runningStepCount")
     }
 }

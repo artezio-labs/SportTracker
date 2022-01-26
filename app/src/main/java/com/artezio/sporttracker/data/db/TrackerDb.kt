@@ -7,7 +7,7 @@ import com.artezio.sporttracker.domain.model.*
 
 @Database(
     entities = [TrackData::class, LocationPointData::class, User::class, Event::class, PedometerData::class],
-    version = 2
+    version = 3
 )
 @TypeConverters(Converters::class)
 abstract class TrackerDb : RoomDatabase() {
