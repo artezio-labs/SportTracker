@@ -1,7 +1,10 @@
 package com.artezio.sporttracker.di
 
+import com.artezio.sporttracker.data.repository.EventsRepository
 import com.artezio.sporttracker.data.repository.LocationRepository
 import com.artezio.sporttracker.data.repository.PedometerRepository
+import com.artezio.sporttracker.domain.usecases.GetAllEventsWithDataUseCase
+import com.artezio.sporttracker.domain.usecases.InsertEventUseCase
 import com.artezio.sporttracker.domain.usecases.InsertLocationDataUseCase
 import com.artezio.sporttracker.domain.usecases.InsertPedometerDataUseCase
 import dagger.Module
@@ -16,8 +19,16 @@ object PresentationModule {
     @Provides
     fun provideInsertLocationDataUseCase(repository: LocationRepository) =
         InsertLocationDataUseCase(repository)
+
     @Provides
-    fun providesInsertPedometerDataUseCase(repository: PedometerRepository) =
+    fun provideInsertPedometerDataUseCase(repository: PedometerRepository) =
         InsertPedometerDataUseCase(repository)
 
+    @Provides
+    fun provideInsertEventUseCase(repository: EventsRepository) =
+        InsertEventUseCase(repository)
+
+    @Provides
+    fun provideGetAllEventsWithDataUseCase(repository: EventsRepository) =
+        GetAllEventsWithDataUseCase(repository)
 }

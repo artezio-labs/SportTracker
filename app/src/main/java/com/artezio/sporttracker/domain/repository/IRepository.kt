@@ -1,9 +1,7 @@
 package com.artezio.sporttracker.domain.repository
 
-import com.artezio.sporttracker.domain.model.Event
-import com.artezio.sporttracker.domain.model.LocationPointData
-import com.artezio.sporttracker.domain.model.PedometerData
-import com.artezio.sporttracker.domain.model.User
+import com.artezio.sporttracker.domain.model.*
+import kotlinx.coroutines.flow.Flow
 
 interface IRepository {
 
@@ -13,6 +11,11 @@ interface IRepository {
 
     interface ILocationRepository {
         suspend fun addLocationPointData(locationPointData: LocationPointData)
+    }
+
+    interface IEventsRepository {
+        suspend fun addEvent(event: Event)
+        fun getAllEvents(): Flow<List<EventWithData>>
     }
 
     interface TrackNetworkRepository {

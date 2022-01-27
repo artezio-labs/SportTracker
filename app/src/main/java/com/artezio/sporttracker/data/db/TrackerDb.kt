@@ -13,4 +13,5 @@ import com.artezio.sporttracker.domain.model.*
 abstract class TrackerDb : RoomDatabase() {
     abstract fun pedometerDao(): PedometerDao
     abstract fun locationDao(): LocationDao
+    abstract fun eventsDao(): EventsDao
 }

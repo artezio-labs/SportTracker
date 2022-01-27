@@ -2,9 +2,11 @@ package com.artezio.sporttracker.di
 
 import android.content.Context
 import androidx.room.Room
+import com.artezio.sporttracker.data.db.EventsDao
 import com.artezio.sporttracker.data.db.LocationDao
 import com.artezio.sporttracker.data.db.PedometerDao
 import com.artezio.sporttracker.data.db.TrackerDb
+import com.artezio.sporttracker.data.repository.EventsRepository
 import com.artezio.sporttracker.data.repository.LocationRepository
 import com.artezio.sporttracker.data.repository.PedometerRepository
 import dagger.Module
@@ -38,10 +40,17 @@ object StorageModule {
         db.locationDao()
 
     @Provides
+    fun provideEventsDao(db: TrackerDb) =
+        db.eventsDao()
+
+    @Provides
     fun providePedometerRepository(dao: PedometerDao) = PedometerRepository(dao)
 
     @Provides
-    fun provideLocationUseCase(dao: LocationDao) = LocationRepository(dao)
+    fun provideEventsRepository(dao: EventsDao) = EventsRepository(dao)
+
+    @Provides
+    fun provideLocationRepository(dao: LocationDao) = LocationRepository(dao)
 
 
 }
