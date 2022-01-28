@@ -9,7 +9,7 @@ import java.util.*
 data class Event(
     val name: String,
     val startDate: Long,
-    val endDate: Long,
+    var endDate: Long? = null,
     var status: EventStatus,
     val sportsmanId: Long
 ) {
