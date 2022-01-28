@@ -102,7 +102,6 @@ class TrackService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-
     }
 
     private fun subscribeToLocationUpdates() {
