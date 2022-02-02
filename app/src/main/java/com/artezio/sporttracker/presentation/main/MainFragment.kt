@@ -1,32 +1,74 @@
 package com.artezio.sporttracker.presentation.main
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.artezio.sporttracker.R
+import com.artezio.sporttracker.databinding.EventShowAndUpdateDialogLayoutBinding
 import com.artezio.sporttracker.databinding.FragmentMainBinding
+import com.artezio.sporttracker.presentation.BaseFragment
+import com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment
+import com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragmentArgs
+import com.artezio.sporttracker.presentation.main.recycler.EventsRecyclerAdapter
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
-class MainFragment : Fragment() {
+@AndroidEntryPoint
+class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
 
-    private var _binding: FragmentMainBinding? = null
-    private val binding get() = _binding!!
+    private val viewModel: MainViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private val eventsAdapter: EventsRecyclerAdapter by lazy(LazyThreadSafetyMode.NONE) {
+        EventsRecyclerAdapter(this)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentMainBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        Log.d("events", "onViewCreated: ")
+
+        binding.eventsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = eventsAdapter
+        }
+
+        binding.fabAddEvent.setOnClickListener {
+            val args = bundleOf("eventId" to -1L)
+            val fragment = EventCreateAndUpdateFragment().apply {
+                arguments = args
+            }
+            parentFragmentManager.beginTransaction().apply {
+                setReorderingAllowed(true)
+                addToBackStack(null)
+                replace(R.id.fragmentContainerView, fragment)
+                commit()
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.eventsWithDataFlow.collect {
+                    eventsAdapter.list = viewModel.buildListOfEvents(it)
+                }
+            }
+        }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
-    }
+    override fun initBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMainBinding =
+        FragmentMainBinding.inflate(inflater, container, false)
+
+}
+
+interface IFragment {
 }

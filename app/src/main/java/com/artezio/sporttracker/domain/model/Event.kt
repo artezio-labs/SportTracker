@@ -10,7 +10,6 @@ data class Event(
     val name: String,
     val startDate: Long,
     var endDate: Long? = null,
-    var status: EventStatus,
     val sportsmanId: Long
 ) {
     @PrimaryKey(autoGenerate = true)

@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.ActivityMainBinding
+import com.artezio.sporttracker.presentation.main.MainFragment
 import com.artezio.sporttracker.util.START_FOREGROUND_SERVICE
 import com.artezio.sporttracker.util.STOP_FOREGROUND_SERVICE
 import com.artezio.sporttracker.util.hasLocationPermission
@@ -49,21 +50,28 @@ class MainActivity : AppCompatActivity() {
         requestLocationPermissions()
         requestPedometerPermissions()
 
-        binding.textViewSteps.setText("$data")
-
-        binding.startStepCounter.setOnClickListener {
-            val intent = Intent(this, TrackService::class.java).apply {
-                action = START_FOREGROUND_SERVICE
-            }
-            startService(intent)
+        supportFragmentManager.beginTransaction().apply {
+            setReorderingAllowed(true)
+            addToBackStack(null)
+            replace(R.id.fragmentContainerView, MainFragment())
+            commit()
         }
 
-        binding.stopStepCounter.setOnClickListener {
-            val intent = Intent(this, TrackService::class.java).apply {
-                action = STOP_FOREGROUND_SERVICE
-            }
-            stopService(intent)
-        }
+//        binding.textViewSteps.setText("$data")
+//
+//        binding.startStepCounter.setOnClickListener {
+//            val intent = Intent(this, TrackService::class.java).apply {
+//                action = START_FOREGROUND_SERVICE
+//            }
+//            startService(intent)
+//        }
+//
+//        binding.stopStepCounter.setOnClickListener {
+//            val intent = Intent(this, TrackService::class.java).apply {
+//                action = STOP_FOREGROUND_SERVICE
+//            }
+//            stopService(intent)
+//        }
     }
 
     override fun onResume() {

@@ -5,28 +5,27 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.databinding.FragmentStatisticsBinding
+import com.artezio.sporttracker.presentation.BaseFragment
+import com.artezio.sporttracker.presentation.main.MainViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
-class StatisticsFragment : Fragment() {
+@AndroidEntryPoint
+class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
 
-    private var _binding: FragmentStatisticsBinding? = null
-    private val binding get() = _binding!!
+    private val viewModel: StatisticsViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentStatisticsBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
+    override fun initBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentStatisticsBinding {
+        return FragmentStatisticsBinding.inflate(inflater, container, false)
     }
 }
