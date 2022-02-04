@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.event.TrackerFragment">
+    tools:context=".presentation.tracker.TrackerFragment">
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
@@ -24,12 +24,13 @@
             android:layout_height="wrap_content"
             android:src="@android:color/transparent" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textViewFabText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="START"
+            android:background="@drawable/text_view_corner_radius"
             android:textSize="17sp"
             android:elevation="16dp"
             android:textColor="@android:color/white"

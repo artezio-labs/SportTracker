@@ -5,26 +5,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.artezio.sporttracker.R
-import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.ActivityMainBinding
-import com.artezio.sporttracker.presentation.event.TrackerFragment
-import com.artezio.sporttracker.presentation.main.MainFragment
-import com.artezio.sporttracker.util.START_FOREGROUND_SERVICE
-import com.artezio.sporttracker.util.STOP_FOREGROUND_SERVICE
-import com.artezio.sporttracker.util.hasLocationPermission
+import com.artezio.sporttracker.presentation.tracker.TrackerFragment
 import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.EasyPermissions
 

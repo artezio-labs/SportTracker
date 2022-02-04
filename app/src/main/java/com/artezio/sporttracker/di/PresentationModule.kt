@@ -40,4 +40,8 @@ object PresentationModule {
     @Provides
     fun providesGetEventWithDataByIdUseCase(repository: EventsRepository) =
         GetEventWithDataByIdUseCase(repository)
+
+    @Provides
+    fun providesGetAllLocationDataUseCase(repository: LocationRepository) =
+        GetAllLocationDataUseCase(repository)
 }
