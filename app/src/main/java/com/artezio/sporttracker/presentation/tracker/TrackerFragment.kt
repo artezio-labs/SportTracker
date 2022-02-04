@@ -33,9 +33,9 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.locationDataFlow.collect {
-                    Log.d("steps", it.toString())
-                    buildRoute(it)
+                viewModel.locationDataFlow.collect { locations ->
+                    Log.d("steps", locations.toString())
+                    viewModel.buildRoute(locations, googleMap)
                 }
             }
         }
@@ -58,10 +58,5 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
         binding.mapView.getMapAsync(this)
     }
 
-    private fun buildRoute(locations: List<LatLng>) {
-        val lineOptions = PolylineOptions()
-        lineOptions.addAll(locations)
-        googleMap.addPolyline(lineOptions)
-    }
 
 }

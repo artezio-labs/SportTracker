@@ -17,5 +17,10 @@ class TrackerViewModel @Inject constructor(
     val locationDataFlow: Flow<List<LatLng>>
         get() = getAllLocationDataUseCase.execute()
 
+    fun buildRoute(locations: List<LatLng>, googleMap: GoogleMap) {
+        var lineOptions = PolylineOptions()
+        lineOptions = lineOptions.addAll(locations)
+        googleMap.addPolyline(lineOptions)
+    }
 
 }
