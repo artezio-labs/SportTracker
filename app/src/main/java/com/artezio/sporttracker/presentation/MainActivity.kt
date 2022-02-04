@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.ActivityMainBinding
+import com.artezio.sporttracker.presentation.event.TrackerFragment
 import com.artezio.sporttracker.presentation.main.MainFragment
 import com.artezio.sporttracker.util.START_FOREGROUND_SERVICE
 import com.artezio.sporttracker.util.STOP_FOREGROUND_SERVICE
@@ -53,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction().apply {
             setReorderingAllowed(true)
             addToBackStack(null)
-            replace(R.id.fragmentContainerView, MainFragment())
+            replace(R.id.fragmentContainerView, TrackerFragment())
             commit()
         }
 

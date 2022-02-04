@@ -10,29 +10,19 @@
         android:name="com.artezio.sporttracker.presentation.main.MainFragment"
         android:label="fragment_main"
         tools:layout="@layout/fragment_main" >
-        <action
-            android:id="@+id/action_mainFragment_to_statisticsFragment"
-            app:destination="@id/statisticsFragment" />
-        <action
-            android:id="@+id/action_mainFragment_to_eventCreateAndUpdateFragment"
-            app:destination="@id/eventCreateAndUpdateFragment" />
+
     </fragment>
     <fragment
         android:id="@+id/statisticsFragment"
         android:name="com.artezio.sporttracker.presentation.statistics.StatisticsFragment"
         android:label="fragment_statistics"
         tools:layout="@layout/fragment_statistics" >
-        <action
-            android:id="@+id/action_statisticsFragment_to_mainFragment"
-            app:destination="@id/mainFragment" />
+
     </fragment>
     <fragment
         android:id="@+id/eventCreateAndUpdateFragment"
         android:name="com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment"
         android:label="EventCreateAndUpdateFragment" >
-        <action
-            android:id="@+id/action_eventCreateAndUpdateFragment_to_mainFragment"
-            app:destination="@id/mainFragment" />
         <argument
             android:name="eventId"
             app:argType="long"

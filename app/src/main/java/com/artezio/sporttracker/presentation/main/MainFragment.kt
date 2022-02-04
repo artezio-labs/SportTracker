@@ -10,19 +10,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.Navigation
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.artezio.sporttracker.R
-import com.artezio.sporttracker.databinding.EventShowAndUpdateDialogLayoutBinding
 import com.artezio.sporttracker.databinding.FragmentMainBinding
 import com.artezio.sporttracker.presentation.BaseFragment
 import com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment
-import com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragmentArgs
 import com.artezio.sporttracker.presentation.main.recycler.EventsRecyclerAdapter
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
