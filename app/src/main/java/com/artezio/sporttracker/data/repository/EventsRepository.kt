@@ -28,4 +28,7 @@ class EventsRepository @Inject constructor(
     override fun getEventWithDataById(id: Long): Flow<EventWithData> =
         dao.getEventWithDataById(id)
 
+    override fun getLastEventId(): Flow<Long> =
+        dao.getLastEventId()
+
 }

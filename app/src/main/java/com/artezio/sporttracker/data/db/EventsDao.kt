@@ -32,4 +32,12 @@ interface EventsDao {
     @Query("SELECT * FROM events WHERE id = :id")
     fun getEventWithDataById(id: Long): Flow<EventWithData>
 
+    @Query("""
+        SELECT id 
+        FROM events 
+        ORDER BY id DESC 
+        LIMIT 1
+    """)
+    fun getLastEventId(): Flow<Long>
+
 }

@@ -44,4 +44,8 @@ object PresentationModule {
     @Provides
     fun providesGetAllLocationDataUseCase(repository: LocationRepository) =
         GetAllLocationDataUseCase(repository)
+
+    @Provides
+    fun providesGetLastEventIdUseCase(repository: EventsRepository) =
+        GetLastEventIdUseCase(repository)
 }

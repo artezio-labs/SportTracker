@@ -20,6 +20,7 @@ interface IRepository {
         suspend fun getEventById(id: Long): Event
         suspend fun updateEvent(id: Long, name: String, startDate: Long)
         fun getEventWithDataById(id: Long): Flow<EventWithData>
+        fun getLastEventId(): Flow<Long>
     }
 
     interface TrackNetworkRepository {

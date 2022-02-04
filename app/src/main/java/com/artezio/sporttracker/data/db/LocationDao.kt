@@ -15,4 +15,5 @@ interface LocationDao {
 
     @Query("SELECT * FROM location_data")
     fun getAllLocationData(): Flow<List<LocationPointData>>
+
 }

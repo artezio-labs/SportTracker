@@ -6,6 +6,7 @@ import com.artezio.sporttracker.data.db.EventsDao
 import com.artezio.sporttracker.data.db.LocationDao
 import com.artezio.sporttracker.data.db.PedometerDao
 import com.artezio.sporttracker.data.db.TrackerDb
+import com.artezio.sporttracker.data.prefs.PrefsManager
 import com.artezio.sporttracker.data.repository.EventsRepository
 import com.artezio.sporttracker.data.repository.LocationRepository
 import com.artezio.sporttracker.data.repository.PedometerRepository
@@ -51,6 +52,10 @@ object StorageModule {
 
     @Provides
     fun provideLocationRepository(dao: LocationDao) = LocationRepository(dao)
+
+    @Provides
+    fun providesPrefsManager(@ApplicationContext context: Context) =
+        PrefsManager(context)
 
 
 }
