@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Camera
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,6 +19,9 @@ import com.artezio.sporttracker.data.prefs.PrefsManager
 import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.FragmentTrackerBinding
 import com.artezio.sporttracker.presentation.BaseFragment
+import com.artezio.sporttracker.util.START_FOREGROUND_SERVICE
+import com.artezio.sporttracker.util.STOP_FOREGROUND_SERVICE
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
@@ -44,52 +48,48 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
         super.onViewCreated(view, savedInstanceState)
         initMap(savedInstanceState)
 
-        binding.fabStartStopTracking.setOnClickListener {
+        binding.fabStartTracking.setOnClickListener {
+            viewModel.generateEvent()
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     viewModel.lastEventIdFlow.collect { lastEventId ->
                         val intent = Intent(requireActivity(), TrackService::class.java).apply {
-                            putExtra("eventId", lastEventId + 1)
+                            putExtra("eventId", lastEventId)
+                            action = START_FOREGROUND_SERVICE
                         }
-                        if (!prefsManager.state) {
-                            requireActivity().startService(intent)
-                        } else {
-                            requireActivity().stopService(
-                                Intent(
-                                    requireContext(),
-                                    TrackService::class.java
+                        requireActivity().startService(intent)
+                        viewModel.getLocationsByEventId(lastEventId).collect { locations ->
+                            Log.d("steps", "Locationslist: $locations")
+                            Log.d("steps", "Last event id: $lastEventId")
+                            if(locations.isNotEmpty()) {
+                                googleMap.animateCamera(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        locations[locations.size - 1],
+                                        40F
+                                    )
                                 )
-                            )
+                            }
+
+                            viewModel.buildRoute(locations, googleMap)
                         }
-
                     }
+
                 }
             }
+            binding.fabStart.visibility = View.GONE
+            binding.fabStop.visibility = View.VISIBLE
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.locationDataFlow.collect { locations ->
-                    Log.d("steps", locations.toString())
-                    viewModel.buildRoute(locations, googleMap)
-                }
+        binding.fabStopTracking.setOnClickListener {
+            val intent = Intent(requireActivity(), TrackService::class.java).apply {
+                action = STOP_FOREGROUND_SERVICE
             }
+            requireActivity().stopService(intent)
+
+            binding.fabStop.visibility = View.GONE
+            binding.fabStart.visibility = View.VISIBLE
         }
 
-    }
-
-    override fun onResume() {
-        super.onResume()
-        LocalBroadcastManager.getInstance(requireContext())
-            .registerReceiver(isRunning, IntentFilter("pong"))
-        LocalBroadcastManager.getInstance(requireContext()).sendBroadcastSync(Intent("ping"))
-        if (isServiceRunning) {
-            binding.textViewFabText.text = STOP
-            prefsManager.state = true
-        } else {
-            binding.textViewFabText.text = START
-            prefsManager.state = false
-        }
     }
 
     override fun initBinding(

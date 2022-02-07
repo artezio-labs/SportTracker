@@ -11,6 +11,7 @@
         android:layout_height="match_parent"/>
 
     <FrameLayout
+        android:id="@+id/fabStart"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_width="wrap_content"
@@ -19,17 +20,46 @@
         android:layout_margin="16dp">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabStartStopTracking"
+            android:id="@+id/fabStartTracking"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:color/transparent" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/textViewFabText"
+            android:id="@+id/textViewFabStartText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="START"
+            android:background="@drawable/text_view_corner_radius"
+            android:textSize="17sp"
+            android:elevation="16dp"
+            android:textColor="@android:color/white"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/fabStop"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"
+        android:layout_alignParentEnd="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="16dp">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabStopTracking"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:color/transparent" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/textViewFabStopText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="STOP"
             android:background="@drawable/text_view_corner_radius"
             android:textSize="17sp"
             android:elevation="16dp"

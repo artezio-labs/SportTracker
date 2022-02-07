@@ -38,6 +38,16 @@ data class EventWithData(
     val trackDataList: List<TrackData>
 )
 
+data class EventWithLocations(
+    @Embedded val event: Event,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "eventId",
+        entity = LocationPointData::class
+    )
+    val locations: List<LocationPointData>
+)
+
 enum class EventStatus {
     PLANNED,
     ACTIVE,

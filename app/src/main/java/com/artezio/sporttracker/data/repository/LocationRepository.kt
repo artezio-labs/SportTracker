@@ -1,6 +1,7 @@
 package com.artezio.sporttracker.data.repository
 
 import com.artezio.sporttracker.data.db.LocationDao
+import com.artezio.sporttracker.domain.model.EventWithLocations
 import com.artezio.sporttracker.domain.model.LocationPointData
 import com.artezio.sporttracker.domain.repository.IRepository
 import kotlinx.coroutines.flow.Flow
@@ -16,5 +17,8 @@ class LocationRepository @Inject constructor(
 
     override fun getAllLocationData(): Flow<List<LocationPointData>> =
         dao.getAllLocationData()
+
+    override fun getLocationsByEventId(id: Long): Flow<List<LocationPointData>> =
+        dao.getLocationsByEventId(id)
 
 }

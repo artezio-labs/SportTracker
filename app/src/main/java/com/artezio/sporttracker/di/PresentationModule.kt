@@ -48,4 +48,8 @@ object PresentationModule {
     @Provides
     fun providesGetLastEventIdUseCase(repository: EventsRepository) =
         GetLastEventIdUseCase(repository)
+
+    @Provides
+    fun providesGetLocationsByEventIdUseCase(repository: LocationRepository) =
+        GetLocationsByEventIdUseCase(repository)
 }

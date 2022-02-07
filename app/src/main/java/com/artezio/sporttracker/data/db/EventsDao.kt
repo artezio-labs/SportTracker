@@ -17,11 +17,13 @@ interface EventsDao {
     @Update
     suspend fun updateEvent(event: Event)
 
-    @Query("""
+    @Query(
+        """
         UPDATE events 
         SET name = :name, startDate = :startDate
         WHERE id = :id
-    """)
+    """
+    )
     suspend fun updateSpecificEventFields(id: Long, name: String, startDate: Long)
 
     @Transaction
@@ -32,12 +34,16 @@ interface EventsDao {
     @Query("SELECT * FROM events WHERE id = :id")
     fun getEventWithDataById(id: Long): Flow<EventWithData>
 
-    @Query("""
-        SELECT id 
-        FROM events 
-        ORDER BY id DESC 
-        LIMIT 1
-    """)
+    @Query(
+        """
+        SELECT CASE
+                    WHEN COUNT(*) = 0
+                        THEN 0
+                    ELSE MAX(id)
+                    END id
+        FROM events
+    """
+    )
     fun getLastEventId(): Flow<Long>
 
 }
