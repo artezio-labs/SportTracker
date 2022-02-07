@@ -15,6 +15,7 @@ data class LocationPointData(
     val accuracy: Float,
     val speed: Float,
     val time: Long,
+    val batteryLevel: Int,
     val eventId: Long,
 ) {
     @PrimaryKey(autoGenerate = true)

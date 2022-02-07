@@ -11,10 +11,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun millisecondsToDateFormat(milliseconds: Long): String =
-    SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(Date(milliseconds))
+    SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(Date(milliseconds))
 
 fun dateToMilliseconds(date: String): Long =
-    SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).parse(date).time
+    SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).parse(date).time
 
 fun hasLocationPermission(context: Context) =
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {

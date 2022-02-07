@@ -92,7 +92,7 @@ class EventCreateAndUpdateFragment : BaseFragment<FragmentEventCreateAndUpdateBi
                                 this.set(Calendar.HOUR_OF_DAY, hour)
                                 this.set(Calendar.MINUTE, min)
 
-                                val dateFormatted = DateFormat.format("dd-MM-yyyy HH:mm", this)
+                                val dateFormatted = DateFormat.format("dd-MM-yyyy HH:mm:ss", this)
                                 binding.textViewStartDate.text = dateFormatted
                             },
                             this.get(Calendar.HOUR_OF_DAY),

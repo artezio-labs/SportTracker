@@ -12,10 +12,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.Binder
-import android.os.Build
-import android.os.IBinder
-import android.os.Looper
+import android.os.*
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -53,6 +50,10 @@ class TrackService : Service() {
         getSystemService(Context.SENSOR_SERVICE) as SensorManager
     }
 
+    private val batteryManager: BatteryManager by lazy {
+        getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+    }
+
     private val fusedLocationProviderClient: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(this)
     }
@@ -82,6 +83,7 @@ class TrackService : Service() {
                 lastLocation.accuracy,
                 lastLocation.speed,
                 System.currentTimeMillis(),
+                batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
                 eventId ?: -1L
             )
             Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
@@ -108,7 +110,7 @@ class TrackService : Service() {
             Log.d(STEPS_TAG, "Permissions granted")
             locationRequest = LocationRequest.create().apply {
                 // на адроид 8+, если приложение не в foreground'е, интервал может быть тольше, чем заданное значение
-                interval = 3000L
+                interval = 1000L
                 fastestInterval = 1000L
                 priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             }
