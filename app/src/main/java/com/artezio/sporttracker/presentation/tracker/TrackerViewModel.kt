@@ -26,9 +26,6 @@ class TrackerViewModel @Inject constructor(
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase
 ) : ViewModel() {
 
-    val locationDataFlow: Flow<List<LatLng>>
-        get() = getAllLocationDataUseCase.execute()
-
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
 

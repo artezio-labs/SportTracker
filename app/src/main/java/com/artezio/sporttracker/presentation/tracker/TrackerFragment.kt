@@ -28,7 +28,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -49,16 +51,17 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
         initMap(savedInstanceState)
 
         binding.fabStartTracking.setOnClickListener {
+            googleMap.clear()
             viewModel.generateEvent()
-            viewLifecycleOwner.lifecycleScope.launch {
+            val job = viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    viewModel.lastEventIdFlow.collect { lastEventId ->
+                    viewModel.lastEventIdFlow.cancellable().collectLatest { lastEventId ->
                         val intent = Intent(requireActivity(), TrackService::class.java).apply {
                             putExtra("eventId", lastEventId)
                             action = START_FOREGROUND_SERVICE
                         }
                         requireActivity().startService(intent)
-                        viewModel.getLocationsByEventId(lastEventId).collect { locations ->
+                        viewModel.getLocationsByEventId(lastEventId).cancellable().collect { locations ->
                             Log.d("steps", "Locationslist: $locations")
                             Log.d("steps", "Last event id: $lastEventId")
                             if(locations.isNotEmpty()) {
@@ -76,6 +79,7 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
 
                 }
             }
+            job.cancel()
             binding.fabStart.visibility = View.GONE
             binding.fabStop.visibility = View.VISIBLE
         }
@@ -84,6 +88,7 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
             val intent = Intent(requireActivity(), TrackService::class.java).apply {
                 action = STOP_FOREGROUND_SERVICE
             }
+
             requireActivity().stopService(intent)
 
             binding.fabStop.visibility = View.GONE
