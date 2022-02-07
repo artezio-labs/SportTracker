@@ -8,6 +8,10 @@ import android.content.IntentFilter
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.core.view.GravityCompat
+import androidx.navigation.Navigation
+import androidx.navigation.ui.NavigationUI
+import androidx.navigation.ui.setupWithNavController
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.databinding.ActivityMainBinding
 import com.artezio.sporttracker.presentation.tracker.TrackerFragment
@@ -19,6 +23,10 @@ class MainActivity : AppCompatActivity() {
 
     private val binding: ActivityMainBinding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
+    }
+
+    private val navController by lazy {
+        Navigation.findNavController(this, R.id.fragmentContainerView)
     }
 
     private var data: Int? = 0
@@ -37,28 +45,31 @@ class MainActivity : AppCompatActivity() {
         requestLocationPermissions()
         requestPedometerPermissions()
 
-        supportFragmentManager.beginTransaction().apply {
-            setReorderingAllowed(true)
-            addToBackStack(null)
-            replace(R.id.fragmentContainerView, TrackerFragment())
-            commit()
-        }
+        setupDrawerLayout()
 
-//        binding.textViewSteps.setText("$data")
-//
-//        binding.startStepCounter.setOnClickListener {
-//            val intent = Intent(this, TrackService::class.java).apply {
-//                action = START_FOREGROUND_SERVICE
-//            }
-//            startService(intent)
+//        supportFragmentManager.beginTransaction().apply {
+//            setReorderingAllowed(true)
+//            addToBackStack(null)
+//            replace(R.id.fragmentContainerView, TrackerFragment())
+//            commit()
 //        }
-//
-//        binding.stopStepCounter.setOnClickListener {
-//            val intent = Intent(this, TrackService::class.java).apply {
-//                action = STOP_FOREGROUND_SERVICE
-//            }
-//            stopService(intent)
-//        }
+    }
+
+    override fun onBackPressed() {
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    override fun onNavigateUp(): Boolean {
+        return NavigationUI.navigateUp(navController, binding.drawerLayout)
+    }
+
+    private fun setupDrawerLayout() {
+        binding.navigationView.setupWithNavController(navController)
+        NavigationUI.setupActionBarWithNavController(this, navController, binding.drawerLayout)
     }
 
     override fun onResume() {
@@ -73,7 +84,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestPedometerPermissions() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             EasyPermissions.requestPermissions(
                 this,
                 "You need to accept activity recognition permissions to use this app.",
@@ -84,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestLocationPermissions() {
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             EasyPermissions.requestPermissions(
                 this,
                 "You need to accept location permissions to use this app.",

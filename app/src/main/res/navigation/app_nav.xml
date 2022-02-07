@@ -3,29 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/app_nav"
-    app:startDestination="@layout/fragment_main">
+    app:startDestination="@id/trackerFragment">
 
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.artezio.sporttracker.presentation.main.MainFragment"
         android:label="fragment_main"
-        tools:layout="@layout/fragment_main" >
-
-    </fragment>
+        tools:layout="@layout/fragment_main" />
     <fragment
-        android:id="@+id/statisticsFragment"
-        android:name="com.artezio.sporttracker.presentation.statistics.StatisticsFragment"
-        android:label="fragment_statistics"
-        tools:layout="@layout/fragment_statistics" >
-
-    </fragment>
-    <fragment
-        android:id="@+id/eventCreateAndUpdateFragment"
-        android:name="com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment"
-        android:label="EventCreateAndUpdateFragment" >
-        <argument
-            android:name="eventId"
-            app:argType="long"
-            android:defaultValue="-1L" />
+        android:id="@+id/trackerFragment"
+        android:name="com.artezio.sporttracker.presentation.tracker.TrackerFragment"
+        android:label="fragment_tracker"
+        tools:layout="@layout/fragment_tracker">
+        <action
+            android:id="@+id/action_trackerFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
     </fragment>
 </navigation>
