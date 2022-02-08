@@ -11,6 +11,7 @@ import com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment
 import com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragmentArgs
 import com.artezio.sporttracker.presentation.main.IFragment
 import com.artezio.sporttracker.presentation.main.MainFragment
+import com.artezio.sporttracker.presentation.statistics.StatisticsFragmentArgs
 import com.artezio.sporttracker.util.millisecondsToDateFormat
 
 class EventsRecyclerAdapter(
@@ -51,7 +52,8 @@ class EventsRecyclerAdapter(
                     eventId = event.id,
                     eventName = event.eventName,
                     eventStartDate = event.startDate,
-                    eventEndDate = event.endDate ?: -1L
+                    eventEndDate = event.endDate ?: -1L,
+                    title = "Редактировать"
                 )
                 (fragment as MainFragment).findNavController().navigate(
                     R.id.action_mainFragment_to_eventCreateAndUpdateFragment,
@@ -59,6 +61,16 @@ class EventsRecyclerAdapter(
                 )
             }
 
+
+            binding.buttonShowStatistics.setOnClickListener {
+                val args = StatisticsFragmentArgs(
+                    eventId = event.id
+                )
+                (fragment as MainFragment).findNavController().navigate(
+                    R.id.action_mainFragment_to_statisticsFragment,
+                    args.toBundle()
+                )
+            }
         }
     }
 }

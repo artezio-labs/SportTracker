@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/drawable/text_view_corner_radius.xml" value="0.207" />
+        <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/drawable/textview_border.xml" value="0.207" />
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/activity_event.xml" value="0.38697916666666665" />
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/activity_main.xml" value="0.21" />
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/drawer_header.xml" value="0.25" />
@@ -13,7 +14,7 @@
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/fragment_event_create_and_update.xml" value="0.38697916666666665" />
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/fragment_events.xml" value="0.38697916666666665" />
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/fragment_main.xml" value="0.33" />
-        <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/fragment_statistics.xml" value="0.22" />
+        <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/fragment_statistics.xml" value="0.37782340862423" />
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/layout/fragment_tracker.xml" value="0.33" />
         <entry key="..\:/Users/holde/AndroidStudioProjects/SportTracker/app/src/main/res/menu/drawer_menu.xml" value="0.38697916666666665" />
       </map>

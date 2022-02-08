@@ -39,7 +39,7 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
         }
 
         binding.fabAddEvent.setOnClickListener {
-            val args = EventCreateAndUpdateFragmentArgs(-1L)
+            val args = EventCreateAndUpdateFragmentArgs(eventId = -1L, title = "Создать")
             findNavController().navigate(
                 R.id.action_mainFragment_to_eventCreateAndUpdateFragment,
                 args.toBundle()

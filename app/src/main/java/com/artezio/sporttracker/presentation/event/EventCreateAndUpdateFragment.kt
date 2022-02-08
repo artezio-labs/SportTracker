@@ -20,6 +20,7 @@ import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.FragmentEventCreateAndUpdateBinding
 import com.artezio.sporttracker.presentation.BaseFragment
+import com.artezio.sporttracker.presentation.MainActivity
 import com.artezio.sporttracker.presentation.main.MainFragment
 import com.artezio.sporttracker.util.dateToMilliseconds
 import com.artezio.sporttracker.util.millisecondsToDateFormat
