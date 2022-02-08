@@ -41,9 +41,6 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
 
     private lateinit var googleMap: GoogleMap
 
-    @Inject
-    lateinit var prefsManager: PrefsManager
-
     private var isServiceRunning = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

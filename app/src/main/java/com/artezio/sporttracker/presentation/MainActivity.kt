@@ -6,15 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.navigation.Navigation
-import androidx.navigation.ui.NavigationUI
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.*
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.databinding.ActivityMainBinding
-import com.artezio.sporttracker.presentation.tracker.TrackerFragment
 import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.EasyPermissions
 
@@ -26,7 +24,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val navController by lazy {
-        Navigation.findNavController(this, R.id.fragmentContainerView)
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        navHostFragment.navController
+    }
+
+    private val appBarConfiguration: AppBarConfiguration by lazy {
+        AppBarConfiguration(
+            setOf(R.id.trackerFragment, R.id.mainFragment),
+            binding.drawerLayout
+        )
     }
 
     private var data: Int? = 0
@@ -45,6 +52,9 @@ class MainActivity : AppCompatActivity() {
         requestLocationPermissions()
         requestPedometerPermissions()
 
+        setSupportActionBar(binding.toolbar)
+        setupActionBarWithNavController(navController, appBarConfiguration)
+
         setupDrawerLayout()
 
 //        supportFragmentManager.beginTransaction().apply {
@@ -61,6 +71,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
     override fun onNavigateUp(): Boolean {

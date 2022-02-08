@@ -27,7 +27,8 @@
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.SportTracker.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
