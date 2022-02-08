@@ -48,17 +48,19 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
         initMap(savedInstanceState)
 
         binding.fabStartTracking.setOnClickListener {
+            Log.d("steps", "Start button clicked")
             googleMap.clear()
             viewModel.generateEvent()
-            val job = viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    viewModel.lastEventIdFlow.cancellable().collectLatest { lastEventId ->
+                    viewModel.lastEventIdFlow.collectLatest { lastEventId ->
+                        Log.d("steps", "Last event id - $lastEventId")
                         val intent = Intent(requireActivity(), TrackService::class.java).apply {
                             putExtra("eventId", lastEventId)
                             action = START_FOREGROUND_SERVICE
                         }
                         requireActivity().startService(intent)
-                        viewModel.getLocationsByEventId(lastEventId).cancellable().collect { locations ->
+                        viewModel.getLocationsByEventId(lastEventId).collect { locations ->
                             Log.d("steps", "Locationslist: $locations")
                             Log.d("steps", "Last event id: $lastEventId")
                             if(locations.isNotEmpty()) {
@@ -73,10 +75,8 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
                             viewModel.buildRoute(locations, googleMap)
                         }
                     }
-
                 }
             }
-            job.cancel()
             binding.fabStart.visibility = View.GONE
             binding.fabStop.visibility = View.VISIBLE
         }
