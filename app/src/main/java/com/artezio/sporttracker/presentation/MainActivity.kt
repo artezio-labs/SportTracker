@@ -7,8 +7,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.navigation.NavDirections
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.*
 import com.artezio.sporttracker.R
@@ -95,6 +99,11 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         unregisterReceiver(receiver)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        NavigationUI.onNavDestinationSelected(item, navController)
+        return super.onOptionsItemSelected(item)
     }
 
     private fun requestPedometerPermissions() {

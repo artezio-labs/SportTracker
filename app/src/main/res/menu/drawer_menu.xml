@@ -6,12 +6,12 @@
         android:checkableBehavior="single">
 
         <item
-            android:id="@+id/tracker"
+            android:id="@+id/trackerFragment"
             android:icon="@drawable/ic_tracker"
             android:title="Трекер" />
 
         <item
-            android:id="@+id/journal"
+            android:id="@+id/mainFragment"
             android:icon="@drawable/ic_journal"
             android:title="Журнал" />
 

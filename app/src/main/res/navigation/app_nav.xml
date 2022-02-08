@@ -8,12 +8,12 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.artezio.sporttracker.presentation.main.MainFragment"
-        android:label="fragment_main"
+        android:label="@string/fragment_journal_label"
         tools:layout="@layout/fragment_main" />
     <fragment
         android:id="@+id/trackerFragment"
         android:name="com.artezio.sporttracker.presentation.tracker.TrackerFragment"
-        android:label="fragment_tracker"
+        android:label="@string/fragment_tracker_label"
         tools:layout="@layout/fragment_tracker">
         <action
             android:id="@+id/action_trackerFragment_to_mainFragment"
