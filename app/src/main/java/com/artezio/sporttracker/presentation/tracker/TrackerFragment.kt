@@ -1,7 +1,5 @@
 package com.artezio.sporttracker.presentation.tracker
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -30,8 +28,6 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
     private val viewModel: TrackerViewModel by viewModels()
 
     private lateinit var googleMap: GoogleMap
-
-    private var isServiceRunning = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -73,13 +69,10 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
             val intent = Intent(requireActivity(), TrackService::class.java).apply {
                 action = STOP_FOREGROUND_SERVICE
             }
-
             requireActivity().stopService(intent)
-
             binding.fabStop.visibility = View.GONE
             binding.fabStart.visibility = View.VISIBLE
         }
-
     }
 
     override fun initBinding(
@@ -97,16 +90,4 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
         binding.mapView.onResume()
         binding.mapView.getMapAsync(this)
     }
-
-    private val isRunning = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            isServiceRunning = true
-        }
-    }
-
-    companion object {
-        const val START = "START"
-        const val STOP = "STOP"
-    }
-
 }

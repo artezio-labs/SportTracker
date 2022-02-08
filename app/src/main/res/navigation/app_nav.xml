@@ -9,7 +9,11 @@
         android:id="@+id/mainFragment"
         android:name="com.artezio.sporttracker.presentation.main.MainFragment"
         android:label="@string/fragment_journal_label"
-        tools:layout="@layout/fragment_main" />
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_mainFragment_to_eventCreateAndUpdateFragment"
+            app:destination="@id/eventCreateAndUpdateFragment" />
+    </fragment>
     <fragment
         android:id="@+id/trackerFragment"
         android:name="com.artezio.sporttracker.presentation.tracker.TrackerFragment"
@@ -18,5 +22,26 @@
         <action
             android:id="@+id/action_trackerFragment_to_mainFragment"
             app:destination="@id/mainFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/eventCreateAndUpdateFragment"
+        android:name="com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment"
+        android:label="EventCreateAndUpdateFragment" >
+        <argument
+            android:name="eventId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="eventName"
+            app:argType="string"
+            android:defaultValue='""' />
+        <argument
+            android:name="eventStartDate"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="eventEndDate"
+            app:argType="long"
+            android:defaultValue="-1L" />
     </fragment>
 </navigation>

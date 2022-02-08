@@ -61,12 +61,6 @@ class MainActivity : AppCompatActivity() {
 
         setupDrawerLayout()
 
-//        supportFragmentManager.beginTransaction().apply {
-//            setReorderingAllowed(true)
-//            addToBackStack(null)
-//            replace(R.id.fragmentContainerView, TrackerFragment())
-//            commit()
-//        }
     }
 
     override fun onBackPressed() {

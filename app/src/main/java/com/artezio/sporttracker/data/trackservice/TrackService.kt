@@ -124,13 +124,22 @@ class TrackService : Service() {
         }
     }
 
-    private fun runPedometer() {
+    private fun runPedometer(id: Long) {
         Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
         val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val stepDetector = StepDetector(object : StepDetector.StepListener {
             override fun step(timeNs: Long) {
                 stepCount += 1
                 Log.d(STEPS_TAG, "Steps: $stepCount")
+                serviceIoScope.launch {
+                    insertPedometerDataUseCase.execute(
+                        PedometerData(
+                            stepCount,
+                            System.currentTimeMillis(),
+                            id
+                        )
+                    )
+                }
             }
         })
         sensorEventListener = object : SensorEventListener {
@@ -181,8 +190,8 @@ class TrackService : Service() {
         } else {
             Log.d("steps", "Event id not found")
         }
+        eventId?.let { runPedometer(it) }
         subscribeToLocationUpdates()
-        runPedometer()
         return START_NOT_STICKY
     }
 
@@ -222,15 +231,6 @@ class TrackService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(STEPS_TAG, "onDestroy: ")
-        serviceIoScope.launch {
-            insertPedometerDataUseCase.execute(
-                PedometerData(
-                    stepCount,
-                    System.currentTimeMillis(),
-                    0
-                )
-            )
-        }
         sensorManager.unregisterListener(sensorEventListener)
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }

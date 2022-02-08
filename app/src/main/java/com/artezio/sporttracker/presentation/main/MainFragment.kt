@@ -5,16 +5,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.databinding.FragmentMainBinding
 import com.artezio.sporttracker.presentation.BaseFragment
 import com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment
+import com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragmentArgs
 import com.artezio.sporttracker.presentation.main.recycler.EventsRecyclerAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -38,16 +39,11 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
         }
 
         binding.fabAddEvent.setOnClickListener {
-            val args = bundleOf("eventId" to -1L)
-            val fragment = EventCreateAndUpdateFragment().apply {
-                arguments = args
-            }
-            parentFragmentManager.beginTransaction().apply {
-                setReorderingAllowed(true)
-                addToBackStack(null)
-                replace(R.id.fragmentContainerView, fragment)
-                commit()
-            }
+            val args = EventCreateAndUpdateFragmentArgs(-1L)
+            findNavController().navigate(
+                R.id.action_mainFragment_to_eventCreateAndUpdateFragment,
+                args.toBundle()
+            )
         }
 
         viewLifecycleOwner.lifecycleScope.launch {

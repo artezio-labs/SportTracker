@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isNotEmpty
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.navArgs
 import com.artezio.sporttracker.R
 import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.FragmentEventCreateAndUpdateBinding
@@ -30,15 +31,17 @@ class EventCreateAndUpdateFragment : BaseFragment<FragmentEventCreateAndUpdateBi
 
     private val viewModel: EventViewModel by viewModels()
 
+    private val args: EventCreateAndUpdateFragmentArgs by navArgs()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val eventIdArg = arguments?.getLong("eventId", -1L) ?: -1L
-        val eventNameArg = arguments?.getString("eventName")
-        val startDateArg = arguments?.getLong("eventStartDate")
-        val endDateArg = arguments?.getLong("eventEndDate")
+        val eventIdArg = args.eventId
+        val eventNameArg = args.eventName
+        val startDateArg = args.eventStartDate
+        val endDateArg = args.eventEndDate
 
-        if (!eventNameArg.isNullOrEmpty() && startDateArg != null && endDateArg != null) {
+        if (eventNameArg.isNotEmpty() && startDateArg != -1L) {
             binding.textInputLayoutInsertTitle.editText?.setText(eventNameArg)
             binding.textViewStartDate.text = millisecondsToDateFormat(startDateArg)
         }
