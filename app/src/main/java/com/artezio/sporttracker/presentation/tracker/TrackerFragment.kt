@@ -3,8 +3,6 @@ package com.artezio.sporttracker.presentation.tracker
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.graphics.Camera
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,8 +12,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.artezio.sporttracker.data.prefs.PrefsManager
 import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.FragmentTrackerBinding
 import com.artezio.sporttracker.presentation.BaseFragment
@@ -24,15 +20,9 @@ import com.artezio.sporttracker.util.STOP_FOREGROUND_SERVICE
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolylineOptions
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallback {
@@ -54,7 +44,6 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     viewModel.lastEventIdFlow.collectLatest { lastEventId ->
-                        Log.d("steps", "Last event id - $lastEventId")
                         val intent = Intent(requireActivity(), TrackService::class.java).apply {
                             putExtra("eventId", lastEventId)
                             action = START_FOREGROUND_SERVICE
@@ -63,15 +52,14 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
                         viewModel.getLocationsByEventId(lastEventId).collect { locations ->
                             Log.d("steps", "Locationslist: $locations")
                             Log.d("steps", "Last event id: $lastEventId")
-                            if(locations.isNotEmpty()) {
+                            if (locations.isNotEmpty()) {
                                 googleMap.animateCamera(
                                     CameraUpdateFactory.newLatLngZoom(
                                         locations[locations.size - 1],
-                                        40F
+                                        23F
                                     )
                                 )
                             }
-
                             viewModel.buildRoute(locations, googleMap)
                         }
                     }

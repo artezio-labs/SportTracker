@@ -37,6 +37,7 @@
             android:id="@+id/fabStartTracking"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/app_theme_color"
             android:src="@android:color/transparent" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -66,6 +67,7 @@
             android:id="@+id/fabStopTracking"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/button_stop_color"
             android:src="@android:color/transparent" />
 
         <com.google.android.material.textview.MaterialTextView
