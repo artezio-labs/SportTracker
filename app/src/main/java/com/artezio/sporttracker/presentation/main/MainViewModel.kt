@@ -36,6 +36,7 @@ class MainViewModel @Inject constructor(
     fun buildListOfEvents(list: List<EventWithData>): List<Item> {
 
         return list.map { mapDomainEventModelToPresentationEventModel(it) }
+            .sortedByDescending { it.id }
     }
 
 }

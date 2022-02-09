@@ -181,7 +181,7 @@ class TrackService : Service() {
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
                 stopForeground(true)
-                stopSelfResult(startId)
+                stopSelf()
             }
         }
         val id = intent?.getLongExtra("eventId", -1)
