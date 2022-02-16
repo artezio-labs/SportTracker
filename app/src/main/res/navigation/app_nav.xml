@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_nav"
+    app:startDestination="@id/trackerFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.artezio.sporttracker.presentation.main.MainFragment"
+        android:label="@string/fragment_journal_label"
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_mainFragment_to_eventCreateAndUpdateFragment"
+            app:destination="@id/eventCreateAndUpdateFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_statisticsFragment"
+            app:destination="@id/statisticsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/trackerFragment"
+        android:name="com.artezio.sporttracker.presentation.tracker.TrackerFragment"
+        android:label="@string/fragment_tracker_label"
+        tools:layout="@layout/fragment_tracker">
+        <action
+            android:id="@+id/action_trackerFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/eventCreateAndUpdateFragment"
+        android:name="com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment"
+        android:label="{title}" >
+        <argument
+            android:name="eventId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="eventName"
+            app:argType="string"
+            android:defaultValue='""' />
+        <argument
+            android:name="eventStartDate"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="eventEndDate"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="title"
+            app:argType="string"
+            android:defaultValue='""' />
+        <action
+            android:id="@+id/action_eventCreateAndUpdateFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@navigation/app_nav"
+            app:popUpToInclusive="false"/>
+    </fragment>
+    <fragment
+        android:id="@+id/statisticsFragment"
+        android:name="com.artezio.sporttracker.presentation.statistics.StatisticsFragment"
+        android:label="fragment_statistics"
+        tools:layout="@layout/fragment_statistics" >
+        <argument
+            android:name="eventId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+</navigation>

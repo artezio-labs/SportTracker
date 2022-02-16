@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "45038612292",
+    "project_id": "sport-tracker-340306",
+    "storage_bucket": "sport-tracker-340306.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:45038612292:android:8e7d7717102d2ab7b13111",
+        "android_client_info": {
+          "package_name": "com.artezio.sporttracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "45038612292-4mshfkcukefutg7eki3tqcrdm4atb0c4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkf7FG0_7xC2usCNymfZnE7-5yvLEvbCg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "45038612292-4mshfkcukefutg7eki3tqcrdm4atb0c4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

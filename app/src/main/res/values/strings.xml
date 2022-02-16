@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Sport Tracker</string>
+    <string name="button_add_start_date_text">Дата начала</string>
+    <string name="button_save_event_text">Сохранить</string>
+    <string name="fragment_tracker_label">Трекер</string>
+    <string name="fragment_journal_label">Журнал</string>
 </resources>
