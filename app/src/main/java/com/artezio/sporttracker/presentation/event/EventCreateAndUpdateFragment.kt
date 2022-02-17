@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.util.Log
@@ -18,10 +19,10 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.artezio.sporttracker.R
-import com.artezio.sporttracker.data.trackservice.TrackService
 import com.artezio.sporttracker.databinding.FragmentEventCreateAndUpdateBinding
 import com.artezio.sporttracker.presentation.AlarmReceiver
 import com.artezio.sporttracker.presentation.BaseFragment
+import com.artezio.sporttracker.presentation.TrackService
 import com.artezio.sporttracker.util.dateToMilliseconds
 import com.artezio.sporttracker.util.millisecondsToDateFormat
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,9 +62,11 @@ class EventCreateAndUpdateFragment : BaseFragment<FragmentEventCreateAndUpdateBi
                     eventNameStr,
                     dateToMilliseconds(eventStartDate.toString())
                 )
+                val timeToAlarm = dateToMilliseconds(eventStartDate.toString())
                 setAlarm(
                     eventIdArg,
-                    dateToMilliseconds(eventStartDate.toString()),
+                    // показываем уведомление немного заранее на всякий случай
+                    if (System.currentTimeMillis() - timeToAlarm >= 120_000L) timeToAlarm - 60_000L else timeToAlarm,
                     eventNameStr,
                     "Ивент $eventNameStr скоро начнется"
                 )
@@ -74,7 +77,6 @@ class EventCreateAndUpdateFragment : BaseFragment<FragmentEventCreateAndUpdateBi
                     "Все поля должны быть заполнены!",
                     Toast.LENGTH_SHORT
                 ).show()
-//            scheduleStartService(dateToMilliseconds(eventStartDate.toString()))
 
         }
 
@@ -90,11 +92,17 @@ class EventCreateAndUpdateFragment : BaseFragment<FragmentEventCreateAndUpdateBi
             putExtra(TITLE_NAME, title)
             putExtra(CONTENT_TEXT, description)
             putExtra(EVENT_ID, eventId)
+            flags = Intent.FLAG_RECEIVER_FOREGROUND
         }
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getBroadcast(context, BROADCAST_REQUEST_CODE, intent, 0)
         val alarmManager: AlarmManager =
             context?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+        if (Build.VERSION.SDK_INT >= 23) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+        } else {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+        }
+
         Log.d("steps", "alarm $eventId")
     }
 
@@ -133,14 +141,6 @@ class EventCreateAndUpdateFragment : BaseFragment<FragmentEventCreateAndUpdateBi
         }
     }
 
-    private fun scheduleStartService(date: Long) {
-        val intent = Intent(requireActivity(), TrackService::class.java)
-        val pendingIntent = PendingIntent.getService(requireActivity(), 84573, intent, 0)
-        val alarmManager = activity?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmManager.set(AlarmManager.RTC_WAKEUP, date, pendingIntent)
-        Log.d("steps", "scheduleStartService: ")
-    }
-
     override fun initBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -150,10 +150,9 @@ class EventCreateAndUpdateFragment : BaseFragment<FragmentEventCreateAndUpdateBi
 
     companion object {
         private const val EVENT_ID = "EVENT_ID"
-        private const val REMINDER_CHANNEL = "REMINDER_CHANNEL"
-        private const val NOTIFICATION_ID = "NOTIFICATION_ID"
         private const val TITLE_NAME = "TITLE_NAME"
         private const val CONTENT_TEXT = "CONTENT_TEXT"
+        private const val BROADCAST_REQUEST_CODE = 8375
     }
 
 }

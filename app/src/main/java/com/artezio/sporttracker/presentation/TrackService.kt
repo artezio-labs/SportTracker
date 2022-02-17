@@ -1,9 +1,8 @@
-package com.artezio.sporttracker.data.trackservice
+package com.artezio.sporttracker.presentation
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -18,14 +17,15 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.artezio.sporttracker.R
+import com.artezio.sporttracker.data.trackservice.ServiceLifecycleState
 import com.artezio.sporttracker.data.trackservice.pedometer.StepDetector
 import com.artezio.sporttracker.domain.model.LocationPointData
 import com.artezio.sporttracker.domain.model.PedometerData
 import com.artezio.sporttracker.domain.usecases.InsertLocationDataUseCase
 import com.artezio.sporttracker.domain.usecases.InsertPedometerDataUseCase
-import com.artezio.sporttracker.presentation.MainActivity
 import com.artezio.sporttracker.util.START_FOREGROUND_SERVICE
 import com.artezio.sporttracker.util.STOP_FOREGROUND_SERVICE
 import com.artezio.sporttracker.util.hasLocationPermission
@@ -180,19 +180,23 @@ class TrackService : LifecycleService() {
         when (intent?.action) {
             START_FOREGROUND_SERVICE -> {
                 startForegroundService()
+                serviceLifecycleState.postValue(ServiceLifecycleState.Running)
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
                 stopForeground(true)
                 stopSelf()
+                serviceLifecycleState.postValue(ServiceLifecycleState.Stopped)
             }
         }
+
         val id = intent?.getLongExtra("eventId", -1)
         if (id != -1L) {
             eventId = id
         } else {
             Log.d("steps", "Event id not found")
         }
+
         eventId?.let { runPedometer(it) }
         subscribeToLocationUpdates()
         return START_NOT_STICKY
@@ -214,8 +218,9 @@ class TrackService : LifecycleService() {
         }
 
         notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // todo поменять вид нотификации
+            .setSmallIcon(R.drawable.ic_tracker)
             .setContentTitle(getString(R.string.app_name))
+            .setContentText("Идет запись данных")
             .setContentIntent(pendingIntent)
         startForeground(FOREGROUND_SERVICE_ID, notificationBuilder?.build())
     }
@@ -238,6 +243,7 @@ class TrackService : LifecycleService() {
         Log.d(STEPS_TAG, "onDestroy: ")
         sensorManager.unregisterListener(sensorEventListener)
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        serviceLifecycleState.postValue(ServiceLifecycleState.Stopped)
     }
 
     inner class LocalBinder : Binder() {
@@ -260,5 +266,7 @@ class TrackService : LifecycleService() {
         private const val STEPS_TAG = "STEPS_TAG"
         private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
         private const val PHYISCAL_ACTIVITY = 9876
+
+        val serviceLifecycleState = MutableLiveData<ServiceLifecycleState>(ServiceLifecycleState.Stopped)
     }
 }

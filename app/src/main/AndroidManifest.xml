@@ -20,7 +20,7 @@
         android:theme="@style/Theme.SportTracker">
 
         <service
-            android:name=".data.trackservice.TrackService"
+            android:name=".presentation.TrackService"
             android:enabled="true"
             android:exported="false" />
 

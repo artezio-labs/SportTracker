@@ -10,7 +10,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.artezio.sporttracker.data.trackservice.TrackService
+import com.artezio.sporttracker.data.trackservice.ServiceLifecycleState
+import com.artezio.sporttracker.presentation.TrackService
 import com.artezio.sporttracker.databinding.FragmentTrackerBinding
 import com.artezio.sporttracker.presentation.BaseFragment
 import com.artezio.sporttracker.util.START_FOREGROUND_SERVICE
@@ -32,6 +33,8 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initMap(savedInstanceState)
+
+        observeServiceState()
 
         binding.fabStartTracking.setOnClickListener {
             Log.d("steps", "Start button clicked")
@@ -61,8 +64,6 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
                     }
                 }
             }
-            binding.fabStart.visibility = View.GONE
-            binding.fabStop.visibility = View.VISIBLE
         }
 
         binding.fabStopTracking.setOnClickListener {
@@ -70,8 +71,21 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(), OnMapReadyCallba
                 action = STOP_FOREGROUND_SERVICE
             }
             requireActivity().stopService(intent)
-            binding.fabStop.visibility = View.GONE
-            binding.fabStart.visibility = View.VISIBLE
+        }
+    }
+
+    private fun observeServiceState() {
+        TrackService.serviceLifecycleState.observe(viewLifecycleOwner) { state ->
+            when(state) {
+                is ServiceLifecycleState.Running -> {
+                    binding.fabStart.visibility = View.GONE
+                    binding.fabStop.visibility = View.VISIBLE
+                }
+                is ServiceLifecycleState.Stopped -> {
+                    binding.fabStop.visibility = View.GONE
+                    binding.fabStart.visibility = View.VISIBLE
+                }
+            }
         }
     }
 
