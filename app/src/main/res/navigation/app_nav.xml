@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.artezio.sporttracker.presentation.main.MainFragment"
+        android:name="com.artezio.osport.tracker.presentation.main.MainFragment"
         android:label="@string/fragment_journal_label"
         tools:layout="@layout/fragment_main" >
         <action
@@ -19,7 +19,7 @@
     </fragment>
     <fragment
         android:id="@+id/trackerFragment"
-        android:name="com.artezio.sporttracker.presentation.tracker.TrackerFragment"
+        android:name="com.artezio.osport.tracker.presentation.tracker.TrackerFragment"
         android:label="@string/fragment_tracker_label"
         tools:layout="@layout/fragment_tracker">
         <action
@@ -28,7 +28,7 @@
     </fragment>
     <fragment
         android:id="@+id/eventCreateAndUpdateFragment"
-        android:name="com.artezio.sporttracker.presentation.event.EventCreateAndUpdateFragment"
+        android:name="com.artezio.osport.tracker.presentation.event.EventCreateAndUpdateFragment"
         android:label="{title}" >
         <argument
             android:name="eventId"
@@ -58,7 +58,7 @@
     </fragment>
     <fragment
         android:id="@+id/statisticsFragment"
-        android:name="com.artezio.sporttracker.presentation.statistics.StatisticsFragment"
+        android:name="com.artezio.osport.tracker.presentation.statistics.StatisticsFragment"
         android:label="fragment_statistics"
         tools:layout="@layout/fragment_statistics" >
         <argument
