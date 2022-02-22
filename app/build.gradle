@@ -89,4 +89,7 @@ dependencies {
 
     // lifecycle extensions
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+
+    // permissions-ktx
+    implementation 'dev.marcelpinto:permissions-ktx:0.9'
 }

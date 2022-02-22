@@ -28,7 +28,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.getEventWithDataUseCase(args.eventId).collectLatest { eventWithData ->
-                   
+
                 }
             }
         }

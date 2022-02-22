@@ -28,7 +28,7 @@ import com.artezio.osport.tracker.domain.usecases.InsertLocationDataUseCase
 import com.artezio.osport.tracker.domain.usecases.InsertPedometerDataUseCase
 import com.artezio.osport.tracker.util.START_FOREGROUND_SERVICE
 import com.artezio.osport.tracker.util.STOP_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.hasLocationPermission
+import com.artezio.osport.tracker.util.hasLocationAndActivityRecordingPermission
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -107,7 +107,7 @@ class TrackService : LifecycleService() {
 
 
     private fun subscribeToLocationUpdates() {
-        if (hasLocationPermission(this)) {
+        if (hasLocationAndActivityRecordingPermission(this)) {
             Log.d(STEPS_TAG, "Permissions granted")
             locationRequest = LocationRequest.create().apply {
                 // на адроид 8+, если приложение не в foreground'е, интервал может быть тольше, чем заданное значение
