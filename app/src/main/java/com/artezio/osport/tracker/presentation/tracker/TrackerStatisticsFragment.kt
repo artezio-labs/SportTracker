@@ -69,7 +69,7 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
             val eventId = args.eventId
             findNavController().navigate(
                 R.id.action_trackerStatisticsFragment_to_saveEventFragment,
-                SaveEventFragmentArgs(trackerState, eventId).toBundle()
+                SaveEventFragmentArgs(eventId).toBundle()
             )
         }
 

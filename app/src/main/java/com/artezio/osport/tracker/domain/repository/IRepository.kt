@@ -26,6 +26,7 @@ interface IRepository {
         suspend fun deleteEvent(event: Event)
         suspend fun updateEvent(eventId: Long, eventName: String, trackingStateModel: TrackingStateModel)
         suspend fun deleteEventById(eventId: Long)
+        suspend fun getLastEvent(): Event
     }
 
     interface IDataStoreRepository {

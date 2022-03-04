@@ -81,4 +81,11 @@ interface EventsDao {
 
     @Query("DELETE FROM events where id = :eventId")
     fun deleteEventById(eventId: Long)
+
+    @Query("""
+        SELECT * 
+        FROM events
+        WHERE id = (SELECT MAX(id) FROM events)
+    """)
+    suspend fun getLastEvent(): Event
 }

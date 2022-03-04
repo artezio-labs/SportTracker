@@ -90,10 +90,6 @@
         android:name="com.artezio.osport.tracker.presentation.event.SaveEventFragment"
         android:label="Сохранить"
         tools:layout="@layout/fragment_save_event" >
-        <argument
-            android:name="tracker_data"
-            app:argType="com.artezio.osport.tracker.domain.model.TrackingStateModel"
-            app:nullable="true" />
         <action
             android:id="@+id/action_saveEventFragment_to_mainFragment"
             app:destination="@id/mainFragment" />

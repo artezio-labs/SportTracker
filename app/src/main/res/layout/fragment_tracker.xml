@@ -26,6 +26,7 @@
             android:layout_height="match_parent">
 
             <LinearLayout
+                android:id="@+id/llAccuracy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -50,7 +51,7 @@
                     android:layout_gravity="center"
                     android:layout_margin="4dp"
                     android:textStyle="bold"
-                    tools:text="0.66757567856" />
+                    android:text="0.000" />
             </LinearLayout>
 
 

@@ -1,7 +1,6 @@
 package com.artezio.osport.tracker.presentation.tracker
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -17,9 +16,6 @@ import androidx.navigation.fragment.findNavController
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
-import com.artezio.osport.tracker.util.DialogBuilder
-import com.artezio.osport.tracker.util.hasLocationAndActivityRecordingPermission
-import com.artezio.osport.tracker.util.requestLocationPermission
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -27,7 +23,6 @@ import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.*
 
 @AndroidEntryPoint
 class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
@@ -37,9 +32,17 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
     private val viewModel: TrackerViewModel by viewModels()
     private lateinit var googleMap: GoogleMap
 
-    private var eventId: Long = -1L
+    private val fusedLocationProvider: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(requireContext())
+    }
 
-    private var progressDialog: Dialog? = null
+    private val locationRequest = LocationRequest.create().apply {
+        interval = 1000L
+        fastestInterval = 1000L
+        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+
+    private var eventId: Long = -1L
 
     private var locationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -50,36 +53,42 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
                 googleMap,
                 LatLng(currentLocation.latitude, currentLocation.longitude)
             )
-            progressDialog?.let {
-                if (currentLocation.accuracy <= 5) {
-                    if(it.isShowing) it.dismiss()
-                }
+            val accuracy = currentLocation.accuracy
+            val detectedAccuracy = viewModel.detectAccuracy(accuracy)
+            binding.textViewAccuracyValue.apply {
+                text = accuracy.toString()
+                setTextColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        detectedAccuracy.second.color
+                    )
+                )
             }
         }
     }
 
-
-
+    @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initMap(savedInstanceState)
         viewModel.observeServiceStateInTrackerFragment(viewLifecycleOwner, binding)
-        if (!hasLocationAndActivityRecordingPermission(requireContext())) {
-            showInfoDialog()
-        }
+
+
 
         binding.fabStartTracking.setOnClickListener {
             googleMap.clear()
+            fusedLocationProvider.removeLocationUpdates(locationCallback)
             viewModel.generateEvent()
-            if (hasLocationAndActivityRecordingPermission(requireContext())) {
-                startService()
-            } else {
-                requestLocationPermission(this)
-            }
+            startService()
         }
 
         binding.fabStopTracking.setOnClickListener {
             viewModel.stopService(requireContext())
+            fusedLocationProvider.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
         }
 
         binding.fabToTrackerStatistics.setOnClickListener {
@@ -88,28 +97,11 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
                 TrackerStatisticsFragmentArgs(eventId).toBundle()
             )
         }
-
         observeUserLocation()
-        progressDialog = DialogBuilder(requireContext(), layoutId = R.layout.progress_dialog_layout)
-            .build()
-
-        val timer = Timer()
-        timer.schedule(object: TimerTask() {
-            override fun run() {
-                if(progressDialog?.isShowing == true) progressDialog?.dismiss()
-                timer.cancel()
-            }
-        }, 30 * 1000)
     }
 
+    @SuppressLint("MissingPermission")
     private fun observeUserLocation() {
-        val fusedLocationProvider: FusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(requireContext())
-        val locationRequest = LocationRequest.create().apply {
-            interval = 1000L
-            fastestInterval = 1000L
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
         fusedLocationProvider.requestLocationUpdates(
             locationRequest,
             locationCallback,
@@ -144,16 +136,6 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
         }
     }
 
-    private fun showInfoDialog() {
-        DialogBuilder(
-            context = requireContext(),
-            title = getString(R.string.info_dialog_title_text),
-            message = getString(R.string.info_dialog_message_text),
-            negativeButtonText = "Ок",
-            negativeButtonClick = { dialog, _ -> dialog.cancel() }
-        ).build()
-    }
-
     override fun initBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -164,6 +146,10 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
     override fun onMapReady(map: GoogleMap) {
         map.isMyLocationEnabled = true
         map.setOnMyLocationButtonClickListener(this)
+        map.mapType = GoogleMap.MAP_TYPE_HYBRID
+        map.mapType = GoogleMap.MAP_TYPE_NORMAL
+        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+        map.mapType = GoogleMap.MAP_TYPE_TERRAIN
         googleMap = map
     }
 

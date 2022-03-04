@@ -69,7 +69,7 @@ class TrackerViewModel @Inject constructor(
     }
 
     fun animateCamera(googleMap: GoogleMap, currentLocation: LatLng) {
-        googleMap.animateCamera(
+        googleMap.moveCamera(
             CameraUpdateFactory.newLatLngZoom(
                 currentLocation,
                 17F
@@ -84,21 +84,20 @@ class TrackerViewModel @Inject constructor(
         context.stopService(intent)
     }
 
-    fun observeServiceStateInTrackerFragment(viewLifecycleOwner: LifecycleOwner, binding: FragmentTrackerBinding) {
+    fun observeServiceStateInTrackerFragment(
+        viewLifecycleOwner: LifecycleOwner,
+        binding: FragmentTrackerBinding
+    ) {
         TrackService.serviceLifecycleState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is ServiceLifecycleState.Running -> {
                     binding.fabStart.visibility = View.GONE
                     binding.fabStop.visibility = View.VISIBLE
-                    binding.textViewAccuracyTitle.visibility = View.VISIBLE
-                    binding.textViewAccuracyValue.visibility = View.VISIBLE
                     binding.fabToTrackerStatistics.visibility = View.VISIBLE
                 }
                 is ServiceLifecycleState.Stopped -> {
                     binding.fabStop.visibility = View.GONE
                     binding.fabStart.visibility = View.VISIBLE
-                    binding.textViewAccuracyTitle.visibility = View.GONE
-                    binding.textViewAccuracyValue.visibility = View.GONE
                     binding.fabToTrackerStatistics.visibility = View.GONE
                 }
             }
@@ -117,7 +116,7 @@ class TrackerViewModel @Inject constructor(
         var totalDistance = 0.0
         if (locations.size <= 1) return totalDistance
         val data = locations.map { it.first }
-        for(i in 0 until data.size - 1) {
+        for (i in 0 until data.size - 1) {
             totalDistance += distanceBetween(data[i], data[i + 1])
         }
         return totalDistance / 1000
@@ -136,4 +135,13 @@ class TrackerViewModel @Inject constructor(
         }
         return trackingState
     }
+
+    fun detectAccuracy(accuracy: Float): Pair<Float, Accuracy> =
+        when {
+            (0F..5F).contains(accuracy) -> Pair(accuracy, Accuracy.GOOD)
+            (5F..15F).contains(accuracy) -> Pair(accuracy, Accuracy.MEDIUM)
+            else -> {
+                Pair(accuracy, Accuracy.BAD)
+            }
+        }
 }

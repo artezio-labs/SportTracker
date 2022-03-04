@@ -1,5 +1,6 @@
 package com.artezio.osport.tracker.presentation.main
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,8 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentMainBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
-import com.artezio.osport.tracker.presentation.event.EventCreateAndUpdateFragmentArgs
 import com.artezio.osport.tracker.presentation.main.recycler.EventsRecyclerAdapter
+import com.artezio.osport.tracker.util.DialogBuilder
+import com.artezio.osport.tracker.util.hasLocationAndActivityRecordingPermission
+import com.artezio.osport.tracker.util.requestLocationPermission
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -26,18 +31,37 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
         EventsRecyclerAdapter(this)
     }
 
+    private val fusedLocationProvider: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(requireContext())
+    }
+
+    @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("events", "onViewCreated: ")
+
+        if (!hasLocationAndActivityRecordingPermission(requireContext())) {
+            showInfoDialog()
+        }
         binding.eventsRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = eventsAdapter
         }
         binding.fabAddEvent.setOnClickListener {
-            val args = EventCreateAndUpdateFragmentArgs(eventId = -1L, title = "Создать")
-            findNavController().navigate(
-                R.id.action_mainFragment_to_trackerFragment
-            )
+            if (hasLocationAndActivityRecordingPermission(requireContext())) {
+                val locationTask = fusedLocationProvider.lastLocation
+                locationTask.addOnSuccessListener { location ->
+                    if (location != null) {
+                        findNavController().navigate(
+                            R.id.action_mainFragment_to_trackerFragment
+                        )
+                    }
+                }
+
+            } else {
+                requestLocationPermission(this)
+            }
+
         }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -46,6 +70,16 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
                 }
             }
         }
+    }
+
+    private fun showInfoDialog() {
+        DialogBuilder(
+            context = requireContext(),
+            title = getString(R.string.info_dialog_title_text),
+            message = getString(R.string.info_dialog_message_text),
+            negativeButtonText = "Ок",
+            negativeButtonClick = { dialog, _ -> dialog.cancel() }
+        ).build()
     }
 
     override fun initBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMainBinding =

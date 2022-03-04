@@ -57,4 +57,6 @@ class EventsRepository @Inject constructor(
         dao.deleteEventById(eventId)
     }
 
+    override suspend fun getLastEvent(): Event = dao.getLastEvent()
+
 }

@@ -74,4 +74,8 @@ object PresentationModule {
     @Provides
     fun providesDeleteEventUseCase(repository: EventsRepository) =
         DeleteEventUseCase(repository)
+
+    @Provides
+    fun providesGetLastEventUseCase(repository: EventsRepository) =
+        GetLastEventUseCase(repository)
 }
