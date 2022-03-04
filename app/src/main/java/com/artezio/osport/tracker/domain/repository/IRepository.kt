@@ -7,6 +7,7 @@ interface IRepository {
 
     interface IPedometerRepository {
         suspend fun addPedometerData(pedometerData: PedometerData)
+        fun getStepCount(eventId: Long): Flow<PedometerData>
     }
 
     interface ILocationRepository {
@@ -22,6 +23,14 @@ interface IRepository {
         suspend fun updateEvent(id: Long, name: String, startDate: Long)
         fun getEventWithDataById(id: Long): Flow<EventWithData>
         fun getLastEventId(): Flow<Long>
+        suspend fun deleteEvent(event: Event)
+        suspend fun updateEvent(eventId: Long, eventName: String, trackingStateModel: TrackingStateModel)
+        suspend fun deleteEventById(eventId: Long)
+    }
+
+    interface IDataStoreRepository {
+        suspend fun saveTrackingState(state: TrackingStateModel)
+        suspend fun getTrackingState(): TrackingStateModel
     }
 
     interface TrackNetworkRepository {

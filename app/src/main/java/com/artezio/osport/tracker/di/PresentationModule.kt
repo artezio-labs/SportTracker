@@ -1,6 +1,7 @@
 package com.artezio.osport.tracker.di
 
 import com.artezio.osport.tracker.data.mappers.DomainToPresentationMapper
+import com.artezio.osport.tracker.data.repository.DataStoreRepository
 import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
@@ -57,4 +58,20 @@ object PresentationModule {
     @Provides
     fun providesDomainToPresentationMapper() =
         DomainToPresentationMapper()
+
+    @Provides
+    fun providesGetStepCountUseCase(repository: PedometerRepository) =
+        GetStepCountUseCase(repository)
+
+    @Provides
+    fun providesGetTrackingStateUseCase(repository: DataStoreRepository) =
+        GetTrackingStateUseCase(repository)
+
+    @Provides
+    fun providesSaveTrackingStateUseCase(repository: DataStoreRepository) =
+        SaveTrackingStateUseCase(repository)
+
+    @Provides
+    fun providesDeleteEventUseCase(repository: EventsRepository) =
+        DeleteEventUseCase(repository)
 }

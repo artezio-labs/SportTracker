@@ -19,11 +19,42 @@ interface EventsDao {
     @Query(
         """
         UPDATE events 
-        SET name = :name, startDate = :startDate
+        SET name = :name, startDate = :startDate, endDate = :endDate
         WHERE id = :id
     """
     )
-    suspend fun updateSpecificEventFields(id: Long, name: String, startDate: Long)
+    suspend fun updateSpecificEventFields(
+        id: Long,
+        name: String,
+        startDate: Long = 0L,
+        endDate: Long?
+    )
+
+    @Query(
+        """
+        UPDATE events
+        SET endDate = :endDate,
+            name = :eventName,
+            timerValue = :timerValue, 
+            speedValue = :speedValue,
+            distanceValue = :distanceValue,
+            tempoValue = :tempoValue,
+            stepsValue = :stepsValue,
+            gpsPointsValue = :gpsPointsValue
+        WHERE id = :eventId
+    """
+    )
+    suspend fun updateEventsEndDateAndTrackingState(
+        eventId: Long,
+        eventName: String,
+        endDate: Long,
+        timerValue: Double,
+        speedValue: Double,
+        distanceValue: Double,
+        tempoValue: Double,
+        stepsValue: Int,
+        gpsPointsValue: Int
+    )
 
     @Transaction
     @Query("SELECT * FROM events")
@@ -44,4 +75,10 @@ interface EventsDao {
     """
     )
     fun getLastEventId(): Flow<Long>
+
+    @Delete
+    fun deleteEvent(event: Event)
+
+    @Query("DELETE FROM events where id = :eventId")
+    fun deleteEventById(eventId: Long)
 }

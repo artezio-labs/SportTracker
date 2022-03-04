@@ -2,13 +2,14 @@ package com.artezio.osport.tracker.data.db
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LocationDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLocationData(data: LocationPointData)
 
     @Query("SELECT * FROM location_data")

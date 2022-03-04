@@ -1,86 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".presentation.tracker.TrackerFragment">
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="0dp"
+        android:layout_weight="10" />
 
-<!--    <com.google.android.material.card.MaterialCardView-->
-<!--        android:id="@+id/cardTrackInfo"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="731dp"-->
-<!--        android:layout_alignParentTop="true">-->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/trackerScoreBoard"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.4"
+        android:background="@color/tracker_scoreboard_color"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-<!--        <TextView-->
-<!--            android:id="@+id/textViewDistance"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"/>-->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-<!--    </com.google.android.material.card.MaterialCardView>-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-    <FrameLayout
-        android:id="@+id/fabStart"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
-        android:layout_margin="16dp">
+                <TextView
+                    android:id="@+id/textViewAccuracyTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
+                    android:text="Точность: "
+                    android:textStyle="bold" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabStartTracking"
+                <TextView
+                    android:id="@+id/textViewAccuracyValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="4dp"
+                    android:textStyle="bold"
+                    tools:text="0.66757567856" />
+            </LinearLayout>
+
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabToTrackerStatistics"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                android:backgroundTint="@color/app_theme_color"
+                android:layout_margin="16dp"
+                android:src="@drawable/ic_statistics"/>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <FrameLayout
+            android:id="@+id/fabStart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/app_theme_color"
-            android:src="@android:color/transparent" />
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom|right"
+            android:layout_margin="16dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/textViewFabStartText"
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabStartTracking"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/app_theme_color"
+                android:src="@android:color/transparent" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/textViewFabStartText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/text_view_corner_radius"
+                android:elevation="16dp"
+                android:text="Старт"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@android:color/white"
+                android:textSize="17sp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fabStop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="START"
-            android:background="@drawable/text_view_corner_radius"
-            android:textSize="17sp"
-            android:elevation="16dp"
-            android:textColor="@android:color/white"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-    </FrameLayout>
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom|right"
+            android:layout_margin="16dp"
+            android:visibility="gone">
 
-    <FrameLayout
-        android:id="@+id/fabStop"
-        android:layout_alignParentBottom="true"
-        android:visibility="gone"
-        android:layout_alignParentEnd="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
-        android:layout_margin="16dp">
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabStopTracking"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/button_stop_color"
+                android:src="@android:color/transparent" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabStopTracking"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/button_stop_color"
-            android:src="@android:color/transparent" />
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/textViewFabStopText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/text_view_corner_radius"
+                android:elevation="16dp"
+                android:text="Стоп"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@android:color/white"
+                android:textSize="17sp" />
+        </FrameLayout>
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/textViewFabStopText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="STOP"
-            android:background="@drawable/text_view_corner_radius"
-            android:textSize="17sp"
-            android:elevation="16dp"
-            android:textColor="@android:color/white"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-    </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-</RelativeLayout>
+
+</LinearLayout>

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/app_nav"
-    app:startDestination="@id/trackerFragment">
+    app:startDestination="@id/mainFragment">
 
     <fragment
         android:id="@+id/mainFragment"
@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_mainFragment_to_statisticsFragment"
             app:destination="@id/statisticsFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_trackerFragment"
+            app:destination="@id/trackerFragment" />
     </fragment>
     <fragment
         android:id="@+id/trackerFragment"
@@ -23,8 +26,8 @@
         android:label="@string/fragment_tracker_label"
         tools:layout="@layout/fragment_tracker">
         <action
-            android:id="@+id/action_trackerFragment_to_mainFragment"
-            app:destination="@id/mainFragment" />
+            android:id="@+id/action_trackerFragment_to_trackerStatisticsFragment"
+            app:destination="@id/trackerStatisticsFragment" />
     </fragment>
     <fragment
         android:id="@+id/eventCreateAndUpdateFragment"
@@ -61,6 +64,39 @@
         android:name="com.artezio.osport.tracker.presentation.statistics.StatisticsFragment"
         android:label="fragment_statistics"
         tools:layout="@layout/fragment_statistics" >
+        <argument
+            android:name="eventId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+    <fragment
+        android:id="@+id/trackerStatisticsFragment"
+        android:name="com.artezio.osport.tracker.presentation.tracker.TrackerStatisticsFragment"
+        android:label="Статистика"
+        tools:layout="@layout/fragment_tracker_statistics" >
+        <action
+            android:id="@+id/action_trackerStatisticsFragment_to_trackerFragment"
+            app:destination="@id/trackerFragment" />
+        <action
+            android:id="@+id/action_trackerStatisticsFragment_to_saveEventFragment"
+            app:destination="@id/saveEventFragment" />
+        <argument
+            android:name="eventId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+    <fragment
+        android:id="@+id/saveEventFragment"
+        android:name="com.artezio.osport.tracker.presentation.event.SaveEventFragment"
+        android:label="Сохранить"
+        tools:layout="@layout/fragment_save_event" >
+        <argument
+            android:name="tracker_data"
+            app:argType="com.artezio.osport.tracker.domain.model.TrackingStateModel"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_saveEventFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
         <argument
             android:name="eventId"
             app:argType="long"

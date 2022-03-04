@@ -36,8 +36,7 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
         binding.fabAddEvent.setOnClickListener {
             val args = EventCreateAndUpdateFragmentArgs(eventId = -1L, title = "Создать")
             findNavController().navigate(
-                R.id.action_mainFragment_to_eventCreateAndUpdateFragment,
-                args.toBundle()
+                R.id.action_mainFragment_to_trackerFragment
             )
         }
         viewLifecycleOwner.lifecycleScope.launch {

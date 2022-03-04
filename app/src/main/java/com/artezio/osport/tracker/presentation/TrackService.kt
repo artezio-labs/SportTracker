@@ -35,6 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -71,6 +72,8 @@ class TrackService : LifecycleService() {
     @Inject
     lateinit var insertPedometerDataUseCase: InsertPedometerDataUseCase
 
+    private val timer = Timer()
+
     private val localBinder = LocalBinder()
 
     private var locationCallback: LocationCallback = object : LocationCallback() {
@@ -88,7 +91,6 @@ class TrackService : LifecycleService() {
                 eventId ?: -1L
             )
             Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
-            // todo сохранять в бд
             serviceIoScope.launch {
                 insertLocationDataUseCase.execute(locationPoint)
             }
@@ -180,6 +182,7 @@ class TrackService : LifecycleService() {
         when (intent?.action) {
             START_FOREGROUND_SERVICE -> {
                 startForegroundService()
+                eventId = intent.getLongExtra("eventId", -1L)
                 serviceLifecycleState.postValue(ServiceLifecycleState.Running)
             }
             STOP_FOREGROUND_SERVICE -> {
@@ -199,7 +202,13 @@ class TrackService : LifecycleService() {
 
         eventId?.let { runPedometer(it) }
         subscribeToLocationUpdates()
+        startTimer(intent)
         return START_NOT_STICKY
+    }
+
+    private fun startTimer(intent: Intent?) {
+        val time = intent?.getDoubleExtra(TIME_EXTRA, 0.0) ?: 0.0
+        timer.scheduleAtFixedRate(TimeTask(time), 0, 1000)
     }
 
     private fun startForegroundService() {
@@ -244,6 +253,7 @@ class TrackService : LifecycleService() {
         sensorManager.unregisterListener(sensorEventListener)
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         serviceLifecycleState.postValue(ServiceLifecycleState.Stopped)
+        timer.cancel()
     }
 
     inner class LocalBinder : Binder() {
@@ -259,14 +269,25 @@ class TrackService : LifecycleService() {
         }
     }
 
+    private inner class TimeTask(private var time: Double) : TimerTask() {
+        override fun run() {
+            val intent = Intent(TIMER_UPDATED)
+            time++
+            intent.putExtra(TIME_EXTRA, time)
+            sendBroadcast(intent)
+        }
+    }
+
     companion object {
         private const val CHANNEL_ID = "com.artezio.sporttracker.CHANNEL_ID"
         private const val STEPS = "steps"
         private const val FOREGROUND_SERVICE_ID = 1234
         private const val STEPS_TAG = "STEPS_TAG"
         private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
-        private const val PHYISCAL_ACTIVITY = 9876
+        const val TIMER_UPDATED = "timerUpdated"
+        const val TIME_EXTRA = "timeExtra"
 
         val serviceLifecycleState = MutableLiveData<ServiceLifecycleState>(ServiceLifecycleState.Stopped)
+
     }
 }

@@ -9,12 +9,13 @@ import androidx.lifecycle.viewModelScope
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
 import com.artezio.osport.tracker.domain.model.Event
-import com.artezio.osport.tracker.domain.usecases.GetLastEventIdUseCase
-import com.artezio.osport.tracker.domain.usecases.GetLocationsByEventIdUseCase
-import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
+import com.artezio.osport.tracker.domain.model.LocationPointData
+import com.artezio.osport.tracker.domain.model.TrackingStateModel
+import com.artezio.osport.tracker.domain.usecases.*
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.START_FOREGROUND_SERVICE
 import com.artezio.osport.tracker.util.STOP_FOREGROUND_SERVICE
+import com.artezio.osport.tracker.util.distanceBetween
 import com.artezio.osport.tracker.util.millisecondsToDateFormat
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -25,19 +26,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 @HiltViewModel
 class TrackerViewModel @Inject constructor(
     private val getLastEventIdUseCase: GetLastEventIdUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
+    private val getStepCountUseCase: GetStepCountUseCase,
+    private val getTrackingStateUseCase: GetTrackingStateUseCase,
+    private val saveTrackingStateUseCase: SaveTrackingStateUseCase,
 ) : ViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
 
-    fun buildRoute(locations: List<LatLng>, googleMap: GoogleMap) {
+    fun buildRoute(locations: List<Pair<LocationPointData, Accuracy>>, googleMap: GoogleMap) {
         var lineOptions = PolylineOptions()
-        lineOptions = lineOptions.addAll(locations)
+        lineOptions =
+            lineOptions.addAll(locations.map { LatLng(it.first.latitude, it.first.longitude) })
         googleMap.addPolyline(lineOptions)
     }
 
@@ -66,7 +72,7 @@ class TrackerViewModel @Inject constructor(
         googleMap.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
                 currentLocation,
-                23F
+                17F
             )
         )
     }
@@ -78,18 +84,56 @@ class TrackerViewModel @Inject constructor(
         context.stopService(intent)
     }
 
-    fun observeServiceState(viewLifecycleOwner: LifecycleOwner, binding: FragmentTrackerBinding) {
+    fun observeServiceStateInTrackerFragment(viewLifecycleOwner: LifecycleOwner, binding: FragmentTrackerBinding) {
         TrackService.serviceLifecycleState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is ServiceLifecycleState.Running -> {
                     binding.fabStart.visibility = View.GONE
                     binding.fabStop.visibility = View.VISIBLE
+                    binding.textViewAccuracyTitle.visibility = View.VISIBLE
+                    binding.textViewAccuracyValue.visibility = View.VISIBLE
+                    binding.fabToTrackerStatistics.visibility = View.VISIBLE
                 }
                 is ServiceLifecycleState.Stopped -> {
                     binding.fabStop.visibility = View.GONE
                     binding.fabStart.visibility = View.VISIBLE
+                    binding.textViewAccuracyTitle.visibility = View.GONE
+                    binding.textViewAccuracyValue.visibility = View.GONE
+                    binding.fabToTrackerStatistics.visibility = View.GONE
                 }
             }
         }
+    }
+
+    fun getTimerStringFromDouble(time: Double): String {
+        val timeInt = time.roundToInt()
+        val hours = timeInt % 86400 / 3600
+        val minutes = timeInt % 86400 % 3600 / 60
+        val seconds = timeInt % 86400 % 3600 % 60
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    fun calculateDistance(locations: List<Pair<LocationPointData, Accuracy>>): Double {
+        var totalDistance = 0.0
+        if (locations.size <= 1) return totalDistance
+        val data = locations.map { it.first }
+        for(i in 0 until data.size - 1) {
+            totalDistance += distanceBetween(data[i], data[i + 1])
+        }
+        return totalDistance / 1000
+    }
+
+    fun observeStepCountData(eventId: Long) = getStepCountUseCase.execute(eventId)
+
+    fun saveTrackingState(state: TrackingStateModel) = viewModelScope.launch(Dispatchers.IO) {
+        saveTrackingStateUseCase.execute(state)
+    }
+
+    fun getTrackingState(): TrackingStateModel? {
+        var trackingState: TrackingStateModel? = null
+        viewModelScope.launch(Dispatchers.IO) {
+            trackingState = getTrackingStateUseCase.execute()
+        }
+        return trackingState
     }
 }
