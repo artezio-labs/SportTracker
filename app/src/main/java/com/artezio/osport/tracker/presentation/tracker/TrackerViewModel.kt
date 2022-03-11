@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
@@ -39,6 +40,9 @@ class TrackerViewModel @Inject constructor(
 ) : ViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
+
+    val timerValueLiveData: LiveData<Double>
+        get() = TrackService.timerValueLiveData
 
     fun buildRoute(locations: List<Pair<LocationPointData, Accuracy>>, googleMap: GoogleMap) {
         var lineOptions = PolylineOptions()

@@ -143,6 +143,7 @@ class TrackService : LifecycleService() {
                         )
                     )
                 }
+                receiveSteps(stepCount)
             }
         })
         sensorEventListener = object : SensorEventListener {
@@ -179,11 +180,16 @@ class TrackService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        var timeFromIntent = 0.0
+        var stepsFromIntent = 0
         when (intent?.action) {
             START_FOREGROUND_SERVICE -> {
                 startForegroundService()
                 eventId = intent.getLongExtra("eventId", -1L)
                 serviceLifecycleState.postValue(ServiceLifecycleState.Running)
+                timeFromIntent = intent.getDoubleExtra("time", 0.0)
+                stepsFromIntent = intent.getIntExtra("stepCount", 0)
+
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
@@ -202,12 +208,12 @@ class TrackService : LifecycleService() {
 
         eventId?.let { runPedometer(it) }
         subscribeToLocationUpdates()
-        startTimer(intent)
+        startTimer(timeFromIntent, stepsFromIntent)
         return START_NOT_STICKY
     }
 
-    private fun startTimer(intent: Intent?) {
-        val time = intent?.getDoubleExtra(TIME_EXTRA, 0.0) ?: 0.0
+    private fun startTimer(time: Double, steps: Int) {
+        stepCount = steps
         timer.scheduleAtFixedRate(TimeTask(time), 0, 1000)
     }
 
@@ -271,11 +277,15 @@ class TrackService : LifecycleService() {
 
     private inner class TimeTask(private var time: Double) : TimerTask() {
         override fun run() {
-            val intent = Intent(TIMER_UPDATED)
             time++
-            intent.putExtra(TIME_EXTRA, time)
-            sendBroadcast(intent)
+            timerValueLiveData.postValue(time)
         }
+    }
+
+    private fun receiveSteps(steps: Int) {
+        val intent = Intent(STEPS_UPDATED)
+        intent.putExtra(STEPS_EXTRA, steps)
+        sendBroadcast(intent)
     }
 
     companion object {
@@ -284,10 +294,11 @@ class TrackService : LifecycleService() {
         private const val FOREGROUND_SERVICE_ID = 1234
         private const val STEPS_TAG = "STEPS_TAG"
         private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
-        const val TIMER_UPDATED = "timerUpdated"
-        const val TIME_EXTRA = "timeExtra"
+        const val STEPS_UPDATED = "stepCountUpdated"
+        const val STEPS_EXTRA = "stepsExtra"
 
         val serviceLifecycleState = MutableLiveData<ServiceLifecycleState>(ServiceLifecycleState.Stopped)
+        val timerValueLiveData = MutableLiveData(0.0)
 
     }
 }

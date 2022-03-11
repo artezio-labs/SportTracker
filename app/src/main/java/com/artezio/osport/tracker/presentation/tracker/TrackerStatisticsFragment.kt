@@ -44,6 +44,13 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel.timerValueLiveData.observe(viewLifecycleOwner) { timerValue ->
+            Log.d("timer_value", "timer value: $timerValue")
+            time = timerValue
+            binding.textViewTimerValue.text = viewModel.getTimerStringFromDouble(timerValue)
+        }
+
         binding.fabToTrackerMap.setOnClickListener {
             findNavController().navigate(R.id.action_trackerStatisticsFragment_to_trackerFragment)
         }
@@ -130,23 +137,25 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
         }
     }
 
-    private val updateTimer: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            time = intent.getDoubleExtra(TrackService.TIME_EXTRA, 0.0)
-            binding.textViewTimerValue.text = viewModel.getTimerStringFromDouble(time)
+    private val stepsBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val stepCount = intent?.getIntExtra(TrackService.STEPS_EXTRA, 0)
+            if (stepCount != null) {
+                binding.textViewStepsValue.text = stepCount.toString()
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        requireActivity().registerReceiver(updateTimer, IntentFilter(TrackService.TIMER_UPDATED))
+        requireActivity().registerReceiver(stepsBroadcastReceiver, IntentFilter(TrackService.STEPS_UPDATED))
         Log.d("timer", "receiver registered")
     }
-//
-//    override fun onPause() {
-//        super.onPause()
-//        requireActivity().unregisterReceiver(updateTimer)
-//    }
+
+    override fun onPause() {
+        super.onPause()
+        requireActivity().unregisterReceiver(stepsBroadcastReceiver)
+    }
 
     override fun initBinding(
         inflater: LayoutInflater,
