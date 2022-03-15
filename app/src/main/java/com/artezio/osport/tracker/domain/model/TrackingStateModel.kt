@@ -11,4 +11,16 @@ data class TrackingStateModel(
     val tempoValue: Double,
     val stepsValue: Int,
     val gpsPointsValue: Int,
-)
+) {
+    companion object {
+        fun empty(): TrackingStateModel =
+            TrackingStateModel(
+                timerValue = 0.0,
+                speedValue = 0.0,
+                distanceValue = 0.0,
+                tempoValue = 0.0,
+                stepsValue = 0,
+                gpsPointsValue = 0
+            )
+    }
+}

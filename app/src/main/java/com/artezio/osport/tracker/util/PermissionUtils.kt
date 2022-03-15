@@ -26,11 +26,11 @@ fun hasLocationAndActivityRecordingPermission(context: Context) =
         )
     }
 
-fun requestLocationPermission(fragment: Fragment) {
+fun requestLocationPermissions(fragment: Fragment) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
         EasyPermissions.requestPermissions(
             fragment,
-            fragment.getString(R.string.permissions_need_to_be_granted_dialog_message),
+            fragment.getString(R.string.location_permissions_need_to_be_granted_dialog_message),
             PERMISSIONS_REQUEST_CODE,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -38,15 +38,29 @@ fun requestLocationPermission(fragment: Fragment) {
     } else {
         EasyPermissions.requestPermissions(
             fragment,
-            fragment.getString(R.string.permissions_need_to_be_granted_dialog_message),
+            fragment.getString(R.string.location_permissions_need_to_be_granted_dialog_message),
             PERMISSIONS_REQUEST_CODE,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
+    }
+}
+
+fun requestPhysicalActivityPermissions(fragment: Fragment) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        EasyPermissions.requestPermissions(
+            fragment,
+            fragment.getString(R.string.activity_permissions_need_to_be_granted_dialog_message),
+            PERMISSIONS_REQUEST_CODE,
             Manifest.permission.ACTIVITY_RECOGNITION
         )
     }
 }
+
+fun hasPermission(context: Context, vararg permissions: String): Boolean =
+    EasyPermissions.hasPermissions(context, *permissions)
+
 
 
 

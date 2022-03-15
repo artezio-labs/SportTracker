@@ -67,6 +67,4 @@ class MainActivity : AppCompatActivity() {
         NavigationUI.onNavDestinationSelected(item, navController)
         return super.onOptionsItemSelected(item)
     }
-
-
 }

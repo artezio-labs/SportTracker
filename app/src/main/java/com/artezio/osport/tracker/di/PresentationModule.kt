@@ -1,5 +1,6 @@
 package com.artezio.osport.tracker.di
 
+import android.content.Context
 import com.artezio.osport.tracker.data.mappers.DomainToPresentationMapper
 import com.artezio.osport.tracker.data.repository.DataStoreRepository
 import com.artezio.osport.tracker.data.repository.EventsRepository
@@ -10,6 +11,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @Module
 @InstallIn(ViewModelComponent::class)
@@ -78,4 +80,7 @@ object PresentationModule {
     @Provides
     fun providesGetLastEventUseCase(repository: EventsRepository) =
         GetLastEventUseCase(repository)
+
+    @Provides
+    fun provideApplicationContext(@ApplicationContext context: Context) = context
 }

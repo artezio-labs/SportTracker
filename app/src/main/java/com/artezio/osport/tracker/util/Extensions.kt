@@ -2,6 +2,7 @@ package com.artezio.osport.tracker.util
 
 import android.location.Location
 import com.artezio.osport.tracker.domain.model.LocationPointData
+import com.artezio.osport.tracker.domain.model.TrackingStateModel
 
 fun LocationPointData.toLocation() = Location("").apply {
     latitude = latitude
@@ -19,3 +20,5 @@ fun distanceBetween(firstLocation: LocationPointData, secondLocation: LocationPo
     }
     return firstPoint.distanceTo(secondPoint)
 }
+
+fun TrackingStateModel.isNotEmpty() = this != TrackingStateModel.empty()

@@ -38,6 +38,9 @@
 
         <receiver android:name=".presentation.AlarmReceiver" />
 
+        <activity android:name=".presentation.main.PermissionRequestActivity"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAP_API_KEY}" />

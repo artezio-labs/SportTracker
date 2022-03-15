@@ -73,8 +73,6 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
         initMap(savedInstanceState)
         viewModel.observeServiceStateInTrackerFragment(viewLifecycleOwner, binding)
 
-
-
         binding.fabStartTracking.setOnClickListener {
             googleMap.clear()
             fusedLocationProvider.removeLocationUpdates(locationCallback)

@@ -16,9 +16,9 @@ import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentMainBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.main.recycler.EventsRecyclerAdapter
-import com.artezio.osport.tracker.util.DialogBuilder
 import com.artezio.osport.tracker.util.hasLocationAndActivityRecordingPermission
-import com.artezio.osport.tracker.util.requestLocationPermission
+import com.artezio.osport.tracker.util.requestLocationPermissions
+import com.artezio.osport.tracker.util.requestPhysicalActivityPermissions
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
@@ -40,9 +40,6 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
         super.onViewCreated(view, savedInstanceState)
         Log.d("events", "onViewCreated: ")
 
-        if (!hasLocationAndActivityRecordingPermission(requireContext())) {
-            showInfoDialog()
-        }
         binding.eventsRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = eventsAdapter
@@ -57,9 +54,9 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
                         )
                     }
                 }
-
             } else {
-                requestLocationPermission(this)
+                requestLocationPermissions(this)
+                requestPhysicalActivityPermissions(this)
             }
 
         }
@@ -70,16 +67,6 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
                 }
             }
         }
-    }
-
-    private fun showInfoDialog() {
-        DialogBuilder(
-            context = requireContext(),
-            title = getString(R.string.info_dialog_title_text),
-            message = getString(R.string.info_dialog_message_text),
-            negativeButtonText = "Ок",
-            negativeButtonClick = { dialog, _ -> dialog.cancel() }
-        ).build()
     }
 
     override fun initBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMainBinding =

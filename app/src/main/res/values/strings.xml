@@ -6,7 +6,8 @@
     <string name="fragment_journal_label">Журнал</string>
     <string name="info_dialog_title_text">Важная информация!</string>
     <string name="info_dialog_message_text">Для корректной работы приложения нужно дать разрешение на отслеживание геолокации. Без данного разрешения некоторые функции приложения не будут работать.</string>
-    <string name="permissions_need_to_be_granted_dialog_message">Вам нужно выдать все разрешения чтобы приложение работало корректно!</string>
+    <string name="location_permissions_need_to_be_granted_dialog_message">Вам нужно выдать разрешение на отслеживание местоположения в любом случае, чтобы приложение могло использовать GPS</string>
+    <string name="activity_permissions_need_to_be_granted_dialog_message">Вам нужно выдать разрешение на отслеживание физической активности, чтобы приложение могло использовать педометр</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -1,15 +1,12 @@
 package com.artezio.osport.tracker.presentation.event
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.artezio.osport.tracker.domain.model.TrackingStateModel
-import com.artezio.osport.tracker.domain.usecases.DeleteEventUseCase
-import com.artezio.osport.tracker.domain.usecases.GetLastEventIdUseCase
-import com.artezio.osport.tracker.domain.usecases.GetLastEventUseCase
-import com.artezio.osport.tracker.domain.usecases.UpdateEventUseCase
+import com.artezio.osport.tracker.data.prefs.PrefsManager
+import com.artezio.osport.tracker.domain.usecases.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,25 +15,21 @@ class SaveEventViewModel @Inject constructor(
     private val deleteEventUseCase: DeleteEventUseCase,
     private val getLastEventIdUseCase: GetLastEventIdUseCase,
     private val updateEventUseCase: UpdateEventUseCase,
-    private val getLastEventUseCase: GetLastEventUseCase
+    private val getLastEventUseCase: GetLastEventUseCase,
+    private val insertEvent: InsertEventUseCase,
+    private val prefsManager: PrefsManager
 ) : ViewModel() {
 
-    val lastEventId: Flow<Long>
-        get() = getLastEventIdUseCase.execute()
-
-    fun deleteEvent(eventId: Long) {
+    fun deleteLastEvent() = viewModelScope.launch(Dispatchers.IO) {
+        val lastEvent = getLastEventUseCase.execute()
         viewModelScope.launch(Dispatchers.IO) {
-            deleteEventUseCase.execute(eventId)
+            deleteEventUseCase.execute(lastEvent)
         }
     }
 
-    fun updateEvent(eventId: Long, eventName: String, trackingStateModel: TrackingStateModel) {
-        viewModelScope.launch(Dispatchers.IO) {
-            updateEventUseCase.execute(eventId, eventName, trackingStateModel)
-        }
-    }
-
-    fun updateEvent(eventName: String, trackingStateModel: TrackingStateModel) {
+    fun updateEvent(eventName: String) {
+        val trackingStateModel = prefsManager.trackingState
+        Log.d("event_save", "state: $trackingStateModel")
         viewModelScope.launch(Dispatchers.IO) {
             val event = getLastEventUseCase.execute()
             val updatedEvent = event.copy(
@@ -44,11 +37,11 @@ class SaveEventViewModel @Inject constructor(
                 endDate = System.currentTimeMillis(),
                 timerValue = trackingStateModel.timerValue,
                 speedValue = trackingStateModel.speedValue,
-                tempoValue = trackingStateModel.tempoValue,
                 stepsValue = trackingStateModel.stepsValue,
                 gpsPointsValue = trackingStateModel.gpsPointsValue
             )
-
+            deleteLastEvent()
+            insertEvent.execute(updatedEvent)
         }
     }
 }

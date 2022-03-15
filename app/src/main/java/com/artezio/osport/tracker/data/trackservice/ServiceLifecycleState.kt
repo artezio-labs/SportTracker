@@ -1,6 +1,5 @@
 package com.artezio.osport.tracker.data.trackservice
 
-sealed class ServiceLifecycleState {
-    object Running : ServiceLifecycleState()
-    object Stopped : ServiceLifecycleState()
+enum class ServiceLifecycleState {
+    RUNNING, STOPPED, PAUSED, RESUMED
 }

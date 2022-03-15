@@ -36,12 +36,12 @@ class EventsRepository @Inject constructor(
             endDate = System.currentTimeMillis(),
             timerValue = trackingStateModel.timerValue,
             speedValue = trackingStateModel.speedValue,
-            distanceValue = trackingStateModel.distanceValue,
-            tempoValue = trackingStateModel.tempoValue,
             stepsValue = trackingStateModel.stepsValue,
             gpsPointsValue = trackingStateModel.gpsPointsValue
         )
     }
+
+    override suspend fun updateEvent(event: Event) = dao.updateEvent(event)
 
     override fun getEventWithDataById(id: Long): Flow<EventWithData> =
         dao.getEventWithDataById(id)

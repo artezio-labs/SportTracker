@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.artezio.osport.tracker.presentation.main.MainFragment"
-        android:label="@string/fragment_journal_label"
+        android:label="Тренировки"
         tools:layout="@layout/fragment_main" >
         <action
             android:id="@+id/action_mainFragment_to_eventCreateAndUpdateFragment"

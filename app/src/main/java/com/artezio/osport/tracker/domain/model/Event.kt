@@ -15,8 +15,6 @@ data class Event(
     val sportsmanId: Long,
     val timerValue: Double = 0.0,
     val speedValue: Double = 0.0,
-    val distanceValue: Double = 0.0,
-    val tempoValue: Double = 0.0,
     val stepsValue: Int = 0,
     val gpsPointsValue: Int = 0
 ) {

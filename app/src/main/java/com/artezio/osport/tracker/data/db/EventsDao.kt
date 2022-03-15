@@ -1,13 +1,14 @@
 package com.artezio.osport.tracker.data.db
 
 import androidx.room.*
+import androidx.room.OnConflictStrategy.REPLACE
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.EventWithData
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EventsDao {
-    @Insert
+    @Insert(onConflict = REPLACE)
     suspend fun insertEvent(event: Event)
 
     @Query("SELECT * FROM events WHERE id = :id")
@@ -37,8 +38,6 @@ interface EventsDao {
             name = :eventName,
             timerValue = :timerValue, 
             speedValue = :speedValue,
-            distanceValue = :distanceValue,
-            tempoValue = :tempoValue,
             stepsValue = :stepsValue,
             gpsPointsValue = :gpsPointsValue
         WHERE id = :eventId
@@ -50,8 +49,6 @@ interface EventsDao {
         endDate: Long,
         timerValue: Double,
         speedValue: Double,
-        distanceValue: Double,
-        tempoValue: Double,
         stepsValue: Int,
         gpsPointsValue: Int
     )

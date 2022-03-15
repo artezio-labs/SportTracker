@@ -3,10 +3,7 @@ package com.artezio.osport.tracker.presentation.tracker
 import android.content.Context
 import android.content.Intent
 import android.view.View
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
 import com.artezio.osport.tracker.domain.model.Event
@@ -34,7 +31,6 @@ class TrackerViewModel @Inject constructor(
     private val getLastEventIdUseCase: GetLastEventIdUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
-    private val getStepCountUseCase: GetStepCountUseCase,
     private val getTrackingStateUseCase: GetTrackingStateUseCase,
     private val saveTrackingStateUseCase: SaveTrackingStateUseCase,
 ) : ViewModel() {
@@ -43,6 +39,8 @@ class TrackerViewModel @Inject constructor(
 
     val timerValueLiveData: LiveData<Double>
         get() = TrackService.timerValueLiveData
+
+    val trackingStateLiveData = MutableLiveData(TrackingStateModel.empty())
 
     fun buildRoute(locations: List<Pair<LocationPointData, Accuracy>>, googleMap: GoogleMap) {
         var lineOptions = PolylineOptions()
@@ -94,16 +92,18 @@ class TrackerViewModel @Inject constructor(
     ) {
         TrackService.serviceLifecycleState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is ServiceLifecycleState.Running -> {
+                ServiceLifecycleState.RUNNING -> {
                     binding.fabStart.visibility = View.GONE
                     binding.fabStop.visibility = View.VISIBLE
                     binding.fabToTrackerStatistics.visibility = View.VISIBLE
                 }
-                is ServiceLifecycleState.Stopped -> {
+                ServiceLifecycleState.STOPPED -> {
                     binding.fabStop.visibility = View.GONE
                     binding.fabStart.visibility = View.VISIBLE
                     binding.fabToTrackerStatistics.visibility = View.GONE
                 }
+                ServiceLifecycleState.PAUSED -> {}
+                ServiceLifecycleState.RESUMED -> {}
             }
         }
     }
@@ -126,8 +126,6 @@ class TrackerViewModel @Inject constructor(
         return totalDistance / 1000
     }
 
-    fun observeStepCountData(eventId: Long) = getStepCountUseCase.execute(eventId)
-
     fun saveTrackingState(state: TrackingStateModel) = viewModelScope.launch(Dispatchers.IO) {
         saveTrackingStateUseCase.execute(state)
     }
@@ -148,4 +146,5 @@ class TrackerViewModel @Inject constructor(
                 Pair(accuracy, Accuracy.BAD)
             }
         }
+
 }

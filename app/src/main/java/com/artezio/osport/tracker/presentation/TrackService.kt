@@ -13,22 +13,20 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.*
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.artezio.osport.tracker.R
+import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.domain.usecases.InsertLocationDataUseCase
 import com.artezio.osport.tracker.domain.usecases.InsertPedometerDataUseCase
-import com.artezio.osport.tracker.util.START_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.STOP_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.hasLocationAndActivityRecordingPermission
+import com.artezio.osport.tracker.util.*
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -60,11 +58,16 @@ class TrackService : LifecycleService() {
         LocationServices.getFusedLocationProviderClient(this)
     }
 
+    private val stepSensor: Sensor by lazy {
+        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    }
+
     private var notificationBuilder: NotificationCompat.Builder? = null
     private var sensorEventListener: SensorEventListener? = null
 
-
     private var eventId: Long? = null
+
+    private var isPaused: Boolean = false
 
     @Inject
     lateinit var insertLocationDataUseCase: InsertLocationDataUseCase
@@ -72,7 +75,10 @@ class TrackService : LifecycleService() {
     @Inject
     lateinit var insertPedometerDataUseCase: InsertPedometerDataUseCase
 
-    private val timer = Timer()
+    @Inject
+    lateinit var prefsManager: PrefsManager
+
+    private var timer = Timer()
 
     private val localBinder = LocalBinder()
 
@@ -96,7 +102,14 @@ class TrackService : LifecycleService() {
             }
         }
     }
-    private var locationRequest: LocationRequest? = null
+    private val locationRequest: LocationRequest by lazy {
+        LocationRequest.create().apply {
+            // на адроид 8+, если приложение не в foreground'е, интервал может быть тольше, чем заданное значение
+            interval = 1000L
+            fastestInterval = 1000L
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+    }
 
     private var stepCount = 0
 
@@ -105,21 +118,19 @@ class TrackService : LifecycleService() {
         LocalBroadcastManager
             .getInstance(this)
             .registerReceiver(ServiceEchoReceiver(), IntentFilter("ping"))
+
+        val stepsFromPrefs = prefsManager.steps
+        Log.d("steps", "Steps from prefs: $stepsFromPrefs")
+        stepCount = stepsFromPrefs
     }
 
 
     private fun subscribeToLocationUpdates() {
         if (hasLocationAndActivityRecordingPermission(this)) {
             Log.d(STEPS_TAG, "Permissions granted")
-            locationRequest = LocationRequest.create().apply {
-                // на адроид 8+, если приложение не в foreground'е, интервал может быть тольше, чем заданное значение
-                interval = 1000L
-                fastestInterval = 1000L
-                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            }
             try {
                 fusedLocationProviderClient.requestLocationUpdates(
-                    locationRequest!!, locationCallback, Looper.getMainLooper()
+                    locationRequest, locationCallback, Looper.getMainLooper()
                 )
             } catch (ex: SecurityException) {
                 Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
@@ -129,7 +140,6 @@ class TrackService : LifecycleService() {
 
     private fun runPedometer(id: Long) {
         Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
-        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val stepDetector = StepDetector(object : StepDetector.StepListener {
             override fun step(timeNs: Long) {
                 stepCount += 1
@@ -157,22 +167,12 @@ class TrackService : LifecycleService() {
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
-        if (stepSensor != null) {
-            val register = sensorManager.registerListener(
-                sensorEventListener,
-                stepSensor,
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-            Log.d(STEPS_TAG, "Is listener registered: $register")
-        } else {
-            Toast.makeText(this, NO_SENSOR, Toast.LENGTH_SHORT).show()
-        }
+        registerListener(sensorManager)
     }
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
         Log.d(STEPS_TAG, "onBind: ")
-
         return localBinder
     }
 
@@ -180,35 +180,50 @@ class TrackService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        var timeFromIntent = 0.0
-        var stepsFromIntent = 0
+        Log.d("timer_value", "Service is started")
         when (intent?.action) {
             START_FOREGROUND_SERVICE -> {
                 startForegroundService()
                 eventId = intent.getLongExtra("eventId", -1L)
-                serviceLifecycleState.postValue(ServiceLifecycleState.Running)
-                timeFromIntent = intent.getDoubleExtra("time", 0.0)
-                stepsFromIntent = intent.getIntExtra("stepCount", 0)
+                serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
 
+                val id = intent.getLongExtra("eventId", -1)
+                if (id != -1L) {
+                    eventId = id
+                } else {
+                    Log.d("steps", "Event id not found")
+                }
+                eventId?.let { if (!isPaused) runPedometer(it) }
+                subscribeToLocationUpdates()
+                startTimer(0.0, 0)
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
                 stopForeground(true)
                 stopSelf()
-                serviceLifecycleState.postValue(ServiceLifecycleState.Stopped)
+                serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
+            }
+            PAUSE_FOREGROUND_SERVICE -> {
+                Log.d(STEPS_TAG, "Service paused!")
+                sensorManager.unregisterListener(sensorEventListener)
+                fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+                serviceLifecycleState.postValue(ServiceLifecycleState.PAUSED)
+                isPaused = true
+            }
+            RESUME_FOREGROUND_SERVICE -> {
+                Log.d(STEPS_TAG, "Service resumed!")
+                registerListener(sensorManager)
+                try {
+                    fusedLocationProviderClient.requestLocationUpdates(
+                        locationRequest, locationCallback, Looper.getMainLooper()
+                    )
+                } catch (ex: SecurityException) {
+                    Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
+                }
+                serviceLifecycleState.postValue(ServiceLifecycleState.RESUMED)
+                isPaused = false
             }
         }
-
-        val id = intent?.getLongExtra("eventId", -1)
-        if (id != -1L) {
-            eventId = id
-        } else {
-            Log.d("steps", "Event id not found")
-        }
-
-        eventId?.let { runPedometer(it) }
-        subscribeToLocationUpdates()
-        startTimer(timeFromIntent, stepsFromIntent)
         return START_NOT_STICKY
     }
 
@@ -253,13 +268,22 @@ class TrackService : LifecycleService() {
         }
     }
 
+    private fun registerListener(sensorManager: SensorManager) {
+        sensorManager.registerListener(
+            sensorEventListener,
+            stepSensor,
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         Log.d(STEPS_TAG, "onDestroy: ")
         sensorManager.unregisterListener(sensorEventListener)
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
-        serviceLifecycleState.postValue(ServiceLifecycleState.Stopped)
+        serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
         timer.cancel()
+        prefsManager.clearPrefs()
     }
 
     inner class LocalBinder : Binder() {
@@ -275,17 +299,19 @@ class TrackService : LifecycleService() {
         }
     }
 
-    private inner class TimeTask(private var time: Double) : TimerTask() {
-        override fun run() {
-            time++
-            timerValueLiveData.postValue(time)
-        }
-    }
-
     private fun receiveSteps(steps: Int) {
         val intent = Intent(STEPS_UPDATED)
         intent.putExtra(STEPS_EXTRA, steps)
         sendBroadcast(intent)
+    }
+
+    private inner class TimeTask(private var time: Double) : TimerTask() {
+        override fun run() {
+            if (!isPaused) {
+                time++
+                timerValueLiveData.postValue(time)
+            }
+        }
     }
 
     companion object {
@@ -297,8 +323,8 @@ class TrackService : LifecycleService() {
         const val STEPS_UPDATED = "stepCountUpdated"
         const val STEPS_EXTRA = "stepsExtra"
 
-        val serviceLifecycleState = MutableLiveData<ServiceLifecycleState>(ServiceLifecycleState.Stopped)
+        val serviceLifecycleState =
+            MutableLiveData(ServiceLifecycleState.STOPPED)
         val timerValueLiveData = MutableLiveData(0.0)
-
     }
 }
