@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_nav"
+    app:startDestination="@id/parentMainFragment">
+
+    <fragment
+        android:id="@+id/parentMainFragment"
+        android:name="com.artezio.osport.tracker.presentation.ParentMainFragment"
+        android:label="fragment_parent_main"
+        tools:layout="@layout/fragment_parent_main" >
+        <action
+            android:id="@+id/action_parentMainFragment_to_trackerFragment2"
+            app:destination="@id/trackerFragment2" />
+    </fragment>
+    <fragment
+        android:id="@+id/trackerFragment2"
+        android:name="com.artezio.osport.tracker.presentation.tracker.TrackerFragment"
+        android:label="fragment_tracker"
+        tools:layout="@layout/fragment_tracker" >
+        <action
+            android:id="@+id/action_trackerFragment2_to_parentMainFragment"
+            app:destination="@id/parentMainFragment" />
+    </fragment>
+</navigation>

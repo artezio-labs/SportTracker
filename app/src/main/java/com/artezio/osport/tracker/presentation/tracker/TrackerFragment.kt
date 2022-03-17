@@ -12,25 +12,26 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
-    OnMapReadyCallback,
-    GoogleMap.OnMyLocationButtonClickListener {
+class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
+//    OnMapReadyCallback,
+//    GoogleMap.OnMyLocationButtonClickListener
+{
+
+    override var bottomNavigationViewVisibility = View.GONE
 
     private val viewModel: TrackerViewModel by viewModels()
-    private lateinit var googleMap: GoogleMap
+//    private lateinit var googleMap: GoogleMap
 
     private val fusedLocationProvider: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(requireContext())
@@ -49,51 +50,61 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
             super.onLocationResult(result)
             val currentLocation = result.lastLocation
             Log.d("tracker_accuracy", "Accuracy: ${currentLocation.accuracy}")
-            viewModel.animateCamera(
-                googleMap,
-                LatLng(currentLocation.latitude, currentLocation.longitude)
-            )
+//            viewModel.animateCamera(
+//                googleMap,
+//                LatLng(currentLocation.latitude, currentLocation.longitude)
+//            )
             val accuracy = currentLocation.accuracy
             val detectedAccuracy = viewModel.detectAccuracy(accuracy)
-            binding.textViewAccuracyValue.apply {
-                text = accuracy.toString()
-                setTextColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        detectedAccuracy.second.color
-                    )
-                )
-            }
+//            binding.textViewAccuracyValue.apply {
+//                text = accuracy.toString()
+//                setTextColor(
+//                    ContextCompat.getColor(
+//                        requireContext(),
+//                        detectedAccuracy.second.color
+//                    )
+//                )
+//            }
         }
     }
+
+    private val navigateBackOptions: NavOptions =
+        NavOptions.Builder()
+            .setPopExitAnim(R.anim.from_top_to_bottom_animation)
+            .build()
+
 
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initMap(savedInstanceState)
+//        initMap(savedInstanceState)
         viewModel.observeServiceStateInTrackerFragment(viewLifecycleOwner, binding)
 
-        binding.fabStartTracking.setOnClickListener {
-            googleMap.clear()
-            fusedLocationProvider.removeLocationUpdates(locationCallback)
-            viewModel.generateEvent()
-            startService()
-        }
+//        binding.fabStartTracking.setOnClickListener {
+////            googleMap.clear()
+//            fusedLocationProvider.removeLocationUpdates(locationCallback)
+//            viewModel.generateEvent()
+//            startService()
+//        }
+//
+//        binding.fabStopTracking.setOnClickListener {
+//            viewModel.stopService(requireContext())
+//            fusedLocationProvider.requestLocationUpdates(
+//                locationRequest,
+//                locationCallback,
+//                Looper.getMainLooper()
+//            )
+//        }
+//
+//        binding.fabToTrackerStatistics.setOnClickListener {
+//            findNavController().navigate(
+//                R.id.action_trackerFragment_to_trackerStatisticsFragment,
+//                TrackerStatisticsFragmentArgs(eventId).toBundle()
+//            )
+//        }
 
-        binding.fabStopTracking.setOnClickListener {
-            viewModel.stopService(requireContext())
-            fusedLocationProvider.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-            )
-        }
-
-        binding.fabToTrackerStatistics.setOnClickListener {
-            findNavController().navigate(
-                R.id.action_trackerFragment_to_trackerStatisticsFragment,
-                TrackerStatisticsFragmentArgs(eventId).toBundle()
-            )
+        binding.buttonClose.setOnClickListener {
+            findNavController().navigate(R.id.action_trackerFragment_to_mainFragment)
         }
         observeUserLocation()
     }
@@ -116,10 +127,10 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
                     viewModel.getLocationsByEventId(lastEventId).collect { locations ->
                         if (locations.isNotEmpty()) {
                             val lastLocation = locations[locations.size - 1]
-                            viewModel.animateCamera(
-                                googleMap,
-                                LatLng(lastLocation.first.latitude, lastLocation.first.longitude)
-                            )
+//                            viewModel.animateCamera(
+//                                googleMap,
+//                                LatLng(lastLocation.first.latitude, lastLocation.first.longitude)
+//                            )
                             binding.textViewAccuracyValue.apply {
                                 val lastLocationText = "${lastLocation.first.accuracy}м."
                                 text = lastLocationText
@@ -127,7 +138,7 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
                                 setTextColor(ContextCompat.getColor(requireContext(), textColor))
                             }
                         }
-                        viewModel.buildRoute(locations, googleMap)
+//                        viewModel.buildRoute(locations, googleMap)
                     }
                 }
             }
@@ -139,27 +150,27 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
         container: ViewGroup?
     ): FragmentTrackerBinding =
         FragmentTrackerBinding.inflate(inflater, container, false)
-
-    @SuppressLint("MissingPermission")
-    override fun onMapReady(map: GoogleMap) {
-        map.isMyLocationEnabled = true
-        map.setOnMyLocationButtonClickListener(this)
-        map.mapType = GoogleMap.MAP_TYPE_HYBRID
-        map.mapType = GoogleMap.MAP_TYPE_NORMAL
-        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
-        map.mapType = GoogleMap.MAP_TYPE_TERRAIN
-        googleMap = map
-    }
-
-    private fun initMap(savedInstanceState: Bundle?) {
-        binding.mapView.onCreate(savedInstanceState)
-        binding.mapView.onResume()
-        binding.mapView.getMapAsync(this)
-    }
-
-    override fun onMyLocationButtonClick(): Boolean {
-        return false
-    }
+//
+//    @SuppressLint("MissingPermission")
+//    override fun onMapReady(map: GoogleMap) {
+//        map.isMyLocationEnabled = true
+//        map.setOnMyLocationButtonClickListener(this)
+//        map.mapType = GoogleMap.MAP_TYPE_HYBRID
+//        map.mapType = GoogleMap.MAP_TYPE_NORMAL
+//        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+//        map.mapType = GoogleMap.MAP_TYPE_TERRAIN
+//        googleMap = map
+//    }
+//
+//    private fun initMap(savedInstanceState: Bundle?) {
+//        binding.mapView.onCreate(savedInstanceState)
+//        binding.mapView.onResume()
+//        binding.mapView.getMapAsync(this)
+//    }
+//
+//    override fun onMyLocationButtonClick(): Boolean {
+//        return false
+//    }
 
 
 }

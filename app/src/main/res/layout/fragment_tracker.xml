@@ -7,6 +7,45 @@
     android:orientation="vertical"
     tools:context=".presentation.tracker.TrackerFragment">
 
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/toolbarTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Запись"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.446"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/buttonClose"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Закрыть"
+                android:textSize="16sp"
+                android:gravity="center_vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
@@ -31,6 +70,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:orientation="vertical"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
@@ -65,6 +105,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 android:backgroundTint="@color/app_theme_color"
                 android:layout_margin="16dp"
+                android:visibility="gone"
                 android:src="@drawable/ic_statistics"/>
 
 
@@ -76,7 +117,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_gravity="bottom|right"
+            android:layout_gravity="center_horizontal|center_vertical"
             android:layout_margin="16dp">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -84,7 +125,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/app_theme_color"
-                android:src="@android:color/transparent" />
+                android:src="@android:color/transparent"
+                android:clickable="false"/>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textViewFabStartText"

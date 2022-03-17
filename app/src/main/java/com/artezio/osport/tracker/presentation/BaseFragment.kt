@@ -10,7 +10,14 @@ import androidx.viewbinding.ViewBinding
 abstract class BaseFragment<B : ViewBinding> : Fragment() {
 
     private var _binding: B? = null
-    protected val binding get() = _binding!!
+    protected val binding get() = checkNotNull(_binding)
+
+    protected open var bottomNavigationViewVisibility = View.VISIBLE
+
+    override fun onStart() {
+        super.onStart()
+        setVisibility()
+    }
 
     abstract fun initBinding(inflater: LayoutInflater, container: ViewGroup?): B
 
@@ -23,8 +30,19 @@ abstract class BaseFragment<B : ViewBinding> : Fragment() {
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        setVisibility()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+    }
+    private fun setVisibility() {
+        if (activity is MainActivity) {
+            val mainActivity = activity as MainActivity
+            mainActivity.setBottomNavigationVisibility(bottomNavigationViewVisibility)
+        }
     }
 }
