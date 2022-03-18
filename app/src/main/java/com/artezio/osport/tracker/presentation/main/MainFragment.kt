@@ -39,21 +39,6 @@ class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = eventsAdapter
         }
-        binding.fabAddEvent.setOnClickListener {
-//            if (hasLocationAndActivityRecordingPermission(requireContext())) {
-//                val locationTask = fusedLocationProvider.lastLocation
-//                locationTask.addOnSuccessListener { location ->
-//                    if (location != null) {
-//                        findNavController().navigate(
-//                            R.id.action_mainFragment_to_trackerFragment
-//                        )
-//                    }
-//                }
-//            } else {
-//                requestLocationPermissions(this)
-//                requestPhysicalActivityPermissions(this)
-//            }
-        }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.eventsWithDataFlow.collect {

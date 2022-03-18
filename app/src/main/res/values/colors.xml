@@ -8,12 +8,17 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="app_theme_color">#448AFF</color>
+    <color name="app_theme_color">#FC4C02</color>
+    <color name="app_background_color">#FFFFFF</color>
+
     <color name="button_stop_color">#FF5252</color>
+    <color name="bottom_navigation_unselected_item_color">#808080</color>
+
 
     <color name="tracker_scoreboard_color">#FFFFFFFF</color>
 
     <color name="accuracy_good_color">#1B5E20</color>
     <color name="accuracy_medium_color">#AFB42B</color>
     <color name="accuracy_bad_color">#B71C1C</color>
+
 </resources>
