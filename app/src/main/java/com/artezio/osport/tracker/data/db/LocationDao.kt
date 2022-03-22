@@ -15,7 +15,9 @@ interface LocationDao {
     @Query("SELECT * FROM location_data")
     fun getAllLocationData(): Flow<List<LocationPointData>>
 
-
     @Query("SELECT * FROM location_data WHERE eventId = :id")
     fun getLocationsByEventId(id: Long): Flow<List<LocationPointData>>
+
+    @Query("SELECT * FROM location_data WHERE eventId = :id")
+    suspend fun getAllLocationsById(id: Long): List<LocationPointData>
 }

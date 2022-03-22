@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/session_recording_nav"
+    app:startDestination="@id/trackerFragment3">
+
+    <fragment
+        android:id="@+id/trackerFragment3"
+        android:name="com.artezio.osport.tracker.presentation.tracker.TrackerFragment"
+        android:label="Карта"
+        tools:layout="@layout/fragment_tracker" >
+        <action
+            android:id="@+id/action_trackerFragment3_to_trackerStatisticsFragment4"
+            app:destination="@id/trackerStatisticsFragment4" />
+    </fragment>
+    <fragment
+        android:id="@+id/trackerStatisticsFragment4"
+        android:name="com.artezio.osport.tracker.presentation.tracker.TrackerStatisticsFragment"
+        android:label="Статистика"
+        tools:layout="@layout/fragment_tracker_statistics" >
+        <action
+            android:id="@+id/action_trackerStatisticsFragment4_to_trackerFragment3"
+            app:destination="@id/trackerFragment3" />
+    </fragment>
+</navigation>

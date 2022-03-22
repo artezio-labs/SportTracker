@@ -2,19 +2,19 @@ package com.artezio.osport.tracker.presentation.tracker
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
+import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
-import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
+import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
+import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.TrackingStateModel
 import com.artezio.osport.tracker.domain.usecases.*
 import com.artezio.osport.tracker.presentation.TrackService
-import com.artezio.osport.tracker.util.START_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.STOP_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.distanceBetween
-import com.artezio.osport.tracker.util.millisecondsToDateFormat
+import com.artezio.osport.tracker.util.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
@@ -41,6 +41,7 @@ class TrackerViewModel @Inject constructor(
         get() = TrackService.timerValueLiveData
 
     val trackingStateLiveData = MutableLiveData(TrackingStateModel.empty())
+    val currentFragmentIdLiveData = MutableLiveData(R.id.trackerFragment3)
 
     fun buildRoute(locations: List<Pair<LocationPointData, Accuracy>>, googleMap: GoogleMap) {
         var lineOptions = PolylineOptions()
@@ -86,24 +87,57 @@ class TrackerViewModel @Inject constructor(
         context.stopService(intent)
     }
 
-    fun observeServiceStateInTrackerFragment(
+    fun observeServiceState(
         viewLifecycleOwner: LifecycleOwner,
-        binding: FragmentTrackerBinding
+        binding: FragmentSessionRecordingBinding
     ) {
         TrackService.serviceLifecycleState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 ServiceLifecycleState.RUNNING -> {
-                    binding.fabStart.visibility = View.GONE
-                    binding.fabStop.visibility = View.VISIBLE
-                    binding.fabToTrackerStatistics.visibility = View.VISIBLE
+                    binding.fabStopPause.visibility = View.VISIBLE
+                    binding.fabToSessionMap.visibility = View.VISIBLE
+                    Log.d("service_state", "RUNNING")
                 }
                 ServiceLifecycleState.STOPPED -> {
-                    binding.fabStop.visibility = View.GONE
+                    binding.llFabs.visibility = View.GONE
                     binding.fabStart.visibility = View.VISIBLE
-                    binding.fabToTrackerStatistics.visibility = View.GONE
+                    binding.fabToSessionStatistics.visibility = View.GONE
+                    binding.fabToSessionMap.visibility = View.GONE
+                    Log.d("service_state", "STOPPED")
                 }
-                ServiceLifecycleState.PAUSED -> {}
-                ServiceLifecycleState.RESUMED -> {}
+                ServiceLifecycleState.PAUSED -> {
+                    binding.fabStopPause.visibility = View.GONE
+                    binding.llFabs.visibility = View.VISIBLE
+                    binding.fabStart.visibility = View.GONE
+                    Log.d("service_state", "PAUSED")
+                }
+                ServiceLifecycleState.RESUMED -> {
+                    binding.llFabs.visibility = View.GONE
+                    binding.fabStopPause.visibility = View.VISIBLE
+                    Log.d("service_state", "RESUMED")
+                }
+                ServiceLifecycleState.NOT_STARTED -> {
+                    binding.fabToSessionStatistics.visibility = View.GONE
+                    binding.fabToSessionMap.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    fun observeServiceStateWhenPaused(
+        viewLifecycleOwner: LifecycleOwner,
+        binding: FragmentTrackerStatisticsBinding
+    ) {
+        TrackService.serviceLifecycleState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                ServiceLifecycleState.PAUSED -> {
+                    binding.statisticsPaused.visibility = View.VISIBLE
+                    binding.statisticsNotPaused.visibility = View.GONE
+                }
+                else -> {
+                    binding.statisticsPaused.visibility = View.GONE
+                    binding.statisticsNotPaused.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -147,4 +181,17 @@ class TrackerViewModel @Inject constructor(
             }
         }
 
+    fun pauseTracking(context: Context) {
+        val intent = Intent(context, TrackService::class.java).apply {
+            action = PAUSE_FOREGROUND_SERVICE
+        }
+        context.startService(intent)
+    }
+
+    fun resumeTracking(context: Context) {
+        val intent = Intent(context, TrackService::class.java).apply {
+            action = RESUME_FOREGROUND_SERVICE
+        }
+        context.startService(intent)
+    }
 }

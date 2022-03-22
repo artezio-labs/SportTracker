@@ -27,4 +27,6 @@ class GetLocationsByEventIdUseCase @Inject constructor(
             )
         }
     }
+
+    fun executeWithoutMap(id: Long) = repository.getLocationsByEventId(id)
 }

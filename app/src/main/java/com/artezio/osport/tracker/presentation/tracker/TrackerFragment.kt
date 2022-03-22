@@ -7,13 +7,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavOptions
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
@@ -22,6 +21,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+
+// todo не забыть раскомментить код
 @AndroidEntryPoint
 class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
 //    OnMapReadyCallback,
@@ -55,7 +56,7 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
 //                LatLng(currentLocation.latitude, currentLocation.longitude)
 //            )
             val accuracy = currentLocation.accuracy
-            val detectedAccuracy = viewModel.detectAccuracy(accuracy)
+//            val detectedAccuracy = viewModel.detectAccuracy(accuracy)
 //            binding.textViewAccuracyValue.apply {
 //                text = accuracy.toString()
 //                setTextColor(
@@ -65,6 +66,7 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
 //                    )
 //                )
 //            }
+
         }
     }
 
@@ -78,7 +80,6 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 //        initMap(savedInstanceState)
-        viewModel.observeServiceStateInTrackerFragment(viewLifecycleOwner, binding)
 
 //        binding.fabStartTracking.setOnClickListener {
 ////            googleMap.clear()
@@ -104,9 +105,10 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
 //        }
 
         binding.buttonClose.setOnClickListener {
-            findNavController().navigate(R.id.action_trackerFragment_to_mainFragment)
+            requireActivity().findNavController(R.id.fragmentContainerView)
+                .navigate(R.id.action_sessionRecordingFragment_to_mainFragment)
         }
-        observeUserLocation()
+//        observeUserLocation()
     }
 
     @SuppressLint("MissingPermission")
@@ -131,12 +133,6 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
 //                                googleMap,
 //                                LatLng(lastLocation.first.latitude, lastLocation.first.longitude)
 //                            )
-                            binding.textViewAccuracyValue.apply {
-                                val lastLocationText = "${lastLocation.first.accuracy}м."
-                                text = lastLocationText
-                                val textColor = lastLocation.second.color
-                                setTextColor(ContextCompat.getColor(requireContext(), textColor))
-                            }
                         }
 //                        viewModel.buildRoute(locations, googleMap)
                     }
@@ -172,5 +168,9 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
 //        return false
 //    }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.currentFragmentIdLiveData.postValue(R.id.trackerFragment3)
+    }
 
 }

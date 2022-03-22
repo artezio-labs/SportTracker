@@ -83,4 +83,8 @@ object PresentationModule {
 
     @Provides
     fun provideApplicationContext(@ApplicationContext context: Context) = context
+
+    @Provides
+    fun provideGetAllLocationsByIdUseCase(repository: LocationRepository) =
+        GetAllLocationsByIdUseCase(repository)
 }

@@ -14,6 +14,7 @@ interface IRepository {
         suspend fun addLocationPointData(locationPointData: LocationPointData)
         fun getAllLocationData(): Flow<List<LocationPointData>>
         fun getLocationsByEventId(id: Long): Flow<List<LocationPointData>>
+        suspend fun getAllLocationsById(id: Long): List<LocationPointData>
     }
 
     interface IEventsRepository {

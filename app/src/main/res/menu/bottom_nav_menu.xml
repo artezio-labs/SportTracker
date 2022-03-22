@@ -5,7 +5,7 @@
         android:icon="@drawable/ic_main_page"
         android:title="Главная"/>
 
-    <item android:id="@+id/trackerFragment"
+    <item android:id="@+id/sessionRecordingFragment"
         android:icon="@drawable/ic_record"
         android:title="Запись"/>
 </menu>

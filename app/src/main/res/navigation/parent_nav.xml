@@ -22,5 +22,17 @@
         <action
             android:id="@+id/action_trackerFragment2_to_parentMainFragment"
             app:destination="@id/parentMainFragment" />
+        <action
+            android:id="@+id/action_trackerFragment2_to_trackerStatisticsFragment2"
+            app:destination="@id/trackerStatisticsFragment2" />
+    </fragment>
+    <fragment
+        android:id="@+id/trackerStatisticsFragment2"
+        android:name="com.artezio.osport.tracker.presentation.tracker.TrackerStatisticsFragment"
+        android:label="fragment_tracker_statistics"
+        tools:layout="@layout/fragment_tracker_statistics" >
+        <action
+            android:id="@+id/action_trackerStatisticsFragment2_to_trackerFragment2"
+            app:destination="@id/trackerFragment2" />
     </fragment>
 </navigation>

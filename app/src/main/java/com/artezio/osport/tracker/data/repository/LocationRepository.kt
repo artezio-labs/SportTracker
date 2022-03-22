@@ -20,4 +20,6 @@ class LocationRepository @Inject constructor(
     override fun getLocationsByEventId(id: Long): Flow<List<LocationPointData>> =
         dao.getLocationsByEventId(id)
 
+    override suspend fun getAllLocationsById(id: Long): List<LocationPointData> = dao.getAllLocationsById(id)
+
 }
