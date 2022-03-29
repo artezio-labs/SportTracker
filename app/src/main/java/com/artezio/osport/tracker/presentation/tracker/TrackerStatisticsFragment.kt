@@ -1,5 +1,6 @@
 package com.artezio.osport.tracker.presentation.tracker
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -16,16 +17,22 @@ import androidx.navigation.fragment.navArgs
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
-import com.artezio.osport.tracker.domain.model.TrackingStateModel
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>() {
+class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>(),
+    OnMapReadyCallback {
+
+    private lateinit var googleMap: GoogleMap
 
     override var bottomNavigationViewVisibility = View.GONE
     private val viewModel: TrackerViewModel by viewModels()
@@ -39,21 +46,27 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
     private var steps = 0
     private var gpsPoints = 0
 
-    private var trackerState: TrackingStateModel? = null
+    private var lastLocation = LatLng(0.0, 0.0)
 
     @Inject
     lateinit var prefsManager: PrefsManager
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initMap(savedInstanceState)
         viewModel.observeServiceStateWhenPaused(viewLifecycleOwner, binding)
         viewModel.timerValueLiveData.observe(viewLifecycleOwner) { timerValue ->
             Log.d("timer_value", "timer value: $timerValue")
             time = timerValue
             binding.textViewTimerValue.text = viewModel.getTimerStringFromDouble(timerValue)
-            if (binding.materialCardView3.visibility == View.VISIBLE) {
+            if (binding.materialCardViewPausedStatisticsCard.visibility == View.VISIBLE) {
                 Log.d("timer_when_paused", "Timer value: $time $timerValue")
                 binding.timerWhenPausedValue.text = viewModel.getTimerStringFromDouble(timerValue)
+                binding.pauseDistanceValue.text = String.format("%.2f", distance)
+                binding.pauseAverageSpeedValue.text = String.format("%.2f", averageSpeed)
+                binding.pauseTempoValue.text = String.format("%.2f", tempoValue)
+                binding.pauseStepsValue.text = steps.toString()
+                binding.pauseGpsCountValue.text = gpsPoints.toString()
             }
         }
         binding.buttonClose.setOnClickListener {
@@ -63,6 +76,7 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
                     MainFragmentArgs(true).toBundle()
                 )
         }
+        observeData()
     }
 
     private fun observeData() {
@@ -85,6 +99,16 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
                         gpsPoints = locations.size
                         binding.textViewGpsPointsValue.text = gpsPoints.toString()
                     }
+                    if (binding.mapStatistics.visibility == View.VISIBLE
+                        && locations.isNotEmpty()) {
+                        val lastLocation = locations.last()
+                        zoomCamera(
+                            LatLng(
+                                lastLocation.first.latitude,
+                                lastLocation.first.longitude
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -94,6 +118,7 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
         override fun onReceive(context: Context?, intent: Intent?) {
             val stepCount = intent?.getIntExtra(TrackService.STEPS_EXTRA, 0)
             if (stepCount != null) {
+                steps = stepCount
                 binding.textViewStepsValue.text = stepCount.toString()
             }
         }
@@ -119,4 +144,27 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
         container: ViewGroup?
     ): FragmentTrackerStatisticsBinding =
         FragmentTrackerStatisticsBinding.inflate(inflater, container, false)
+
+    @SuppressLint("MissingPermission")
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+
+        map.isMyLocationEnabled = true
+        map.mapType = GoogleMap.MAP_TYPE_HYBRID
+        map.mapType = GoogleMap.MAP_TYPE_NORMAL
+        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+        map.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        googleMap = map
+    }
+
+    private fun initMap(savedInstanceState: Bundle?) {
+        binding.mapStatistics.onCreate(savedInstanceState)
+        binding.mapStatistics.onResume()
+        binding.mapStatistics.getMapAsync(this)
+    }
+
+    private fun zoomCamera(latLng: LatLng) {
+        val cameraPosition = CameraUpdateFactory.newLatLngZoom(latLng, 16F)
+        googleMap.moveCamera(cameraPosition)
+    }
 }

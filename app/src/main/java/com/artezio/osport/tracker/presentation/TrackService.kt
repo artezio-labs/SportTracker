@@ -8,12 +8,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.hardware.Sensor
+import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.BatteryManager
-import android.os.Binder
-import android.os.Build
-import android.os.IBinder
+import android.os.*
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -23,26 +21,21 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
+import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
+import com.artezio.osport.tracker.domain.model.LocationPointData
+import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.domain.usecases.InsertLocationDataUseCase
 import com.artezio.osport.tracker.domain.usecases.InsertPedometerDataUseCase
-import com.artezio.osport.tracker.util.PAUSE_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.RESUME_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.START_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.STOP_FOREGROUND_SERVICE
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.artezio.osport.tracker.util.*
+import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
-
-/**
- * Закоментил код с локацией и педометром до того, как разберусь с пермишенами
- * todo не забыть раскоментить
- */
 @AndroidEntryPoint
 class TrackService : LifecycleService() {
 
@@ -89,34 +82,34 @@ class TrackService : LifecycleService() {
 
     private val localBinder = LocalBinder()
 
-//    private var locationCallback: LocationCallback = object : LocationCallback() {
-//        override fun onLocationResult(result: LocationResult) {
-//            super.onLocationResult(result)
-//            val lastLocation = result.lastLocation
-//            val locationPoint = LocationPointData(
-//                lastLocation.latitude,
-//                lastLocation.longitude,
-//                lastLocation.altitude,
-//                lastLocation.accuracy,
-//                lastLocation.speed,
-//                System.currentTimeMillis(),
-//                batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
-//                eventId ?: -1L
-//            )
-//            Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
-//            serviceIoScope.launch {
-//                insertLocationDataUseCase.execute(locationPoint)
-//            }
-//        }
-//    }
-//    private val locationRequest: LocationRequest by lazy {
-//        LocationRequest.create().apply {
-//            // на адроид 8+, если приложение не в foreground'е, интервал может быть тольше, чем заданное значение
-//            interval = 1000L
-//            fastestInterval = 1000L
-//            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-//        }
-//    }
+    private var locationCallback: LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            super.onLocationResult(result)
+            val lastLocation = result.lastLocation
+            val locationPoint = LocationPointData(
+                lastLocation.latitude,
+                lastLocation.longitude,
+                lastLocation.altitude,
+                lastLocation.accuracy,
+                lastLocation.speed,
+                System.currentTimeMillis(),
+                batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
+                eventId ?: -1L
+            )
+            Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
+            serviceIoScope.launch {
+                insertLocationDataUseCase.execute(locationPoint)
+            }
+        }
+    }
+    private val locationRequest: LocationRequest by lazy {
+        LocationRequest.create().apply {
+            // на адроид 8+, если приложение не в foreground'е, интервал может быть тольше, чем заданное значение
+            interval = 1000L
+            fastestInterval = 1000L
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+    }
 
     private var stepCount = 0
 
@@ -132,50 +125,50 @@ class TrackService : LifecycleService() {
     }
 
 
-//    private fun subscribeToLocationUpdates() {
-//        if (hasLocationAndActivityRecordingPermission(this)) {
-//            Log.d(STEPS_TAG, "Permissions granted")
-//            try {
-//                fusedLocationProviderClient.requestLocationUpdates(
-//                    locationRequest, locationCallback, Looper.getMainLooper()
-//                )
-//            } catch (ex: SecurityException) {
-//                Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
-//            }
-//        }
-//    }
+    private fun subscribeToLocationUpdates() {
+        if (hasLocationAndActivityRecordingPermission(this)) {
+            Log.d(STEPS_TAG, "Permissions granted")
+            try {
+                fusedLocationProviderClient.requestLocationUpdates(
+                    locationRequest, locationCallback, Looper.getMainLooper()
+                )
+            } catch (ex: SecurityException) {
+                Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
+            }
+        }
+    }
 
-//    private fun runPedometer(id: Long) {
-//        Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
-//        val stepDetector = StepDetector(object : StepDetector.StepListener {
-//            override fun step(timeNs: Long) {
-//                stepCount += 1
-//                Log.d(STEPS_TAG, "Steps: $stepCount")
-//                serviceIoScope.launch {
-//                    insertPedometerDataUseCase.execute(
-//                        PedometerData(
-//                            stepCount,
-//                            System.currentTimeMillis(),
-//                            id
-//                        )
-//                    )
-//                }
-//                receiveSteps(stepCount)
-//            }
-//        })
-//        sensorEventListener = object : SensorEventListener {
-//            override fun onSensorChanged(event: SensorEvent?) {
-//                if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-//                    stepDetector.updateAccel(
-//                        event.timestamp, event.values[0], event.values[1], event.values[2]
-//                    )
-//                }
-//            }
-//
-//            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-//        }
-//        registerListener(sensorManager)
-//    }
+    private fun runPedometer(id: Long) {
+        Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
+        val stepDetector = StepDetector(object : StepDetector.StepListener {
+            override fun step(timeNs: Long) {
+                stepCount += 1
+                Log.d(STEPS_TAG, "Steps: $stepCount")
+                serviceIoScope.launch {
+                    insertPedometerDataUseCase.execute(
+                        PedometerData(
+                            stepCount,
+                            System.currentTimeMillis(),
+                            id
+                        )
+                    )
+                }
+                receiveSteps(stepCount)
+            }
+        })
+        sensorEventListener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) {
+                if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+                    stepDetector.updateAccel(
+                        event.timestamp, event.values[0], event.values[1], event.values[2]
+                    )
+                }
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        registerListener(sensorManager)
+    }
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
@@ -200,8 +193,8 @@ class TrackService : LifecycleService() {
                 } else {
                     Log.d("steps", "Event id not found")
                 }
-//                eventId?.let { if (!isPaused) runPedometer(it) }
-//                subscribeToLocationUpdates()
+                eventId?.let { if (!isPaused) runPedometer(it) }
+                subscribeToLocationUpdates()
                 startTimer(0.0, 0)
             }
             STOP_FOREGROUND_SERVICE -> {
@@ -213,20 +206,20 @@ class TrackService : LifecycleService() {
             PAUSE_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service paused!")
                 sensorManager.unregisterListener(sensorEventListener)
-//                fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+                fusedLocationProviderClient.removeLocationUpdates(locationCallback)
                 serviceLifecycleState.postValue(ServiceLifecycleState.PAUSED)
                 isPaused = true
             }
             RESUME_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service resumed!")
-//                registerListener(sensorManager)
-//                try {
-//                    fusedLocationProviderClient.requestLocationUpdates(
-//                        locationRequest, locationCallback, Looper.getMainLooper()
-//                    )
-//                } catch (ex: SecurityException) {
-//                    Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
-//                }
+                registerListener(sensorManager)
+                try {
+                    fusedLocationProviderClient.requestLocationUpdates(
+                        locationRequest, locationCallback, Looper.getMainLooper()
+                    )
+                } catch (ex: SecurityException) {
+                    Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
+                }
                 serviceLifecycleState.postValue(ServiceLifecycleState.RESUMED)
                 isPaused = false
             }
@@ -286,9 +279,9 @@ class TrackService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(STEPS_TAG, "onDestroy: ")
-//        sensorManager.unregisterListener(sensorEventListener)
-//        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
-//        serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
+        sensorManager.unregisterListener(sensorEventListener)
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
         serviceLifecycleState.postValue(ServiceLifecycleState.NOT_STARTED)
         timer.cancel()
         prefsManager.clearPrefs()

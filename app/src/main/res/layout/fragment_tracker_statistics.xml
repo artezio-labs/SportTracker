@@ -287,14 +287,14 @@
             android:id="@+id/mapStatistics"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/materialCardView3"
+            app:layout_constraintBottom_toTopOf="@+id/materialCardViewPausedStatisticsCard"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/materialCardView3"
+            android:id="@+id/materialCardViewPausedStatisticsCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent">
@@ -347,6 +347,7 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/pauseDistanceValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
@@ -375,6 +376,7 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/pauseAverageSpeedValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
@@ -397,6 +399,7 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/pauseTempoValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
@@ -425,6 +428,7 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/pauseStepsValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
@@ -447,6 +451,7 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/pauseGpsCountValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
