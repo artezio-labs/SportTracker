@@ -18,7 +18,12 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.CustomTestRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+    }
+
+    testOptions {
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
     }
 
     buildTypes {
@@ -97,4 +102,18 @@ dependencies {
     // prefs-datastore
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
+    // hilt-tests
+    testImplementation 'com.google.dagger:hilt-android-testing:2.38.1'
+    kaptTest 'com.google.dagger:hilt-android-compiler:2.38.1'
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.38.1'
+    kaptAndroidTest 'com.google.dagger:hilt-android-compiler:2.38.1'
+    androidTestImplementation 'androidx.test:runner:1.4.0'
+    androidTestUtil 'androidx.test:orchestrator:1.4.1'
+
+    // roboletics
+    testImplementation "org.robolectric:robolectric:4.7.3"
+}
+
+hilt {
+    enableTransformForLocalTests = true
 }

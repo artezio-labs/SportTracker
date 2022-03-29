@@ -16,6 +16,7 @@ import androidx.navigation.findNavController
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
+import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -106,7 +107,10 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>()
 
         binding.buttonClose.setOnClickListener {
             requireActivity().findNavController(R.id.fragmentContainerView)
-                .navigate(R.id.action_sessionRecordingFragment_to_mainFragment)
+                .navigate(
+                    R.id.action_sessionRecordingFragment_to_mainFragment,
+                    MainFragmentArgs(true).toBundle()
+                )
         }
 //        observeUserLocation()
     }

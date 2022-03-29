@@ -22,6 +22,8 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
 
     private val viewModel: TrackerViewModel by viewModels()
 
+//    private val permissionsManager = SystemServicePermissionsManager(requireActivity() as MainActivity)
+
     private val childFragmentNavController: NavController by lazy {
         val childNavHostFragment =
             childFragmentManager.findFragmentById(R.id.fcvSessionRecording) as NavHostFragment

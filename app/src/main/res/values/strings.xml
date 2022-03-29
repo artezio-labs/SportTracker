@@ -11,4 +11,9 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="trains_fragment_title_text">Тренировки</string>
+    <string name="permissions_settings_toast_text">Вы выбрали больше не запрашивать разрешение. Вы можете изменить это в настройках приложения</string>
+    <string name="permissions_dialog_title">Разрешения</string>
+    <string name="permissions_dialog_message">Вы выбрали больше не запрашивать разрешение. Вы можете изменить это в настройках приложения. Желаете открыть настройки?</string>
+    <string name="permissions_deny_dialog_message">Без выдачи запрашиваемых разрешений приложение не сможет получать данные. Вы уверены, что хотите запретить выдачу этих разрешений?</string>
+    <string name="permissions_not_granted_text">Разрешения не выданы</string>
 </resources>

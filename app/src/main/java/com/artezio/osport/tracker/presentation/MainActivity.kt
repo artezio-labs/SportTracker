@@ -1,12 +1,16 @@
 package com.artezio.osport.tracker.presentation
 
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
 import com.artezio.osport.tracker.R
+import com.artezio.osport.tracker.data.permissions.PermissionsManager
+import com.artezio.osport.tracker.data.permissions.SystemServicePermissionsManager
 import com.artezio.osport.tracker.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,6 +21,15 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
+    private val navController: NavController by lazy {
+        val navHost =
+            supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        navHost.navController
+    }
+
+    private val permissionsManager: PermissionsManager = PermissionsManager(this)
+    private val systemServicePermissionsManager = SystemServicePermissionsManager(this)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -24,16 +37,40 @@ class MainActivity : AppCompatActivity() {
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
-        val navHost = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
-        val navController = navHost.navController
-
-        binding.bottomNavigation.setupWithNavController(navController)
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.sessionRecordingFragment -> {
+                    val isNotificationsEnabled =
+                        systemServicePermissionsManager.hasNotificationPermissionEnabled()
+                    val isPowerSafeModeEnabled =
+                        systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()
+                    Log.d("permissions_states", "$isNotificationsEnabled $isPowerSafeModeEnabled")
+                    Log.d("permissions_states", "Manufacturer: ${Build.MANUFACTURER}")
+                    if (permissionsManager.hasLocationPermissionsGranted()) {
+                        if (systemServicePermissionsManager.hasNotificationPermissionEnabled()) {
+                            if(!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
+                                navController.navigate(R.id.action_mainFragment_to_sessionRecordingFragment)
+                            } else {
+                                systemServicePermissionsManager.sendUserToPowerSettings()
+                            }
+                        } else {
+                            systemServicePermissionsManager.sendUserToAppNotificationSettings()
+                        }
+                    } else {
+                        permissionsManager.request()
+                    }
+                    true
+                }
+                else -> {
+                    true
+                }
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
         binding.bottomNavigation.apply {
-            val item = menu.findItem(R.id.mainFragment)
             menu.findItem(R.id.mainFragment).isChecked = true
             selectedItemId = R.id.mainFragment
         }
@@ -48,5 +85,14 @@ class MainActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
         window.statusBarColor = this.resources.getColor(R.color.app_status_bar_color)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 }

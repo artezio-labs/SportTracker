@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.prefs.PrefsManager
@@ -18,6 +19,7 @@ import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.domain.model.TrackingStateModel
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.TrackService
+import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
@@ -53,6 +55,13 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
                 Log.d("timer_when_paused", "Timer value: $time $timerValue")
                 binding.timerWhenPausedValue.text = viewModel.getTimerStringFromDouble(timerValue)
             }
+        }
+        binding.buttonClose.setOnClickListener {
+            requireActivity().findNavController(R.id.fragmentContainerView)
+                .navigate(
+                    R.id.action_sessionRecordingFragment_to_mainFragment,
+                    MainFragmentArgs(true).toBundle()
+                )
         }
     }
 
