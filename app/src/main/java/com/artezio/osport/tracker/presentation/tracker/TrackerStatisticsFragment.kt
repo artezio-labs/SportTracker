@@ -1,10 +1,6 @@
 package com.artezio.osport.tracker.presentation.tracker
 
 import android.annotation.SuppressLint
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,7 +14,6 @@ import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
-import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -46,8 +41,6 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
     private var steps = 0
     private var gpsPoints = 0
 
-    private var lastLocation = LatLng(0.0, 0.0)
-
     @Inject
     lateinit var prefsManager: PrefsManager
 
@@ -62,11 +55,6 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
             if (binding.materialCardViewPausedStatisticsCard.visibility == View.VISIBLE) {
                 Log.d("timer_when_paused", "Timer value: $time $timerValue")
                 binding.timerWhenPausedValue.text = viewModel.getTimerStringFromDouble(timerValue)
-                binding.pauseDistanceValue.text = String.format("%.2f", distance)
-                binding.pauseAverageSpeedValue.text = String.format("%.2f", averageSpeed)
-                binding.pauseTempoValue.text = String.format("%.2f", tempoValue)
-                binding.pauseStepsValue.text = steps.toString()
-                binding.pauseGpsCountValue.text = gpsPoints.toString()
             }
         }
         binding.buttonClose.setOnClickListener {
@@ -98,6 +86,13 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
                             String.format("%.2f", tempoValue)
                         gpsPoints = locations.size
                         binding.textViewGpsPointsValue.text = gpsPoints.toString()
+
+                        if (binding.materialCardViewPausedStatisticsCard.visibility == View.VISIBLE) {
+                            binding.pauseDistanceValue.text = String.format("%.2f", distance)
+                            binding.pauseAverageSpeedValue.text = String.format("%.2f", averageSpeed)
+                            binding.pauseTempoValue.text = String.format("%.2f", tempoValue)
+                            binding.pauseGpsCountValue.text = gpsPoints.toString()
+                        }
                     }
                     if (binding.mapStatistics.visibility == View.VISIBLE
                         && locations.isNotEmpty()) {
@@ -112,31 +107,19 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
                 }
             }
         }
-    }
-
-    private val stepsBroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val stepCount = intent?.getIntExtra(TrackService.STEPS_EXTRA, 0)
-            if (stepCount != null) {
-                steps = stepCount
-                binding.textViewStepsValue.text = stepCount.toString()
+        viewModel.stepsLiveData.observe(viewLifecycleOwner) { stepsCount ->
+            Log.d("steps", "Steps from livedata")
+            val stepsString = stepsCount.toString()
+            binding.textViewStepsValue.text = stepsString
+            if (binding.materialCardViewPausedStatisticsCard.visibility == View.VISIBLE) {
+                binding.pauseStepsValue.text = stepsString
             }
         }
-
     }
 
     override fun onResume() {
         super.onResume()
-        requireContext().registerReceiver(
-            stepsBroadcastReceiver,
-            IntentFilter(TrackService.STEPS_UPDATED)
-        )
         viewModel.currentFragmentIdLiveData.postValue(R.id.trackerStatisticsFragment4)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        requireContext().unregisterReceiver(stepsBroadcastReceiver)
     }
 
     override fun initBinding(

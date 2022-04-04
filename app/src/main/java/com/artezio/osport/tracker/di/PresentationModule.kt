@@ -2,7 +2,6 @@ package com.artezio.osport.tracker.di
 
 import android.content.Context
 import com.artezio.osport.tracker.data.mappers.DomainToPresentationMapper
-import com.artezio.osport.tracker.data.repository.DataStoreRepository
 import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
@@ -65,12 +64,9 @@ object PresentationModule {
     fun providesGetStepCountUseCase(repository: PedometerRepository) =
         GetStepCountUseCase(repository)
 
-    @Provides
-    fun providesGetTrackingStateUseCase(repository: DataStoreRepository) =
-        GetTrackingStateUseCase(repository)
 
     @Provides
-    fun providesSaveTrackingStateUseCase(repository: DataStoreRepository) =
+    fun providesSaveTrackingStateUseCase(repository: EventsRepository) =
         SaveTrackingStateUseCase(repository)
 
     @Provides
@@ -87,4 +83,12 @@ object PresentationModule {
     @Provides
     fun provideGetAllLocationsByIdUseCase(repository: LocationRepository) =
         GetAllLocationsByIdUseCase(repository)
+
+    @Provides
+    fun providesGetTrackingStateByEventId(repository: EventsRepository) =
+        GetTrackingStateByEventId(repository)
+
+    @Provides
+    fun providesClearTrackingStateUseCase(repository: EventsRepository) =
+        ClearTrackingStateUseCase(repository)
 }

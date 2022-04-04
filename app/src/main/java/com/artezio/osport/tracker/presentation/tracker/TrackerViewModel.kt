@@ -12,7 +12,10 @@ import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.TrackingStateModel
-import com.artezio.osport.tracker.domain.usecases.*
+import com.artezio.osport.tracker.domain.usecases.GetLastEventIdUseCase
+import com.artezio.osport.tracker.domain.usecases.GetLocationsByEventIdUseCase
+import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
+import com.artezio.osport.tracker.domain.usecases.SaveTrackingStateUseCase
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.*
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -31,7 +34,6 @@ class TrackerViewModel @Inject constructor(
     private val getLastEventIdUseCase: GetLastEventIdUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
-    private val getTrackingStateUseCase: GetTrackingStateUseCase,
     private val saveTrackingStateUseCase: SaveTrackingStateUseCase,
 ) : ViewModel() {
     val lastEventIdFlow: Flow<Long>
@@ -40,8 +42,11 @@ class TrackerViewModel @Inject constructor(
     val timerValueLiveData: LiveData<Double>
         get() = TrackService.timerValueLiveData
 
-    val trackingStateLiveData = MutableLiveData(TrackingStateModel.empty())
+    val stepsLiveData: LiveData<Int>
+        get() = TrackService.stepsLiveData
+
     val currentFragmentIdLiveData = MutableLiveData(R.id.trackerFragment3)
+
 
     fun buildRoute(locations: List<Pair<LocationPointData, Accuracy>>, googleMap: GoogleMap) {
         var lineOptions = PolylineOptions()
@@ -55,11 +60,12 @@ class TrackerViewModel @Inject constructor(
     fun generateEvent() = viewModelScope.launch(Dispatchers.IO) {
         val currentTime = System.currentTimeMillis()
         val event = Event(
-            name = "Ивент от ${millisecondsToDateFormat(currentTime)}",
+            name = "Тренировка от ${millisecondsToDateFormat(currentTime)}",
             startDate = currentTime,
             endDate = null,
             sportsmanId = 0
         )
+        Log.d("event_save", "Saved event: $event")
         insertEventUseCase.execute(event)
     }
 
@@ -85,6 +91,7 @@ class TrackerViewModel @Inject constructor(
             action = STOP_FOREGROUND_SERVICE
         }
         context.stopService(intent)
+        TrackService.stepsLiveData.value = 0
     }
 
     fun observeServiceState(
@@ -162,14 +169,6 @@ class TrackerViewModel @Inject constructor(
 
     fun saveTrackingState(state: TrackingStateModel) = viewModelScope.launch(Dispatchers.IO) {
         saveTrackingStateUseCase.execute(state)
-    }
-
-    fun getTrackingState(): TrackingStateModel? {
-        var trackingState: TrackingStateModel? = null
-        viewModelScope.launch(Dispatchers.IO) {
-            trackingState = getTrackingStateUseCase.execute()
-        }
-        return trackingState
     }
 
     fun detectAccuracy(accuracy: Float): Pair<Float, Accuracy> =

@@ -6,8 +6,15 @@ import androidx.room.TypeConverters
 import com.artezio.osport.tracker.domain.model.*
 
 @Database(
-    entities = [TrackData::class, LocationPointData::class, User::class, Event::class, PedometerData::class],
+    entities = [
+        TrackData::class,
+        LocationPointData::class,
+        User::class, Event::class,
+        PedometerData::class,
+        TrackingStateModel::class
+    ],
     version = 1,
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class TrackerDb : RoomDatabase() {

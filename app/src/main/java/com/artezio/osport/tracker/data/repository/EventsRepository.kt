@@ -21,18 +21,32 @@ class EventsRepository @Inject constructor(
     override suspend fun getEventById(id: Long): Event =
         dao.getEventById(id)
 
+    override suspend fun updateEvent(
+        startDate: Long,
+        name: String,
+        trackingStateModel: TrackingStateModel
+    ) {
+        dao.updateEvent(
+            startDate = startDate,
+            eventName = name,
+            endDate = System.currentTimeMillis(),
+            timerValue = trackingStateModel.timerValue,
+            speedValue = trackingStateModel.speedValue,
+            stepsValue = trackingStateModel.stepsValue,
+            gpsPointsValue = trackingStateModel.gpsPointsValue
+        )
+    }
+
     override suspend fun updateEvent(id: Long, name: String, startDate: Long) {
         dao.updateSpecificEventFields(id, name, startDate, null)
     }
 
     override suspend fun updateEvent(
-        eventId: Long,
-        eventName: String,
+        startDate: Long,
         trackingStateModel: TrackingStateModel
     ) {
         dao.updateEventsEndDateAndTrackingState(
-            eventId = eventId,
-            eventName = eventName,
+            startDate = startDate,
             endDate = System.currentTimeMillis(),
             timerValue = trackingStateModel.timerValue,
             speedValue = trackingStateModel.speedValue,
@@ -58,5 +72,16 @@ class EventsRepository @Inject constructor(
     }
 
     override suspend fun getLastEvent(): Event = dao.getLastEvent()
+
+    override suspend fun insertTrackingState(trackingStateModel: TrackingStateModel) {
+        dao.saveTrackingState(trackingStateModel)
+    }
+
+    override suspend fun getTrackingStateByEventId(eventId: Long): Flow<TrackingStateModel> =
+        dao.getTrackingStateByEventId(eventId)
+
+    override suspend fun clearTrackingState() {
+        dao.clearTrackingState()
+    }
 
 }

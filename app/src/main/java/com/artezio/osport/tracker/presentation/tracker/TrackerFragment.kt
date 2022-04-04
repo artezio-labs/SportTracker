@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
-import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
@@ -49,16 +48,8 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
                 googleMap,
                 LatLng(currentLocation.latitude, currentLocation.longitude)
             )
-            val accuracy = currentLocation.accuracy
-            val detectedAccuracy = viewModel.detectAccuracy(accuracy)
         }
     }
-
-    private val navigateBackOptions: NavOptions =
-        NavOptions.Builder()
-            .setPopExitAnim(R.anim.from_top_to_bottom_animation)
-            .build()
-
 
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

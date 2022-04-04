@@ -4,6 +4,7 @@ import androidx.room.*
 import androidx.room.OnConflictStrategy.REPLACE
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.EventWithData
+import com.artezio.osport.tracker.domain.model.TrackingStateModel
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -14,7 +15,7 @@ interface EventsDao {
     @Query("SELECT * FROM events WHERE id = :id")
     suspend fun getEventById(id: Long): Event
 
-    @Update
+    @Update(onConflict = REPLACE)
     suspend fun updateEvent(event: Event)
 
     @Query(
@@ -35,16 +36,36 @@ interface EventsDao {
         """
         UPDATE events
         SET endDate = :endDate,
-            name = :eventName,
             timerValue = :timerValue, 
             speedValue = :speedValue,
             stepsValue = :stepsValue,
             gpsPointsValue = :gpsPointsValue
-        WHERE id = :eventId
+        WHERE startDate = :startDate
     """
     )
     suspend fun updateEventsEndDateAndTrackingState(
-        eventId: Long,
+        startDate: Long,
+        endDate: Long,
+        timerValue: Double,
+        speedValue: Double,
+        stepsValue: Int,
+        gpsPointsValue: Int
+    )
+
+    @Query(
+        """
+        UPDATE events
+        SET name = :eventName,
+            endDate = :endDate,
+            timerValue = :timerValue, 
+            speedValue = :speedValue,
+            stepsValue = :stepsValue,
+            gpsPointsValue = :gpsPointsValue
+        WHERE startDate = :startDate
+    """
+    )
+    suspend fun updateEvent(
+        startDate: Long,
         eventName: String,
         endDate: Long,
         timerValue: Double,
@@ -79,10 +100,21 @@ interface EventsDao {
     @Query("DELETE FROM events where id = :eventId")
     fun deleteEventById(eventId: Long)
 
-    @Query("""
+    @Query(
+        """
         SELECT * 
         FROM events
         WHERE id = (SELECT MAX(id) FROM events)
-    """)
+    """
+    )
     suspend fun getLastEvent(): Event
+
+    @Insert(onConflict = REPLACE)
+    suspend fun saveTrackingState(trackingStateModel: TrackingStateModel)
+
+    @Query("SELECT * FROM tracking_state WHERE eventId = :eventId")
+    fun getTrackingStateByEventId(eventId: Long): Flow<TrackingStateModel>
+
+    @Query("DELETE FROM tracking_state")
+    suspend fun clearTrackingState()
 }

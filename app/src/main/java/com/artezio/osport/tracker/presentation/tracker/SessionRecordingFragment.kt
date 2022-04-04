@@ -16,6 +16,7 @@ import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.TrackService
+import com.artezio.osport.tracker.presentation.event.SaveEventFragmentArgs
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -53,7 +54,6 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
         childNavHostFragment.navController
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -87,7 +87,10 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
 
         binding.fabFinishTracking.setOnClickListener {
             viewModel.stopService(requireContext())
-            findNavController().navigate(R.id.action_sessionRecordingFragment_to_mainFragment)
+            findNavController().navigate(
+                R.id.action_sessionRecordingFragment_to_saveEventFragment2,
+                SaveEventFragmentArgs(eventId).toBundle()
+            )
         }
 
         binding.fabStart.setOnClickListener {

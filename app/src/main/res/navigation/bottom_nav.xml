@@ -29,6 +29,9 @@
         <action
             android:id="@+id/action_sessionRecordingFragment_to_mainFragment"
             app:destination="@id/mainFragment" />
+        <action
+            android:id="@+id/action_sessionRecordingFragment_to_saveEventFragment2"
+            app:destination="@id/saveEventFragment2" />
     </fragment>
     <fragment
         android:id="@+id/eventInfoFragment"
@@ -37,6 +40,19 @@
         tools:layout="@layout/fragment_event_info">
         <action
             android:id="@+id/action_eventInfoFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
+        <argument
+            android:name="eventId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+    <fragment
+        android:id="@+id/saveEventFragment2"
+        android:name="com.artezio.osport.tracker.presentation.event.SaveEventFragment"
+        android:label="fragment_save_event"
+        tools:layout="@layout/fragment_save_event" >
+        <action
+            android:id="@+id/action_saveEventFragment2_to_mainFragment"
             app:destination="@id/mainFragment" />
         <argument
             android:name="eventId"

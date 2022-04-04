@@ -11,8 +11,11 @@ class UpdateEventUseCase @Inject constructor(
     suspend fun execute(id: Long, name: String, startDate: Long) =
         repository.updateEvent(id, name, startDate)
 
-    suspend fun execute(eventId: Long, eventName: String, trackingStateModel: TrackingStateModel) =
-        repository.updateEvent(eventId, eventName, trackingStateModel)
+    suspend fun execute(startDate: Long, trackingStateModel: TrackingStateModel) =
+        repository.updateEvent(startDate, trackingStateModel)
+
+    suspend fun execute(startDate: Long, name: String, trackingStateModel: TrackingStateModel) =
+        repository.updateEvent(startDate, name, trackingStateModel)
 
     suspend fun execute(event: Event) = repository.updateEvent(event)
 }

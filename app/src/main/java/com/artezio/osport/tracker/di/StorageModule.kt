@@ -6,9 +6,7 @@ import com.artezio.osport.tracker.data.db.EventsDao
 import com.artezio.osport.tracker.data.db.LocationDao
 import com.artezio.osport.tracker.data.db.PedometerDao
 import com.artezio.osport.tracker.data.db.TrackerDb
-import com.artezio.osport.tracker.data.prefs.DataStore
 import com.artezio.osport.tracker.data.prefs.PrefsManager
-import com.artezio.osport.tracker.data.repository.DataStoreRepository
 import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
@@ -59,12 +57,4 @@ object StorageModule {
     fun providesPrefsManager(@ApplicationContext context: Context) =
         PrefsManager(context)
 
-    @Provides
-    @Singleton
-    fun providesDataStore(@ApplicationContext context: Context) =
-        DataStore(context)
-
-    @Provides
-    fun providesDataStoreRepository(dataStore: DataStore) =
-        DataStoreRepository(dataStore)
 }

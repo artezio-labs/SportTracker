@@ -142,7 +142,10 @@ class TrackService : LifecycleService() {
         Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
         val stepDetector = StepDetector(object : StepDetector.StepListener {
             override fun step(timeNs: Long) {
-                stepCount += 1
+                if (!isPaused) {
+                    stepCount += 1
+                }
+                stepsLiveData.postValue(stepCount)
                 Log.d(STEPS_TAG, "Steps: $stepCount")
                 serviceIoScope.launch {
                     insertPedometerDataUseCase.execute(
@@ -164,7 +167,6 @@ class TrackService : LifecycleService() {
                     )
                 }
             }
-
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
         registerListener(sensorManager)
@@ -327,5 +329,6 @@ class TrackService : LifecycleService() {
         val serviceLifecycleState =
             MutableLiveData(ServiceLifecycleState.NOT_STARTED)
         val timerValueLiveData = MutableLiveData(0.0)
+        val stepsLiveData = MutableLiveData(0)
     }
 }

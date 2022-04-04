@@ -3,7 +3,6 @@ package com.artezio.osport.tracker.data.repository
 import com.artezio.osport.tracker.data.db.PedometerDao
 import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.domain.repository.IRepository
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class PedometerRepository @Inject constructor(
@@ -14,6 +13,6 @@ class PedometerRepository @Inject constructor(
         dao.insertPedometerData(pedometerData)
     }
 
-    override fun getStepCount(eventId: Long): Flow<PedometerData> =
+    override suspend fun getStepCount(eventId: Long): PedometerData =
         dao.getStepCount(eventId)
 }
