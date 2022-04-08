@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.math.roundToInt
 
 @HiltViewModel
 class TrackerViewModel @Inject constructor(
@@ -147,14 +146,6 @@ class TrackerViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    fun getTimerStringFromDouble(time: Double): String {
-        val timeInt = time.roundToInt()
-        val hours = timeInt % 86400 / 3600
-        val minutes = timeInt % 86400 % 3600 / 60
-        val seconds = timeInt % 86400 % 3600 % 60
-        return String.format("%02d:%02d:%02d", hours, minutes, seconds)
     }
 
     fun calculateDistance(locations: List<Pair<LocationPointData, Accuracy>>): Double {

@@ -18,6 +18,9 @@ interface EventsDao {
     @Update(onConflict = REPLACE)
     suspend fun updateEvent(event: Event)
 
+    @Query("SELECT * FROM events")
+    suspend fun getAllEvents(): List<Event>
+
     @Query(
         """
         UPDATE events 
@@ -96,6 +99,9 @@ interface EventsDao {
 
     @Delete
     fun deleteEvent(event: Event)
+
+    @Query("DELETE FROM events WHERE startDate = :startDate")
+    suspend fun deleteEventByStartDate(startDate: Long)
 
     @Query("DELETE FROM events where id = :eventId")
     fun deleteEventById(eventId: Long)

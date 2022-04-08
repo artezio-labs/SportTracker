@@ -15,6 +15,7 @@ import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
+import com.artezio.osport.tracker.util.getTimerStringFromDouble
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -51,10 +52,10 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
         viewModel.timerValueLiveData.observe(viewLifecycleOwner) { timerValue ->
             Log.d("timer_value", "timer value: $timerValue")
             time = timerValue
-            binding.textViewTimerValue.text = viewModel.getTimerStringFromDouble(timerValue)
+            binding.textViewTimerValue.text = getTimerStringFromDouble(timerValue)
             if (binding.materialCardViewPausedStatisticsCard.visibility == View.VISIBLE) {
                 Log.d("timer_when_paused", "Timer value: $time $timerValue")
-                binding.timerWhenPausedValue.text = viewModel.getTimerStringFromDouble(timerValue)
+                binding.timerWhenPausedValue.text = getTimerStringFromDouble(timerValue)
             }
         }
         binding.buttonClose.setOnClickListener {

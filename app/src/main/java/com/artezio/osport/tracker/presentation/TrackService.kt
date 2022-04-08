@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.navigation.NavDeepLinkBuilder
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
@@ -62,10 +63,20 @@ class TrackService : LifecycleService() {
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     }
 
+    private var eventId: Long? = null
+
+    private val notificationPendingIntent: PendingIntent by lazy {
+        Log.d("event_save", "Event id: $eventId")
+        NavDeepLinkBuilder(this)
+            .setComponentName(MainActivity::class.java)
+            .setGraph(R.navigation.bottom_nav)
+            .setDestination(R.id.sessionRecordingFragment)
+            .createPendingIntent()
+    }
+
     private var notificationBuilder: NotificationCompat.Builder? = null
     private var sensorEventListener: SensorEventListener? = null
 
-    private var eventId: Long? = null
 
     private var isPaused: Boolean = false
 
@@ -79,6 +90,7 @@ class TrackService : LifecycleService() {
     lateinit var prefsManager: PrefsManager
 
     private var timer = Timer()
+    private var timeToNotification = 0.0
 
     private val localBinder = LocalBinder()
 
@@ -167,6 +179,7 @@ class TrackService : LifecycleService() {
                     )
                 }
             }
+
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
         registerListener(sensorManager)
@@ -185,16 +198,15 @@ class TrackService : LifecycleService() {
         Log.d("timer_value", "Service is started")
         when (intent?.action) {
             START_FOREGROUND_SERVICE -> {
-                startForegroundService()
                 eventId = intent.getLongExtra("eventId", -1L)
                 serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
-
                 val id = intent.getLongExtra("eventId", -1)
                 if (id != -1L) {
                     eventId = id
                 } else {
                     Log.d("steps", "Event id not found")
                 }
+                startForegroundService()
                 eventId?.let { if (!isPaused) runPedometer(it) }
                 subscribeToLocationUpdates()
                 startTimer(0.0, 0)
@@ -235,27 +247,26 @@ class TrackService : LifecycleService() {
     }
 
     private fun startForegroundService() {
-        val notificationIntent = Intent(this, TrackService::class.java).apply {
-            action = STOP_FOREGROUND_SERVICE
-        }
-        val pendingIntent = PendingIntent.getService(
-            this,
-            0,
-            notificationIntent,
-            0
-        )
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
 
-        notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_tracker)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText("Идет запись данных")
-            .setContentIntent(pendingIntent)
+        notificationBuilder = buildNotification(
+            this,
+            getTimerStringFromDouble(timeToNotification),
+        )
         startForeground(FOREGROUND_SERVICE_ID, notificationBuilder?.build())
     }
+
+    private fun buildNotification(
+        context: Context,
+        time: String,
+    ): NotificationCompat.Builder =
+        NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_tracker)
+            .setContentTitle("Идет запись данных")
+            .setContentText(time)
+            .setContentIntent(notificationPendingIntent)
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
@@ -312,6 +323,13 @@ class TrackService : LifecycleService() {
         override fun run() {
             if (!isPaused) {
                 time++
+                notificationManager.notify(
+                    FOREGROUND_SERVICE_ID,
+                    buildNotification(
+                        this@TrackService,
+                        getTimerStringFromDouble(time)
+                    ).build()
+                )
                 timerValueLiveData.postValue(time)
             }
         }
@@ -322,6 +340,7 @@ class TrackService : LifecycleService() {
         private const val STEPS = "steps"
         private const val FOREGROUND_SERVICE_ID = 1234
         private const val STEPS_TAG = "STEPS_TAG"
+        private const val NOTIFICATION_ID = 19
         private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
         const val STEPS_UPDATED = "stepCountUpdated"
         const val STEPS_EXTRA = "stepsExtra"

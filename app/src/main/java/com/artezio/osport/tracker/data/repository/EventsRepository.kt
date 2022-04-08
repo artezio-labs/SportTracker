@@ -84,4 +84,8 @@ class EventsRepository @Inject constructor(
         dao.clearTrackingState()
     }
 
+    override suspend fun deleteEventByStartDate(startDate: Long) {
+        dao.deleteEventByStartDate(startDate)
+    }
+
 }

@@ -14,31 +14,32 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SaveEventViewModel @Inject constructor(
+open class SaveEventViewModel @Inject constructor(
     private val deleteEventUseCase: DeleteEventUseCase,
     private val getLastEventUseCase: GetLastEventUseCase,
     private val getEventByIdUseCase: GetEventByIdUseCase,
     private val getAllLocationsByIdUseCase: GetAllLocationsByIdUseCase,
     private val getStepCountUseCase: GetStepCountUseCase,
     private val updateEventUseCase: UpdateEventUseCase,
-    private val getEventWithDataByIdUseCase: GetEventWithDataByIdUseCase
 ) : ViewModel() {
 
     fun deleteLastEvent() = viewModelScope.launch(Dispatchers.IO) {
         val lastEvent = getLastEventUseCase.execute()
-        viewModelScope.launch(Dispatchers.IO) {
-            deleteEventUseCase.execute(lastEvent)
-        }
+        Log.d("event_delete", "Last event: $lastEvent")
+        deleteEventUseCase.execute(lastEvent.startDate)
     }
 
-    fun updateEvent(eventId: Long, eventName: String) {
+    fun updateEvent(eventName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            update(eventId, eventName)
+            val lastEvent = getLastEventUseCase.execute()
+            Log.d("event_update", "Last event from db to update: $lastEvent")
+            update(lastEvent.id, eventName)
         }
     }
 
     private suspend fun update(eventId: Long, eventName: String) {
         val event = getEventByIdUseCase.execute(eventId)
+        Log.d("event_update", "Event from db to update: $event")
         val locations = getAllLocationsByIdUseCase.execute(eventId)
         val steps = getStepCountUseCase.execute(eventId)
         Log.d("event_save", "Locations: $locations")
@@ -66,7 +67,7 @@ class SaveEventViewModel @Inject constructor(
         val distanceValue = calculateDistance(locations)
         val tempoValue =
             if (distanceValue != 0.0) (time / 60.0 + (time % 60.0) / 60.0) / distanceValue else 0.0
-        val stepsValue = steps.stepCount ?: 0
+        val stepsValue = if (steps == null) 0 else steps.stepCount
         val gpsPointsValue = locations.size
 
         return TrackingStateModel(

@@ -23,7 +23,7 @@ class SaveEventFragment : BaseFragment<FragmentSaveEventBinding>() {
         super.onViewCreated(view, savedInstanceState)
         binding.buttonSaveEvent.setOnClickListener {
             val eventName = binding.eventNameTIL.editText?.editableText.toString()
-            saveEventViewModel.updateEvent(args.eventId, eventName)
+            saveEventViewModel.updateEvent(eventName)
             navigate()
         }
         binding.buttonDeleteEvent.setOnClickListener {

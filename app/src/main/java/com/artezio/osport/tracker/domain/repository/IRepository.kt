@@ -33,11 +33,7 @@ interface IRepository {
         suspend fun insertTrackingState(trackingStateModel: TrackingStateModel)
         suspend fun getTrackingStateByEventId(eventId: Long): Flow<TrackingStateModel>
         suspend fun clearTrackingState()
-    }
-
-    interface IDataStoreRepository {
-        suspend fun saveTrackingState(state: TrackingStateModel)
-        suspend fun getTrackingState(): TrackingStateModel
+        suspend fun deleteEventByStartDate(startDate: Long)
     }
 
     interface TrackNetworkRepository {

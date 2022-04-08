@@ -5,7 +5,7 @@ import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.TrackingStateModel
 import javax.inject.Inject
 
-class UpdateEventUseCase @Inject constructor(
+open class UpdateEventUseCase @Inject constructor(
     private val repository: EventsRepository
 ) {
     suspend fun execute(id: Long, name: String, startDate: Long) =
