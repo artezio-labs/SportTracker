@@ -91,4 +91,5 @@ object PresentationModule {
     @Provides
     fun providesClearTrackingStateUseCase(repository: EventsRepository) =
         ClearTrackingStateUseCase(repository)
+
 }

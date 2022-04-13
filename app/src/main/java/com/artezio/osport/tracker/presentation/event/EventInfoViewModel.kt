@@ -21,7 +21,8 @@ class EventInfoViewModel @Inject constructor(
     val eventLiveData: MutableLiveData<Event> = MutableLiveData()
 
     fun getEventById(id: Long) = viewModelScope.launch(Dispatchers.IO) {
-        eventLiveData.postValue(getEventByIdUseCase.execute(id))
+        val event = getEventByIdUseCase.execute(id)
+        eventLiveData.postValue(event)
     }
 
     fun getDistanceByEventId(id: Long): Pair<Double, Int> {
@@ -34,14 +35,14 @@ class EventInfoViewModel @Inject constructor(
 
     fun formatTime(time: Double): String {
         val sb = StringBuilder()
-        val hours = time / 3600
-        val minutes = (time % 3600) / 60
-        val seconds = time % 60
+        val hours = (time / 3600).toInt()
+        val minutes = ((time % 3600) / 60).toInt()
+        val seconds = (time % 60).toInt()
         if (hours >= 1)
             sb.append("$hours ч. ")
         if (minutes >= 1)
             sb.append("$minutes мин. ")
-        if (seconds != 0.0)
+        if (seconds != 0)
             sb.append("$seconds сек.")
         return sb.toString()
     }

@@ -10,6 +10,7 @@ import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
+import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -57,4 +58,7 @@ object StorageModule {
     fun providesPrefsManager(@ApplicationContext context: Context) =
         PrefsManager(context)
 
+    @Provides
+    fun providesGpsLocationRequester(@ApplicationContext context: Context) =
+        GpsLocationRequester(context)
 }

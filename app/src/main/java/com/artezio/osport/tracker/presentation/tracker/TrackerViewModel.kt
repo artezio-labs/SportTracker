@@ -11,17 +11,14 @@ import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.LocationPointData
-import com.artezio.osport.tracker.domain.model.TrackingStateModel
 import com.artezio.osport.tracker.domain.usecases.GetLastEventIdUseCase
 import com.artezio.osport.tracker.domain.usecases.GetLocationsByEventIdUseCase
 import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
-import com.artezio.osport.tracker.domain.usecases.SaveTrackingStateUseCase
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.PolylineOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -33,7 +30,6 @@ class TrackerViewModel @Inject constructor(
     private val getLastEventIdUseCase: GetLastEventIdUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
-    private val saveTrackingStateUseCase: SaveTrackingStateUseCase,
 ) : ViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
@@ -45,14 +41,6 @@ class TrackerViewModel @Inject constructor(
         get() = TrackService.stepsLiveData
 
     val currentFragmentIdLiveData = MutableLiveData(R.id.trackerFragment3)
-
-
-    fun buildRoute(locations: List<Pair<LocationPointData, Accuracy>>, googleMap: GoogleMap) {
-        var lineOptions = PolylineOptions()
-        lineOptions =
-            lineOptions.addAll(locations.map { LatLng(it.first.latitude, it.first.longitude) })
-        googleMap.addPolyline(lineOptions)
-    }
 
     fun getLocationsByEventId(id: Long) = getLocationsByEventIdUseCase.execute(id)
 
@@ -157,19 +145,6 @@ class TrackerViewModel @Inject constructor(
         }
         return totalDistance / 1000
     }
-
-    fun saveTrackingState(state: TrackingStateModel) = viewModelScope.launch(Dispatchers.IO) {
-        saveTrackingStateUseCase.execute(state)
-    }
-
-    fun detectAccuracy(accuracy: Float): Pair<Float, Accuracy> =
-        when {
-            (0F..5F).contains(accuracy) -> Pair(accuracy, Accuracy.GOOD)
-            (5F..15F).contains(accuracy) -> Pair(accuracy, Accuracy.MEDIUM)
-            else -> {
-                Pair(accuracy, Accuracy.BAD)
-            }
-        }
 
     fun pauseTracking(context: Context) {
         val intent = Intent(context, TrackService::class.java).apply {

@@ -22,6 +22,8 @@ import androidx.navigation.NavDeepLinkBuilder
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
+import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
+import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
@@ -89,6 +91,9 @@ class TrackService : LifecycleService() {
     @Inject
     lateinit var prefsManager: PrefsManager
 
+    @Inject
+    lateinit var locationRequester: GpsLocationRequester
+
     private var timer = Timer()
     private var timeToNotification = 0.0
 
@@ -141,9 +146,14 @@ class TrackService : LifecycleService() {
         if (hasLocationAndActivityRecordingPermission(this)) {
             Log.d(STEPS_TAG, "Permissions granted")
             try {
-                fusedLocationProviderClient.requestLocationUpdates(
-                    locationRequest, locationCallback, Looper.getMainLooper()
-                )
+                if (LocationRequester.checkIsGmsAvailable(this)) {
+                    Log.d(STEPS_TAG, "GMS is available: ${LocationRequester.checkIsGmsAvailable(this)}")
+                    fusedLocationProviderClient.requestLocationUpdates(
+                        locationRequest, locationCallback, Looper.getMainLooper()
+                    )
+                } else {
+                    subscribeToGpsLocationUpdates()
+                }
             } catch (ex: SecurityException) {
                 Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
             }
@@ -220,7 +230,7 @@ class TrackService : LifecycleService() {
             PAUSE_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service paused!")
                 sensorManager.unregisterListener(sensorEventListener)
-                fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+                removeLocationUpdates()
                 serviceLifecycleState.postValue(ServiceLifecycleState.PAUSED)
                 isPaused = true
             }
@@ -228,9 +238,14 @@ class TrackService : LifecycleService() {
                 Log.d(STEPS_TAG, "Service resumed!")
                 registerListener(sensorManager)
                 try {
-                    fusedLocationProviderClient.requestLocationUpdates(
-                        locationRequest, locationCallback, Looper.getMainLooper()
-                    )
+                    if (LocationRequester.checkIsGmsAvailable(this)) {
+                        fusedLocationProviderClient.requestLocationUpdates(
+                            locationRequest, locationCallback, Looper.getMainLooper()
+                        )
+                    } else {
+                        subscribeToGpsLocationUpdates()
+                    }
+
                 } catch (ex: SecurityException) {
                     Log.e(STEPS_TAG, "Lost location permissions. Couldn't remove updates. $ex")
                 }
@@ -239,6 +254,25 @@ class TrackService : LifecycleService() {
             }
         }
         return START_NOT_STICKY
+    }
+
+    private fun subscribeToGpsLocationUpdates() {
+        locationRequester.subscribeToLocationUpdates { location ->
+            val locationPoint = LocationPointData(
+                location.latitude,
+                location.longitude,
+                location.altitude,
+                location.accuracy,
+                location.speed,
+                System.currentTimeMillis(),
+                batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
+                eventId ?: -1L
+            )
+            Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
+            serviceIoScope.launch {
+                insertLocationDataUseCase.execute(locationPoint)
+            }
+        }
     }
 
     private fun startTimer(time: Double, steps: Int) {
@@ -289,11 +323,18 @@ class TrackService : LifecycleService() {
         )
     }
 
+    private fun removeLocationUpdates() {
+        if (LocationRequester.checkIsGmsAvailable(this)) {
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        } else {
+            locationRequester.unsubscribeToLocationUpdates()
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         Log.d(STEPS_TAG, "onDestroy: ")
         sensorManager.unregisterListener(sensorEventListener)
-        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
         serviceLifecycleState.postValue(ServiceLifecycleState.NOT_STARTED)
         timer.cancel()
