@@ -1,6 +1,5 @@
 package com.artezio.osport.tracker.presentation.tracker
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,18 +14,15 @@ import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
+import com.artezio.osport.tracker.util.MapUtils
 import com.artezio.osport.tracker.util.getTimerStringFromDouble
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>(),
-    OnMapReadyCallback {
+class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>() {
 
     private lateinit var googleMap: GoogleMap
 
@@ -47,7 +43,6 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initMap(savedInstanceState)
         viewModel.observeServiceStateWhenPaused(viewLifecycleOwner, binding)
         viewModel.timerValueLiveData.observe(viewLifecycleOwner) { timerValue ->
             Log.d("timer_value", "timer value: $timerValue")
@@ -90,20 +85,17 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
 
                         if (binding.materialCardViewPausedStatisticsCard.visibility == View.VISIBLE) {
                             binding.pauseDistanceValue.text = String.format("%.2f", distance)
-                            binding.pauseAverageSpeedValue.text = String.format("%.2f", averageSpeed)
+                            binding.pauseAverageSpeedValue.text =
+                                String.format("%.2f", averageSpeed)
                             binding.pauseTempoValue.text = String.format("%.2f", tempoValue)
                             binding.pauseGpsCountValue.text = gpsPoints.toString()
                         }
                     }
                     if (binding.mapStatistics.visibility == View.VISIBLE
-                        && locations.isNotEmpty()) {
+                        && locations.isNotEmpty()
+                    ) {
                         val lastLocation = locations.last()
-                        zoomCamera(
-                            LatLng(
-                                lastLocation.first.latitude,
-                                lastLocation.first.longitude
-                            )
-                        )
+                        MapUtils.initMap(binding.mapStatistics, lastLocation.first)
                     }
                 }
             }
@@ -128,27 +120,4 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
         container: ViewGroup?
     ): FragmentTrackerStatisticsBinding =
         FragmentTrackerStatisticsBinding.inflate(inflater, container, false)
-
-    @SuppressLint("MissingPermission")
-    override fun onMapReady(map: GoogleMap) {
-        googleMap = map
-
-        map.isMyLocationEnabled = true
-        map.mapType = GoogleMap.MAP_TYPE_HYBRID
-        map.mapType = GoogleMap.MAP_TYPE_NORMAL
-        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
-        map.mapType = GoogleMap.MAP_TYPE_TERRAIN
-        googleMap = map
-    }
-
-    private fun initMap(savedInstanceState: Bundle?) {
-        binding.mapStatistics.onCreate(savedInstanceState)
-        binding.mapStatistics.onResume()
-        binding.mapStatistics.getMapAsync(this)
-    }
-
-    private fun zoomCamera(latLng: LatLng) {
-        val cameraPosition = CameraUpdateFactory.newLatLngZoom(latLng, 16F)
-        googleMap.moveCamera(cameraPosition)
-    }
 }

@@ -21,18 +21,15 @@ interface IRepository {
         suspend fun addEvent(event: Event)
         fun getAllEvents(): Flow<List<EventWithData>>
         suspend fun getEventById(id: Long): Event
-        suspend fun updateEvent(startDate: Long, name: String, trackingStateModel: TrackingStateModel)
+        suspend fun updateEvent(
+            startDate: Long,
+            name: String,
+            trackingStateModel: TrackingStateModel
+        )
         suspend fun updateEvent(id: Long, name: String, startDate: Long)
         fun getEventWithDataById(id: Long): Flow<EventWithData>
         fun getLastEventId(): Flow<Long>
-        suspend fun deleteEvent(event: Event)
-        suspend fun updateEvent(startDate: Long, trackingStateModel: TrackingStateModel)
-        suspend fun deleteEventById(eventId: Long)
         suspend fun getLastEvent(): Event
-        suspend fun updateEvent(event: Event)
-        suspend fun insertTrackingState(trackingStateModel: TrackingStateModel)
-        suspend fun getTrackingStateByEventId(eventId: Long): Flow<TrackingStateModel>
-        suspend fun clearTrackingState()
         suspend fun deleteEventByStartDate(startDate: Long)
     }
 

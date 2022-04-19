@@ -13,21 +13,16 @@ import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentTrackerBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
+import com.artezio.osport.tracker.util.MapUtils
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
-    OnMapReadyCallback,
-    GoogleMap.OnMyLocationButtonClickListener {
+class TrackerFragment : BaseFragment<FragmentTrackerBinding>() {
 
     override var bottomNavigationViewVisibility = View.GONE
 
     private val viewModel: TrackerViewModel by viewModels()
-    private lateinit var googleMap: GoogleMap
 
     private val fusedLocationProvider: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(requireContext())
@@ -44,17 +39,12 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
             super.onLocationResult(result)
             val currentLocation = result.lastLocation
             Log.d("tracker_accuracy", "Accuracy: ${currentLocation.accuracy}")
-            viewModel.animateCamera(
-                googleMap,
-                LatLng(currentLocation.latitude, currentLocation.longitude)
-            )
         }
     }
 
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initMap(savedInstanceState)
         binding.buttonClose.setOnClickListener {
             requireActivity().findNavController(R.id.fragmentContainerView)
                 .navigate(
@@ -62,7 +52,9 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
                     MainFragmentArgs(true).toBundle()
                 )
         }
+        MapUtils.initMap(binding.mapView)
         observeUserLocation()
+
     }
 
     @SuppressLint("MissingPermission")
@@ -80,24 +72,8 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>(),
     ): FragmentTrackerBinding =
         FragmentTrackerBinding.inflate(inflater, container, false)
 
-    @SuppressLint("MissingPermission")
-    override fun onMapReady(map: GoogleMap) {
-        map.isMyLocationEnabled = true
-        map.setOnMyLocationButtonClickListener(this)
-        map.mapType = GoogleMap.MAP_TYPE_HYBRID
-        map.mapType = GoogleMap.MAP_TYPE_NORMAL
-        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
-        map.mapType = GoogleMap.MAP_TYPE_TERRAIN
-        googleMap = map
-    }
-
-    private fun initMap(savedInstanceState: Bundle?) {
-        binding.mapView.onCreate(savedInstanceState)
-        binding.mapView.onResume()
-        binding.mapView.getMapAsync(this)
-    }
-
-    override fun onMyLocationButtonClick(): Boolean {
-        return false
+    override fun onDestroy() {
+        super.onDestroy()
+        MapUtils.onDestroy()
     }
 }

@@ -16,4 +16,6 @@
     <string name="permissions_dialog_message">Вы выбрали больше не запрашивать разрешение. Вы можете изменить это в настройках приложения. Желаете открыть настройки?</string>
     <string name="permissions_deny_dialog_message">Без выдачи запрашиваемых разрешений приложение не сможет получать данные. Вы уверены, что хотите запретить выдачу этих разрешений?</string>
     <string name="permissions_not_granted_text">Разрешения не выданы</string>
+
+    <string name="mapbox_access_token">pk.eyJ1IjoidmZyb21ubjE5MDkiLCJhIjoiY2wxdno3azZlMDN1dzNjbzlzOG1xb2VxayJ9.PXcnZCFnQ8EKdTu8ASxNow</string>
 </resources>

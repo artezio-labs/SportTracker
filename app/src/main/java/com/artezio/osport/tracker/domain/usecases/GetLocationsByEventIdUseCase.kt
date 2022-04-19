@@ -8,7 +8,6 @@ import javax.inject.Inject
 class GetLocationsByEventIdUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-
     fun execute(id: Long) = repository.getLocationsByEventId(id).map { data ->
         data.map { locationPointData ->
             Pair(
@@ -27,6 +26,4 @@ class GetLocationsByEventIdUseCase @Inject constructor(
             )
         }
     }
-
-    fun executeWithoutMap(id: Long) = repository.getLocationsByEventId(id)
 }

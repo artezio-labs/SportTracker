@@ -19,7 +19,7 @@ class GpsLocationRequester(
         locationListener = LocationListener { location ->
             onLocationChanged.invoke(location)
         }
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0F, locationListener)
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0F, locationListener)
     }
 
     override fun unsubscribeToLocationUpdates() {

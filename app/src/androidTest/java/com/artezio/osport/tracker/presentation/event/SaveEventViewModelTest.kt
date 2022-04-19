@@ -45,7 +45,7 @@ class SaveEventViewModelTest {
 
     @Test
     fun whenDeleteEventIsCalledShouldDeleteJustAddedEvent() {
-        testIoScope.launch { viewModel.deleteLastEvent() }
+        viewModel.deleteLastEvent()
         coVerifySequence {
             getLastEventUseCase.execute()
             deleteEventUseCase.execute(startDate = any())

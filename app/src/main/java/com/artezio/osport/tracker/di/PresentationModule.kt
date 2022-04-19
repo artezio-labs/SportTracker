@@ -64,11 +64,6 @@ object PresentationModule {
     fun providesGetStepCountUseCase(repository: PedometerRepository) =
         GetStepCountUseCase(repository)
 
-
-    @Provides
-    fun providesSaveTrackingStateUseCase(repository: EventsRepository) =
-        SaveTrackingStateUseCase(repository)
-
     @Provides
     fun providesDeleteEventUseCase(repository: EventsRepository) =
         DeleteEventUseCase(repository)
@@ -83,13 +78,4 @@ object PresentationModule {
     @Provides
     fun provideGetAllLocationsByIdUseCase(repository: LocationRepository) =
         GetAllLocationsByIdUseCase(repository)
-
-    @Provides
-    fun providesGetTrackingStateByEventId(repository: EventsRepository) =
-        GetTrackingStateByEventId(repository)
-
-    @Provides
-    fun providesClearTrackingStateUseCase(repository: EventsRepository) =
-        ClearTrackingStateUseCase(repository)
-
 }
