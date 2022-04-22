@@ -48,7 +48,7 @@ class SaveEventViewModelTest {
         viewModel.deleteLastEvent()
         coVerifySequence {
             getLastEventUseCase.execute()
-            deleteEventUseCase.execute(startDate = any())
+            deleteEventUseCase.execute(0)
         }
 
     }

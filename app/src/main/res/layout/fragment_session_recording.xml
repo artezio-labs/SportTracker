@@ -24,6 +24,30 @@
         android:background="@color/tracker_scoreboard_color"
         app:layout_constraintBottom_toBottomOf="parent">
 
+        <LinearLayout
+            android:id="@+id/llAccuracy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="8dp">
+            <TextView
+                android:id="@+id/accuracyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Точность"
+                android:textSize="18dp"
+                android:layout_marginBottom="4dp"/>
+            <TextView
+                android:id="@+id/accuracyValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="0.00"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -1,10 +1,23 @@
 package com.artezio.osport.tracker.util
 
+import android.content.Context
+import androidx.core.content.ContextCompat
+import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.mapbox.android.gestures.MoveGestureDetector
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.FeatureCollection
+import com.mapbox.geojson.LineString
+import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
+import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
+import com.mapbox.maps.extension.style.layers.generated.lineLayer
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
+import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.PuckBearingSource
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
@@ -13,6 +26,9 @@ import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.locationcomponent.location2
 
 object MapUtils {
+
+    private const val LINE_SOURCE = "line-source"
+    private const val LINE_LAYER = "line-layer"
 
     private lateinit var mapView: MapView
 
@@ -48,7 +64,58 @@ object MapUtils {
             initLocationComponent()
             setupGesturesListener()
         }
+    }
 
+    fun drawRoute(context: Context, map: MapView, locations: List<Point>) {
+        with(map.getMapboxMap()) {
+            loadMapStyle(context, this, locations)
+            setMapCamera(this, locations)
+        }
+    }
+
+    private fun loadMapStyle(context: Context, map: MapboxMap, locations: List<Point>) {
+        map.loadStyle(
+            style(styleUri = Style.SATELLITE) {
+                +geoJsonSource(LINE_SOURCE) {
+                    featureCollection(
+                        FeatureCollection.fromFeatures(
+                            arrayOf(
+                                Feature.fromGeometry(
+                                    LineString.fromLngLats(
+                                        locations
+                                    )
+                                )
+                            )
+                        )
+                    )
+                }
+                +lineLayer(LINE_LAYER, LINE_SOURCE) {
+                    lineCap(LineCap.ROUND)
+                    lineJoin(LineJoin.ROUND)
+                    lineOpacity(0.5)
+                    lineWidth(5.0)
+                    lineColor(
+                        ContextCompat.getColor(
+                            context,
+                            R.color.app_theme_color
+                        )
+                    )
+                }
+            }
+        )
+    }
+
+    private fun setMapCamera(map: MapboxMap, locations: List<Point>) {
+        map.setCamera(
+            CameraOptions.Builder().center(
+                Point.fromLngLat(
+                    locations.last().longitude(),
+                    locations.last().latitude(),
+                    locations.last().altitude()
+                )
+            ).zoom(14.0)
+                .build()
+        )
     }
 
     private fun setupGesturesListener() {
@@ -66,7 +133,6 @@ object MapUtils {
             updateSettings {
                 enabled = true
                 pulsingEnabled = false
-
             }
             addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
         }

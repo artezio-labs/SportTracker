@@ -1,11 +1,13 @@
 package com.artezio.osport.tracker.presentation.tracker
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -45,6 +47,14 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
             super.onLocationResult(result)
             val currentLocation = result.lastLocation
             Log.d("tracker_accuracy", "Accuracy: ${currentLocation.accuracy}")
+            val calculatedAccuracyPair = viewModel.calculateAccuracy(currentLocation)
+            binding.accuracyValue.text = calculatedAccuracyPair.first
+            binding.accuracyValue.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    calculatedAccuracyPair.second.color
+                )
+            )
         }
     }
 
@@ -54,10 +64,13 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
         childNavHostFragment.navController
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.observeServiceState(viewLifecycleOwner, binding)
+
+        requestLocaionUpdates()
 
         binding.fabStart.setOnClickListener {
             Log.d("service_state", "Fab clicked, service is started")
@@ -102,11 +115,7 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
         binding.fabStopTracking.setOnClickListener {
             viewModel.stopService(requireContext())
             try {
-                fusedLocationProvider.requestLocationUpdates(
-                    locationRequest,
-                    locationCallback,
-                    Looper.getMainLooper()
-                )
+                requestLocaionUpdates()
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
@@ -129,6 +138,15 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
                 }
             }
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestLocaionUpdates() {
+        fusedLocationProvider.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
     }
 
     private fun startService() {

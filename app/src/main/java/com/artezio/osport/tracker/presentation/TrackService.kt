@@ -253,7 +253,7 @@ class TrackService : LifecycleService() {
                 isPaused = false
             }
         }
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     private fun subscribeToGpsLocationUpdates() {

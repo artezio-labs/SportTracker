@@ -1,5 +1,6 @@
 package com.artezio.osport.tracker.util
 
+import com.artezio.osport.tracker.R
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -16,4 +17,21 @@ fun getTimerStringFromDouble(time: Double): String {
     val minutes = timeInt % 86400 % 3600 / 60
     val seconds = timeInt % 86400 % 3600 % 60
     return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+}
+
+fun formatTime(time: Double, resourceProvider: ResourceProvider): String {
+    if (time == TIMER_START_POINT) {
+        return resourceProvider.getString(R.string.timer_just_started_text)
+    }
+    val sb = StringBuilder()
+    val hours = (time / 3600).toInt()
+    val minutes = ((time % 3600) / 60).toInt()
+    val seconds = (time % 60).toInt()
+    if (hours >= 1)
+        sb.append("$hours ч. ")
+    if (minutes >= 1)
+        sb.append("$minutes мин. ")
+    if (seconds != 0)
+        sb.append("$seconds сек.")
+    return sb.toString()
 }

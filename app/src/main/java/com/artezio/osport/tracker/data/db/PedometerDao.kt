@@ -11,6 +11,14 @@ interface PedometerDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPedometerData(data: PedometerData)
 
-    @Query("SELECT * FROM pedometer_data WHERE eventId = :eventId")
+    @Query(
+        """
+        SELECT * 
+        FROM pedometer_data 
+        WHERE eventId = :eventId 
+        ORDER BY id DESC 
+        LIMIT 1
+    """
+    )
     suspend fun getStepCount(eventId: Long): PedometerData
 }

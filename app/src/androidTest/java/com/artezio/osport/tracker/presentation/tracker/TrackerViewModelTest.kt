@@ -33,6 +33,7 @@ class TrackerViewModelTest {
     private lateinit var lifecycleOwner: LifecycleOwner
     private lateinit var bindingSessionFragment: FragmentSessionRecordingBinding
     private lateinit var bindingTrackerStatistics: FragmentTrackerStatisticsBinding
+    private lateinit var accuracyFactory: AccuracyFactory
 
     private val testMainScope = CoroutineScope(Dispatchers.Main)
 
@@ -41,10 +42,12 @@ class TrackerViewModelTest {
         getLastEventIdUseCase = mockk(relaxed = true)
         insertEventUseCase = mockk(relaxed = true)
         getLocationsByEventIdUseCase = mockk(relaxed = true)
+        accuracyFactory = AccuracyFactory()
         viewModel = TrackerViewModel(
             getLastEventIdUseCase,
             insertEventUseCase,
-            getLocationsByEventIdUseCase
+            getLocationsByEventIdUseCase,
+            accuracyFactory
         )
         context = mockk(relaxed = true)
         googleMap = mockk(relaxed = true)

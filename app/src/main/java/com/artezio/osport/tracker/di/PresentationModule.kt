@@ -6,6 +6,8 @@ import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
 import com.artezio.osport.tracker.domain.usecases.*
+import com.artezio.osport.tracker.presentation.tracker.AccuracyFactory
+import com.artezio.osport.tracker.util.ResourceProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,8 +55,11 @@ object PresentationModule {
         GetLastEventIdUseCase(repository)
 
     @Provides
-    fun providesGetLocationsByEventIdUseCase(repository: LocationRepository) =
-        GetLocationsByEventIdUseCase(repository)
+    fun providesGetLocationsByEventIdUseCase(
+        repository: LocationRepository,
+        accuracyFactory: AccuracyFactory
+    ) =
+        GetLocationsByEventIdUseCase(repository, accuracyFactory)
 
     @Provides
     fun providesDomainToPresentationMapper() =
@@ -78,4 +83,20 @@ object PresentationModule {
     @Provides
     fun provideGetAllLocationsByIdUseCase(repository: LocationRepository) =
         GetAllLocationsByIdUseCase(repository)
+
+    @Provides
+    fun providesAccuracyFactory() = AccuracyFactory()
+
+    @Provides
+    fun providesGetEventInfoUseCase(
+        eventsRepository: EventsRepository,
+        locationsRepository: LocationRepository,
+        pedometerRepository: PedometerRepository,
+        resourceProvider: ResourceProvider
+    ) = GetEventInfoUseCase(
+        eventsRepository,
+        locationsRepository,
+        pedometerRepository,
+        resourceProvider
+    )
 }

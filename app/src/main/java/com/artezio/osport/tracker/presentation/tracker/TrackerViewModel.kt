@@ -2,6 +2,7 @@ package com.artezio.osport.tracker.presentation.tracker
 
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
@@ -16,9 +17,6 @@ import com.artezio.osport.tracker.domain.usecases.GetLocationsByEventIdUseCase
 import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.*
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +28,7 @@ class TrackerViewModel @Inject constructor(
     private val getLastEventIdUseCase: GetLastEventIdUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
+    private val accuracyFactory: AccuracyFactory
 ) : ViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
@@ -64,13 +63,10 @@ class TrackerViewModel @Inject constructor(
         context.startService(intent)
     }
 
-    fun animateCamera(googleMap: GoogleMap, currentLocation: LatLng) {
-        googleMap.moveCamera(
-            CameraUpdateFactory.newLatLngZoom(
-                currentLocation,
-                17F
-            )
-        )
+    fun calculateAccuracy(location: Location): Pair<String, IAccuracyFactory.AccuracyType> {
+        val accuracy = accuracyFactory.calculateAccuracy(location.accuracy)
+        val accuracyString = String.format("%.2f м.", location.accuracy)
+        return Pair(accuracyString, accuracy)
     }
 
     fun stopService(context: Context) {
@@ -90,6 +86,7 @@ class TrackerViewModel @Inject constructor(
                 ServiceLifecycleState.RUNNING -> {
                     binding.fabStopPause.visibility = View.VISIBLE
                     binding.fabToSessionMap.visibility = View.VISIBLE
+                    binding.llAccuracy.visibility = View.GONE
                     Log.d("service_state", "RUNNING")
                 }
                 ServiceLifecycleState.STOPPED -> {
@@ -97,22 +94,26 @@ class TrackerViewModel @Inject constructor(
                     binding.fabStart.visibility = View.VISIBLE
                     binding.fabToSessionStatistics.visibility = View.GONE
                     binding.fabToSessionMap.visibility = View.GONE
+                    binding.llAccuracy.visibility = View.GONE
                     Log.d("service_state", "STOPPED")
                 }
                 ServiceLifecycleState.PAUSED -> {
                     binding.fabStopPause.visibility = View.GONE
                     binding.llFabs.visibility = View.VISIBLE
                     binding.fabStart.visibility = View.GONE
+                    binding.llAccuracy.visibility = View.GONE
                     Log.d("service_state", "PAUSED")
                 }
                 ServiceLifecycleState.RESUMED -> {
                     binding.llFabs.visibility = View.GONE
                     binding.fabStopPause.visibility = View.VISIBLE
+                    binding.llAccuracy.visibility = View.GONE
                     Log.d("service_state", "RESUMED")
                 }
                 ServiceLifecycleState.NOT_STARTED -> {
                     binding.fabToSessionStatistics.visibility = View.GONE
                     binding.fabToSessionMap.visibility = View.GONE
+                    binding.llAccuracy.visibility = View.VISIBLE
                 }
             }
         }
@@ -136,7 +137,7 @@ class TrackerViewModel @Inject constructor(
         }
     }
 
-    fun calculateDistance(locations: List<Pair<LocationPointData, Accuracy>>): Double {
+    fun calculateDistance(locations: List<Pair<LocationPointData, IAccuracyFactory.AccuracyType>>): Double {
         var totalDistance = 0.0
         if (locations.size <= 1) return totalDistance
         val data = locations.map { it.first }

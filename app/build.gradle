@@ -94,6 +94,8 @@ dependencies {
 
     // coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.1'
+
 
     // retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
@@ -139,13 +141,17 @@ dependencies {
     androidTestImplementation "io.mockk:mockk-android:${mockk_version}"
 
     // mapbox
-    implementation 'com.mapbox.maps:android:10.4.0'
+    implementation 'com.mapbox.maps:android:10.4.2'
+    implementation "com.mapbox.navigation:android:2.4.0"
 
-    // kaspresso
-    androidTestImplementation 'com.kaspersky.android-components:kaspresso:1.4.1'
+    // ui-testing
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test:runner:1.4.0'
+    androidTestImplementation 'androidx.test:rules:1.4.0'
+    debugImplementation "androidx.fragment:fragment-testing:1.4.1"
 
-    // turbine (flow test library)
-    testImplementation 'app.cash.turbine:turbine:0.5.1'
+    // kakao
+    androidTestImplementation  'com.agoda.kakao:kakao:2.3.4'
 }
 
 kapt {

@@ -1,7 +1,6 @@
 package com.artezio.osport.tracker.presentation.event
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +10,7 @@ import androidx.navigation.fragment.navArgs
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentEventInfoBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
+import com.artezio.osport.tracker.util.MapUtils
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -21,40 +21,30 @@ class EventInfoFragment : BaseFragment<FragmentEventInfoBinding>() {
     private val viewModel: EventInfoViewModel by viewModels()
     private val navArgs: EventInfoFragmentArgs by navArgs()
 
-    private var title = ""
-    private var time = 0.0
-    private var speed = 0.0
-    private var distance = 0.0
-    private var tempo = 0.0
-    private var steps = 0
-    private var gpsPoints = 0
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding.buttonClose.setOnClickListener {
             findNavController().navigate(R.id.action_eventInfoFragment_to_mainFragment)
         }
-        val locations = viewModel.getDistanceByEventId(navArgs.eventId)
-        Log.d("event_info", navArgs.eventId.toString())
-        viewModel.getEventById(navArgs.eventId)
-        viewModel.eventLiveData.observe(viewLifecycleOwner) { event ->
-            Log.d("event_info", "Event from livedata: $event")
-            title = event.name
-            time = event.timerValue
-            speed = event.speedValue
-            distance = locations.first
-            tempo = (distance / (time / 60.0 + (time % 60.0) / 60.0))
-            steps = event.stepsValue
-            gpsPoints = event.gpsPointsValue
+        val id = navArgs.eventId
 
-            binding.EventTitle.text = title
-            binding.materialTextViewTimeValue.text = viewModel.formatTime(time)
-            binding.materialTextViewSpeedValue.text = String.format("%.2f", speed)
-            binding.materialTextViewDistanceValue.text = String.format("%.2f", distance)
-            binding.materialTextViewTempoValue.text = String.format("%.2f", tempo)
-            binding.materialTextViewStepsValue.text = steps.toString()
-            binding.materialTextViewGPSValue.text = gpsPoints.toString()
+        viewModel.getLocationsById(id)
+        viewModel.locationsLiveData.observe(viewLifecycleOwner) { locations ->
+            MapUtils.drawRoute(requireContext(), binding.eventInfoMap, locations)
         }
+
+        viewModel.getEventInfo(id)
+        viewModel.eventInfoLiveData.observe(viewLifecycleOwner) { eventInfo ->
+            binding.EventTitle.text = eventInfo.title
+            binding.materialTextViewTimeValue.text = eventInfo.time
+            binding.materialTextViewDistanceValue.text = eventInfo.distance
+            binding.materialTextViewSpeedValue.text = eventInfo.speed
+            binding.materialTextViewTempoValue.text = eventInfo.tempo
+            binding.materialTextViewStepsValue.text = eventInfo.steps
+            binding.materialTextViewGPSValue.text = eventInfo.gpsPoints
+        }
+
     }
 
     override fun initBinding(

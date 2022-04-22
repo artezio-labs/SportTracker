@@ -3,7 +3,6 @@ package com.artezio.osport.tracker.presentation.tracker
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,7 +37,7 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding>() {
         override fun onLocationResult(result: LocationResult) {
             super.onLocationResult(result)
             val currentLocation = result.lastLocation
-            Log.d("tracker_accuracy", "Accuracy: ${currentLocation.accuracy}")
+//            Log.d("tracker_accuracy", "Accuracy: ${currentLocation.accuracy}")
         }
     }
 

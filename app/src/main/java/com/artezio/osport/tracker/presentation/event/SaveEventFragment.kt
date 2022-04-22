@@ -15,6 +15,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class SaveEventFragment : BaseFragment<FragmentSaveEventBinding>() {
 
+    override var bottomNavigationViewVisibility = View.GONE
     private val saveEventViewModel: SaveEventViewModel by viewModels()
 
     private val args: SaveEventFragmentArgs by navArgs()

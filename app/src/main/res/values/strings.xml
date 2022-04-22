@@ -18,4 +18,13 @@
     <string name="permissions_not_granted_text">Разрешения не выданы</string>
 
     <string name="mapbox_access_token">pk.eyJ1IjoidmZyb21ubjE5MDkiLCJhIjoiY2wxdno3azZlMDN1dzNjbzlzOG1xb2VxayJ9.PXcnZCFnQ8EKdTu8ASxNow</string>
+    <string name="textview_average_speed_text">Средняя скорость</string>
+    <string name="timer_just_started_text">0 мин.</string>
+    <string name="event_info_distance_text">Дистанция</string>
+    <string name="tempo_text_value">Темп</string>
+    <string name="steps_text_value">Шаги</string>
+    <string name="gps_points_steps_value">GPS-точки</string>
+    <string name="time_text_value">Время</string>
+    <string name="button_close_text">Закрыть</string>
+    <string name="information_text_value">Информация</string>
 </resources>
