@@ -10,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import com.artezio.osport.tracker.R
-import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
@@ -19,7 +18,6 @@ import com.artezio.osport.tracker.util.getTimerStringFromDouble
 import com.google.android.gms.maps.GoogleMap
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>() {
@@ -35,11 +33,7 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
     private var averageSpeed = 0.0
     private var distance = 0.0
     private var tempoValue = 0.0
-    private var steps = 0
     private var gpsPoints = 0
-
-    @Inject
-    lateinit var prefsManager: PrefsManager
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

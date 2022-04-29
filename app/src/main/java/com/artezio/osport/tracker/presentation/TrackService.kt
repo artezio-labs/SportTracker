@@ -20,7 +20,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavDeepLinkBuilder
 import com.artezio.osport.tracker.R
-import com.artezio.osport.tracker.data.prefs.PrefsManager
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
@@ -89,9 +88,6 @@ class TrackService : LifecycleService() {
     lateinit var insertPedometerDataUseCase: InsertPedometerDataUseCase
 
     @Inject
-    lateinit var prefsManager: PrefsManager
-
-    @Inject
     lateinit var locationRequester: GpsLocationRequester
 
     private var timer = Timer()
@@ -136,9 +132,6 @@ class TrackService : LifecycleService() {
             .getInstance(this)
             .registerReceiver(ServiceEchoReceiver(), IntentFilter("ping"))
 
-        val stepsFromPrefs = prefsManager.steps
-        Log.d("steps", "Steps from prefs: $stepsFromPrefs")
-        stepCount = stepsFromPrefs
     }
 
 
@@ -338,7 +331,6 @@ class TrackService : LifecycleService() {
         serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
         serviceLifecycleState.postValue(ServiceLifecycleState.NOT_STARTED)
         timer.cancel()
-        prefsManager.clearPrefs()
     }
 
     inner class LocalBinder : Binder() {
