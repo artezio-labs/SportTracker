@@ -19,7 +19,7 @@ class EventInfoViewModelTest {
     @Before
     fun setUp() {
         getAllLocationsByIdUseCase = mockk(relaxed = true)
-        getEventInfoUseCase
+        getEventInfoUseCase = mockk(relaxed = true)
         viewModel = EventInfoViewModel(
             getEventInfoUseCase, getAllLocationsByIdUseCase
         )

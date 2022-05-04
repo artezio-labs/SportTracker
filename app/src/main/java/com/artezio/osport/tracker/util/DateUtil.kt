@@ -20,7 +20,7 @@ fun getTimerStringFromDouble(time: Double): String {
 }
 
 fun formatTime(time: Double, resourceProvider: ResourceProvider): String {
-    if (time == TIMER_START_POINT) {
+    if (time <= TIMER_START_POINT) {
         return resourceProvider.getString(R.string.timer_just_started_text)
     }
     val sb = StringBuilder()
