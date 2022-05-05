@@ -3,7 +3,6 @@ package com.artezio.osport.tracker.presentation.event
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.artezio.osport.tracker.domain.model.Event
-import com.artezio.osport.tracker.domain.usecases.GetEventByIdUseCase
 import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
 import com.artezio.osport.tracker.domain.usecases.UpdateEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +13,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EventViewModel @Inject constructor(
-    private val getEventByIdUseCase: GetEventByIdUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val updateEventUseCase: UpdateEventUseCase
 ) : ViewModel() {

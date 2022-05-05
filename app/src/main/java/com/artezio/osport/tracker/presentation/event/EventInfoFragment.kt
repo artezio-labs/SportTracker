@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -36,7 +37,7 @@ class EventInfoFragment : BaseFragment<FragmentEventInfoBinding>() {
 
         viewModel.getEventInfo(id)
         viewModel.eventInfoLiveData.observe(viewLifecycleOwner) { eventInfo ->
-            binding.EventTitle.text = eventInfo.title
+            binding.eventTitle.setText(eventInfo.title)
             binding.materialTextViewTimeValue.text = eventInfo.time
             binding.materialTextViewDistanceValue.text = eventInfo.distance
             binding.materialTextViewSpeedValue.text = eventInfo.speed
@@ -44,7 +45,9 @@ class EventInfoFragment : BaseFragment<FragmentEventInfoBinding>() {
             binding.materialTextViewStepsValue.text = eventInfo.steps
             binding.materialTextViewGPSValue.text = eventInfo.gpsPoints
         }
-
+        binding.eventTitle.addTextChangedListener { eventName ->
+            viewModel.updateEventName(id, eventName.toString())
+        }
     }
 
     override fun initBinding(

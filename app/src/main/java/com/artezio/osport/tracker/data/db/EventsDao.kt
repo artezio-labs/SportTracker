@@ -36,6 +36,18 @@ interface EventsDao {
 
     @Query(
         """
+        UPDATE events 
+        SET name = :name
+        WHERE startDate = :startDate
+    """
+    )
+    suspend fun updateEventName(
+        name: String,
+        startDate: Long = 0L,
+    )
+
+    @Query(
+        """
         UPDATE events
         SET name = :eventName,
             endDate = :endDate,

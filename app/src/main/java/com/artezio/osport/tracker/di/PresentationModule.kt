@@ -99,4 +99,8 @@ object PresentationModule {
         pedometerRepository,
         resourceProvider
     )
+
+    @Provides
+    fun provideUpdateEventNameUseCase(repository: EventsRepository) =
+        UpdateEventNameUseCase(repository)
 }

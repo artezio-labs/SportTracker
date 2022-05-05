@@ -26,11 +26,12 @@ interface IRepository {
             name: String,
             trackingStateModel: TrackingStateModel
         )
-        suspend fun updateEvent(id: Long, name: String, startDate: Long)
         fun getEventWithDataById(id: Long): Flow<EventWithData>
         fun getLastEventId(): Flow<Long>
         suspend fun getLastEvent(): Event
         suspend fun deleteEventByStartDate(startDate: Long)
+        suspend fun updateEventName(name: String, startDate: Long)
+        suspend fun updateEvent(id: Long, name: String, startDate: Long)
     }
 
     interface TrackNetworkRepository {

@@ -13,8 +13,7 @@ import com.artezio.osport.tracker.domain.model.*
         PedometerData::class,
         TrackingStateModel::class
     ],
-    version = 1,
-    exportSchema = false
+    version = 2
 )
 @TypeConverters(Converters::class)
 abstract class TrackerDb : RoomDatabase() {

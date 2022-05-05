@@ -37,6 +37,10 @@ class EventsRepository @Inject constructor(
         )
     }
 
+    override suspend fun updateEventName(name: String, startDate: Long) {
+        dao.updateEventName(name, startDate)
+    }
+
     override suspend fun updateEvent(id: Long, name: String, startDate: Long) {
         dao.updateSpecificEventFields(id, name, startDate, null)
     }
