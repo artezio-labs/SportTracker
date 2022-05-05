@@ -4,10 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.artezio.osport.tracker.domain.model.EventInfo
-import com.artezio.osport.tracker.domain.usecases.GetAllLocationsByIdUseCase
-import com.artezio.osport.tracker.domain.usecases.GetEventByIdUseCase
-import com.artezio.osport.tracker.domain.usecases.GetEventInfoUseCase
-import com.artezio.osport.tracker.domain.usecases.UpdateEventNameUseCase
+import com.artezio.osport.tracker.domain.usecases.*
 import com.mapbox.geojson.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +16,8 @@ class EventInfoViewModel @Inject constructor(
     private val getEventInfoUseCase: GetEventInfoUseCase,
     private val getAllLocationsByIdUseCase: GetAllLocationsByIdUseCase,
     private val updateEventNameUseCase: UpdateEventNameUseCase,
-    private val getEventByIdUseCase: GetEventByIdUseCase
+    private val getEventByIdUseCase: GetEventByIdUseCase,
+    private val deleteEventUseCase: DeleteEventUseCase,
 ) : ViewModel() {
     val eventInfoLiveData = MutableLiveData<EventInfo>()
     val locationsLiveData = MutableLiveData<List<Point>>()
@@ -38,5 +36,10 @@ class EventInfoViewModel @Inject constructor(
     fun updateEventName(id: Long, name: String) = viewModelScope.launch(Dispatchers.IO) {
         val event = getEventByIdUseCase.execute(id)
         updateEventNameUseCase.execute(name, event.startDate)
+    }
+
+    fun deleteEvent(id: Long) = viewModelScope.launch(Dispatchers.IO) {
+        val event = getEventByIdUseCase.execute(id)
+        deleteEventUseCase.execute(event.startDate)
     }
 }

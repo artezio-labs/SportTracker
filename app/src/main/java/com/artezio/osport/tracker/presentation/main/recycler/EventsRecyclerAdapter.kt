@@ -44,11 +44,18 @@ class EventsRecyclerAdapter(
             binding.textViewEventEndDate.text =
                 if (event.endDate != null) millisecondsToDateFormat(event.endDate) else ""
             binding.root.setOnClickListener {
-                (fragment as MainFragment).findNavController().navigate(
-                    R.id.action_mainFragment_to_eventInfoFragment,
-                    EventInfoFragmentArgs(item.id).toBundle()
-                )
+                navigate(item)
             }
+            binding.imageViewInfoButton.setOnClickListener {
+                navigate(item)
+            }
+        }
+
+        private fun navigate(item: Item) {
+            (fragment as MainFragment).findNavController().navigate(
+                R.id.action_mainFragment_to_eventInfoFragment,
+                EventInfoFragmentArgs((item as Item.Event).id).toBundle()
+            )
         }
     }
 }

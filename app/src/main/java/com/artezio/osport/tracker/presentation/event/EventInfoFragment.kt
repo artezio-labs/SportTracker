@@ -11,6 +11,7 @@ import androidx.navigation.fragment.navArgs
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentEventInfoBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
+import com.artezio.osport.tracker.util.DialogBuilder
 import com.artezio.osport.tracker.util.MapUtils
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -47,6 +48,21 @@ class EventInfoFragment : BaseFragment<FragmentEventInfoBinding>() {
         }
         binding.eventTitle.addTextChangedListener { eventName ->
             viewModel.updateEventName(id, eventName.toString())
+        }
+        binding.imageViewDeleteEvent.setOnClickListener {
+            DialogBuilder(
+                context = requireContext(),
+                title = "Внимание",
+                message = "Вы уверены, что хотите удалить тренировку? Все данные будут утеряны!",
+                positiveButtonText = "Да",
+                positiveButtonClick = { dialog, _ ->
+                    viewModel.deleteEvent(id)
+                    dialog.dismiss()
+                    findNavController().navigate(R.id.action_eventInfoFragment_to_mainFragment)
+                },
+                negativeButtonText = "Не сейчас",
+                negativeButtonClick = { dialog, _ -> dialog.cancel() }
+            ).build()
         }
     }
 
