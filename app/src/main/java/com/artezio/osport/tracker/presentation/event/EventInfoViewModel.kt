@@ -3,11 +3,13 @@ package com.artezio.osport.tracker.presentation.event
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.artezio.osport.tracker.data.gpx.GPX
 import com.artezio.osport.tracker.domain.model.EventInfo
 import com.artezio.osport.tracker.domain.usecases.*
 import com.mapbox.geojson.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,6 +20,7 @@ class EventInfoViewModel @Inject constructor(
     private val updateEventNameUseCase: UpdateEventNameUseCase,
     private val getEventByIdUseCase: GetEventByIdUseCase,
     private val deleteEventUseCase: DeleteEventUseCase,
+    private val gpx: GPX
 ) : ViewModel() {
     val eventInfoLiveData = MutableLiveData<EventInfo>()
     val locationsLiveData = MutableLiveData<List<Point>>()
@@ -41,5 +44,11 @@ class EventInfoViewModel @Inject constructor(
     fun deleteEvent(id: Long) = viewModelScope.launch(Dispatchers.IO) {
         val event = getEventByIdUseCase.execute(id)
         deleteEventUseCase.execute(event.startDate)
+    }
+
+    fun writeGpx(id: Long) = viewModelScope.async (Dispatchers.IO) {
+        val event = getEventByIdUseCase.execute(id)
+        val eventLocations = getAllLocationsByIdUseCase.execute(id)
+        return@async gpx.write("${event.name}.gpx", eventLocations)
     }
 }

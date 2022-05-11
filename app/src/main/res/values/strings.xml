@@ -27,4 +27,6 @@
     <string name="time_text_value">Время</string>
     <string name="button_close_text">Закрыть</string>
     <string name="information_text_value">Информация</string>
+    <string name="delete_menu_item">Удалить</string>
+    <string name="share_menu_item">Поделиться</string>
 </resources>
