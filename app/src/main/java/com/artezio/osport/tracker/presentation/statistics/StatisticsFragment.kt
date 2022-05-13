@@ -16,9 +16,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
+class StatisticsFragment : BaseFragment<FragmentStatisticsBinding, StatisticsViewModel>() {
 
-    private val viewModel: StatisticsViewModel by viewModels()
+    override val viewModel: StatisticsViewModel by viewModels()
 
     private val args: StatisticsFragmentArgs by navArgs()
 

@@ -8,26 +8,19 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.navArgs
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
-import com.artezio.osport.tracker.presentation.main.MainFragmentArgs
 import com.artezio.osport.tracker.util.MapUtils
 import com.artezio.osport.tracker.util.getTimerStringFromDouble
-import com.google.android.gms.maps.GoogleMap
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
-class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>() {
-
-    private lateinit var googleMap: GoogleMap
+class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding, TrackerViewModel>() {
 
     override var bottomNavigationViewVisibility = View.GONE
-    private val viewModel: TrackerViewModel by viewModels()
-
-    private val args: TrackerStatisticsFragmentArgs by navArgs()
+    override val viewModel: TrackerViewModel by viewModels()
 
     private var time = 0.0
     private var averageSpeed = 0.0
@@ -50,8 +43,7 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding>
         binding.buttonClose.setOnClickListener {
             requireActivity().findNavController(R.id.fragmentContainerView)
                 .navigate(
-                    R.id.action_sessionRecordingFragment_to_mainFragment,
-                    MainFragmentArgs(true).toBundle()
+                    R.id.action_sessionRecordingFragment_to_mainFragment
                 )
         }
         observeData()

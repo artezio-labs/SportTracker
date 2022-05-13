@@ -1,9 +1,9 @@
 package com.artezio.osport.tracker.presentation.main
 
-import androidx.lifecycle.ViewModel
 import com.artezio.osport.tracker.data.mappers.DomainToPresentationMapper
 import com.artezio.osport.tracker.domain.model.EventWithData
 import com.artezio.osport.tracker.domain.usecases.GetAllEventsWithDataUseCase
+import com.artezio.osport.tracker.presentation.BaseViewModel
 import com.artezio.osport.tracker.presentation.main.recycler.Item
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val getAllEventsWithDataUseCase: GetAllEventsWithDataUseCase,
     private val domainToPresentationMapper: DomainToPresentationMapper,
-) : ViewModel() {
+) : BaseViewModel() {
     val eventsWithDataFlow: Flow<List<EventWithData>>
         get() = getAllEventsWithDataUseCase.execute()
             .map { list ->

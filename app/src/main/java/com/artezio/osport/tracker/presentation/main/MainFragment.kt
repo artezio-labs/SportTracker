@@ -14,25 +14,23 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.artezio.osport.tracker.databinding.FragmentMainBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.main.recycler.EventsRecyclerAdapter
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainFragment : BaseFragment<FragmentMainBinding>(), IFragment {
-    private val viewModel: MainViewModel by viewModels()
+class MainFragment : BaseFragment<FragmentMainBinding, MainViewModel>(), IFragment {
+
+    override var onBackPressed: Boolean = false
+
+    override val viewModel: MainViewModel by viewModels()
     private val eventsAdapter: EventsRecyclerAdapter by lazy(LazyThreadSafetyMode.NONE) {
         EventsRecyclerAdapter(this)
-    }
-
-    private val fusedLocationProvider: FusedLocationProviderClient by lazy {
-        LocationServices.getFusedLocationProviderClient(requireContext())
     }
 
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         Log.d("events", "onViewCreated: ")
 
         binding.eventsRecyclerView.apply {

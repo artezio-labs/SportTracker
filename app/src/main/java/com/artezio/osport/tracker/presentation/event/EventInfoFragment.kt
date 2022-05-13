@@ -10,7 +10,6 @@ import androidx.core.content.FileProvider
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentEventInfoBinding
@@ -22,18 +21,19 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 @AndroidEntryPoint
-class EventInfoFragment : BaseFragment<FragmentEventInfoBinding>() {
+class EventInfoFragment : BaseFragment<FragmentEventInfoBinding, EventInfoViewModel>() {
 
     override var bottomNavigationViewVisibility = View.GONE
+    override var onBackPressed: Boolean = false
 
-    private val viewModel: EventInfoViewModel by viewModels()
+    override val viewModel: EventInfoViewModel by viewModels()
     private val navArgs: EventInfoFragmentArgs by navArgs()
     private var file: File? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.buttonClose.setOnClickListener {
-            findNavController().navigate(R.id.action_eventInfoFragment_to_mainFragment)
+            viewModel.goBackToMainFragment()
         }
         val id = navArgs.eventId
 
@@ -73,7 +73,7 @@ class EventInfoFragment : BaseFragment<FragmentEventInfoBinding>() {
                             positiveButtonClick = { dialog, _ ->
                                 viewModel.deleteEvent(id)
                                 dialog.dismiss()
-                                findNavController().navigate(R.id.action_eventInfoFragment_to_mainFragment)
+                                viewModel.goBackToMainFragment()
                             },
                             negativeButtonText = "Не сейчас",
                             negativeButtonClick = { dialog, _ -> dialog.cancel() }

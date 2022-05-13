@@ -15,6 +15,7 @@ import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.usecases.GetLastEventIdUseCase
 import com.artezio.osport.tracker.domain.usecases.GetLocationsByEventIdUseCase
 import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
+import com.artezio.osport.tracker.presentation.BaseViewModel
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +30,7 @@ class TrackerViewModel @Inject constructor(
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
     private val accuracyFactory: AccuracyFactory
-) : ViewModel() {
+) : BaseViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
 
@@ -159,5 +160,9 @@ class TrackerViewModel @Inject constructor(
             action = RESUME_FOREGROUND_SERVICE
         }
         context.startService(intent)
+    }
+
+    fun navigateToSaveEventFragment(eventId: Long) {
+        navigate(SessionRecordingFragmentDirections.actionSessionRecordingFragmentToSaveEventFragment2(eventId))
     }
 }

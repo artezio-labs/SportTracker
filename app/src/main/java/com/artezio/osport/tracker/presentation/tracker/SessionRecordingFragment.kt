@@ -12,23 +12,23 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.TrackService
-import com.artezio.osport.tracker.presentation.event.SaveEventFragmentArgs
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
-class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>() {
+class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, TrackerViewModel>() {
 
     override var bottomNavigationViewVisibility = View.GONE
 
-    private val viewModel: TrackerViewModel by viewModels()
+    override val viewModel: TrackerViewModel by viewModels()
+
+    override var onBackPressed: Boolean = false
 
     private val fusedLocationProvider: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(requireContext())
@@ -58,6 +58,7 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
         }
     }
 
+
     private val childFragmentNavController: NavController by lazy {
         val childNavHostFragment =
             childFragmentManager.findFragmentById(R.id.fcvSessionRecording) as NavHostFragment
@@ -70,7 +71,7 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
 
         viewModel.observeServiceState(viewLifecycleOwner, binding)
 
-        requestLocaionUpdates()
+        requestLocationUpdates()
 
         binding.fabStart.setOnClickListener {
             Log.d("service_state", "Fab clicked, service is started")
@@ -100,10 +101,7 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
 
         binding.fabFinishTracking.setOnClickListener {
             viewModel.stopService(requireContext())
-            findNavController().navigate(
-                R.id.action_sessionRecordingFragment_to_saveEventFragment2,
-                SaveEventFragmentArgs(eventId).toBundle()
-            )
+            viewModel.navigateToSaveEventFragment(eventId)
         }
 
         binding.fabStart.setOnClickListener {
@@ -115,7 +113,7 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
         binding.fabStopTracking.setOnClickListener {
             viewModel.stopService(requireContext())
             try {
-                requestLocaionUpdates()
+                requestLocationUpdates()
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
@@ -140,13 +138,20 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding>()
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        fusedLocationProvider.removeLocationUpdates(locationCallback)
+    }
+
     @SuppressLint("MissingPermission")
-    private fun requestLocaionUpdates() {
-        fusedLocationProvider.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.getMainLooper()
-        )
+    private fun requestLocationUpdates() {
+        if (TrackService.serviceLifecycleState.value == ServiceLifecycleState.NOT_STARTED) {
+            fusedLocationProvider.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        }
     }
 
     private fun startService() {

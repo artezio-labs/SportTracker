@@ -113,7 +113,7 @@ object MapUtils {
                     locations.last().latitude(),
                     locations.last().altitude()
                 )
-            ).zoom(14.0)
+            ).zoom(15.5)
                 .build()
         )
     }

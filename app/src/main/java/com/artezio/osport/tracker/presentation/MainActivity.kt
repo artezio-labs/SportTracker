@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.navigation.NavController
@@ -16,6 +17,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    private val viewModel: ActivityViewModel by viewModels()
 
     private val binding: ActivityMainBinding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
@@ -39,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.sessionRecordingFragment -> {
+                R.id.sessionRecordingFragmentBottomNavItem -> {
                     val isNotificationsEnabled =
                         systemServicePermissionsManager.hasNotificationPermissionEnabled()
                     val isPowerSafeModeEnabled =
@@ -48,7 +51,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d("permissions_states", "Manufacturer: ${Build.MANUFACTURER}")
                     if (permissionsManager.hasLocationPermissionsGranted()) {
                         if (systemServicePermissionsManager.hasNotificationPermissionEnabled()) {
-                            if(!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
+                            if (!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
                                 navController.navigate(R.id.action_mainFragment_to_sessionRecordingFragment)
                             } else {
                                 systemServicePermissionsManager.sendUserToPowerSettings()
@@ -59,21 +62,20 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         permissionsManager.request()
                     }
-                    true
+                    false
                 }
                 else -> {
-                    true
+                    false
                 }
             }
+
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        binding.bottomNavigation.apply {
-            menu.findItem(R.id.mainFragment).isChecked = true
-            selectedItemId = R.id.mainFragment
-        }
+    override fun onBackPressed() {
+        val navHost =
+            supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        viewModel.onBackPressed(navHost)
     }
 
     fun setBottomNavigationVisibility(visibility: Int) {

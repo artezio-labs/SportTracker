@@ -11,14 +11,11 @@
         android:label="Тренировки">
         <action
             android:id="@+id/action_mainFragment_to_sessionRecordingFragment"
-            app:destination="@id/sessionRecordingFragment" />
+            app:destination="@id/sessionRecordingFragment"
+            app:popUpToInclusive="false" />
         <action
             android:id="@+id/action_mainFragment_to_eventInfoFragment"
             app:destination="@id/eventInfoFragment" />
-        <argument
-            android:name="isNavigatedBack"
-            app:argType="boolean"
-            android:defaultValue="false" />
     </fragment>
 
     <fragment
@@ -28,7 +25,9 @@
         tools:layout="@layout/fragment_session_recording">
         <action
             android:id="@+id/action_sessionRecordingFragment_to_mainFragment"
-            app:destination="@id/mainFragment" />
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/mainFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_sessionRecordingFragment_to_saveEventFragment2"
             app:destination="@id/saveEventFragment2" />
@@ -53,11 +52,26 @@
         tools:layout="@layout/fragment_save_event" >
         <action
             android:id="@+id/action_saveEventFragment2_to_mainFragment"
-            app:destination="@id/mainFragment" />
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/mainFragment"
+            app:popUpToInclusive="true" />
         <argument
             android:name="eventId"
             app:argType="long"
             android:defaultValue="-1L" />
+        <action
+            android:id="@+id/action_saveEventFragment2_to_backToMainDialog"
+            app:destination="@id/backToMainDialog" />
     </fragment>
+    <dialog
+        android:id="@+id/backToMainDialog"
+        android:name="com.artezio.osport.tracker.presentation.BackToMainDialog"
+        android:label="BackToMainDialog" >
+        <action
+            android:id="@+id/action_backToMainDialog_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/backToMainDialog"
+            app:popUpToInclusive="true" />
+    </dialog>
 
 </navigation>

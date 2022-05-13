@@ -1,12 +1,12 @@
 package com.artezio.osport.tracker.presentation.event
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.domain.model.TrackingStateModel
 import com.artezio.osport.tracker.domain.usecases.*
+import com.artezio.osport.tracker.presentation.BaseViewModel
 import com.artezio.osport.tracker.util.distanceBetween
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +21,7 @@ open class SaveEventViewModel @Inject constructor(
     private val getAllLocationsByIdUseCase: GetAllLocationsByIdUseCase,
     private val getStepCountUseCase: GetStepCountUseCase,
     private val updateEventUseCase: UpdateEventUseCase,
-) : ViewModel() {
+) : BaseViewModel() {
 
     fun deleteLastEvent() = viewModelScope.launch(Dispatchers.IO) {
         val lastEvent = getLastEventUseCase.execute()
@@ -89,4 +89,8 @@ open class SaveEventViewModel @Inject constructor(
         }
         return totalDistance / 1000
     }
+
+//    fun navigateToMainScreen() {
+//        navigate(SaveEventFragmentDirections.actionSaveEventFragment2ToMainFragment())
+//    }
 }

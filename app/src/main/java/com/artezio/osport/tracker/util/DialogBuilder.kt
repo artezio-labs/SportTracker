@@ -14,15 +14,16 @@ class DialogBuilder(
     private val negativeButtonClick: DialogInterface.OnClickListener? = null,
     private val layoutId: Int? = null,
     private val cancelable: Boolean? = null,
+    private val needsToShow: Boolean? = null
 ) {
     fun build() = MaterialAlertDialogBuilder(context).apply {
-            if (!title.isNullOrEmpty()) setTitle(title)
-            if (!message.isNullOrEmpty()) setMessage(message)
-            if (positiveButtonClick != null) setPositiveButton(positiveButtonText, positiveButtonClick)
-            if (negativeButtonClick != null) setNegativeButton(negativeButtonText, negativeButtonClick)
-            if (layoutId != null) setView(layoutId)
-            if (cancelable != null) setCancelable(cancelable)
-            show()
-        }.create()
+        if (!title.isNullOrEmpty()) setTitle(title)
+        if (!message.isNullOrEmpty()) setMessage(message)
+        if (positiveButtonClick != null) setPositiveButton(positiveButtonText, positiveButtonClick)
+        if (negativeButtonClick != null) setNegativeButton(negativeButtonText, negativeButtonClick)
+        if (layoutId != null) setView(layoutId)
+        if (cancelable != null) setCancelable(cancelable)
+        needsToShow?.let { if (needsToShow) show() }
+    }.create()
 
 }
