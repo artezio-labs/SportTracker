@@ -67,16 +67,17 @@ class EventInfoFragment : BaseFragment<FragmentEventInfoBinding, EventInfoViewMo
                     R.id.delete -> {
                         DialogBuilder(
                             context = requireContext(),
-                            title = "Внимание",
-                            message = "Вы уверены, что хотите удалить тренировку? Все данные будут утеряны!",
-                            positiveButtonText = "Да",
+                            title = getString(R.string.warning_dialogs_title),
+                            message = getString(R.string.event_info_dialog_delete_message),
+                            positiveButtonText = getString(R.string.dialog_positive_button_text),
                             positiveButtonClick = { dialog, _ ->
                                 viewModel.deleteEvent(id)
-                                dialog.dismiss()
                                 viewModel.goBackToMainFragment()
+                                dialog.dismiss()
                             },
-                            negativeButtonText = "Не сейчас",
-                            negativeButtonClick = { dialog, _ -> dialog.cancel() }
+                            negativeButtonText = getString(R.string.dialog_negative_button_text),
+                            negativeButtonClick = { dialog, _ -> dialog.cancel() },
+                            needsToShow = true
                         ).build()
                     }
                     R.id.share -> {

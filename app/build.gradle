@@ -193,8 +193,11 @@ dependencies {
     androidTestImplementation "io.mockk:mockk-android:${mockk_version}"
 
     // mapbox
-    implementation 'com.mapbox.maps:android:10.4.2'
-    implementation "com.mapbox.navigation:android:2.4.0"
+    implementation ('com.mapbox.maps:android:10.4.2') { transitive = true }
+    implementation ("com.mapbox.navigation:android:2.4.0") {
+        exclude group: 'android.arch.core'
+        transitive = true
+    }
 
     // ui-testing
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'

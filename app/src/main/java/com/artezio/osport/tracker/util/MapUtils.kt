@@ -76,33 +76,36 @@ object MapUtils {
     private fun loadMapStyle(context: Context, map: MapboxMap, locations: List<Point>) {
         map.loadStyle(
             style(styleUri = Style.SATELLITE) {
-                +geoJsonSource(LINE_SOURCE) {
-                    featureCollection(
-                        FeatureCollection.fromFeatures(
-                            arrayOf(
-                                Feature.fromGeometry(
-                                    LineString.fromLngLats(
-                                        locations
+                if (locations.size > 1) {
+                    +geoJsonSource(LINE_SOURCE) {
+                        featureCollection(
+                            FeatureCollection.fromFeatures(
+                                arrayOf(
+                                    Feature.fromGeometry(
+                                        LineString.fromLngLats(
+                                            locations
+                                        )
                                     )
                                 )
                             )
                         )
-                    )
-                }
-                +lineLayer(LINE_LAYER, LINE_SOURCE) {
-                    lineCap(LineCap.ROUND)
-                    lineJoin(LineJoin.ROUND)
-                    lineOpacity(0.5)
-                    lineWidth(5.0)
-                    lineColor(
-                        ContextCompat.getColor(
-                            context,
-                            R.color.app_theme_color
+                    }
+                    +lineLayer(LINE_LAYER, LINE_SOURCE) {
+                        lineCap(LineCap.ROUND)
+                        lineJoin(LineJoin.ROUND)
+                        lineOpacity(0.5)
+                        lineWidth(5.0)
+                        lineColor(
+                            ContextCompat.getColor(
+                                context,
+                                R.color.app_theme_color
+                            )
                         )
-                    )
+                    }
                 }
             }
         )
+
     }
 
     private fun setMapCamera(map: MapboxMap, locations: List<Point>) {

@@ -22,15 +22,12 @@ class BackToMainDialog : DialogFragment() {
             positiveButtonText = "Да",
             positiveButtonClick = { dialog, _ ->
                 findNavController().navigate(R.id.action_backToMainDialog_to_mainFragment)
-                repeat(2) {
-                    this.dialog?.dismiss()
-                }
+                this.dialog?.dismiss()
+
             },
             negativeButtonText = "Не сейчас",
             negativeButtonClick = { dialog, _ ->
-                repeat(2) {
-                    this.dialog?.dismiss()
-                }
+                this.dialog?.dismiss()
             }
         ).build()
     }

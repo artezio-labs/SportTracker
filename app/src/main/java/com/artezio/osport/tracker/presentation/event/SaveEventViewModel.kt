@@ -63,11 +63,16 @@ open class SaveEventViewModel @Inject constructor(
         } else {
             (locations.last().time - locations.first().time) / 1000
         }
-        val speedValue = locations.map { it.speed * 3.6 }.average()
+        val speedValue =
+            if (locations.isNotEmpty()) locations.map { it.speed * 3.6 }.average() else 0.0
         val distanceValue = calculateDistance(locations)
         val tempoValue =
             if (distanceValue != 0.0) (time / 60.0 + (time % 60.0) / 60.0) / distanceValue else 0.0
-        val stepsValue = if (steps == null) 0 else steps.stepCount
+        val stepsValue = if (steps != null) {
+            steps.stepCount ?: 0
+        } else {
+            0
+        }
         val gpsPointsValue = locations.size
 
         return TrackingStateModel(
@@ -89,8 +94,4 @@ open class SaveEventViewModel @Inject constructor(
         }
         return totalDistance / 1000
     }
-
-//    fun navigateToMainScreen() {
-//        navigate(SaveEventFragmentDirections.actionSaveEventFragment2ToMainFragment())
-//    }
 }
