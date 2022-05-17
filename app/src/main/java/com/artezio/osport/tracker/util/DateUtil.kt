@@ -35,3 +35,6 @@ fun formatTime(time: Double, resourceProvider: ResourceProvider): String {
         sb.append("$seconds сек.")
     return sb.toString()
 }
+
+fun formatEventName(milliseconds: Long): String =
+    EVENT_NAME_FORMATTER.format(Date(milliseconds))

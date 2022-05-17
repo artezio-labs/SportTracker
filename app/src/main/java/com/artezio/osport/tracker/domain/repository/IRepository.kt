@@ -32,6 +32,7 @@ interface IRepository {
         suspend fun deleteEventByStartDate(startDate: Long)
         suspend fun updateEventName(name: String, startDate: Long)
         suspend fun updateEvent(id: Long, name: String, startDate: Long)
+        suspend fun getAllEventsList(): List<Event>
     }
 
     interface TrackNetworkRepository {

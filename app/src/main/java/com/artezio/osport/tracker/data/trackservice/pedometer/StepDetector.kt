@@ -1,5 +1,6 @@
 package com.artezio.osport.tracker.data.trackservice.pedometer
 
+import android.util.Log
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -49,6 +50,7 @@ class StepDetector(
         if (velocityEstimate > STEP_THRESHOLD && oldVelocityEstimate <= STEP_THRESHOLD
             && timeNs - lastStepTimeNs > STEP_DELAY_NS
         ) {
+            Log.d("STEPS_TAG", "updateAccel: ${timeNs - lastStepTimeNs}")
             listener.step(timeNs)
             lastStepTimeNs = timeNs
         }

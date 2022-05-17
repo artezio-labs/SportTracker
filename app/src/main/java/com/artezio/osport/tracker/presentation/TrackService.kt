@@ -21,20 +21,19 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavDeepLinkBuilder
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
+import com.artezio.osport.tracker.data.trackservice.TrackServiceDataManager
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
-import com.artezio.osport.tracker.domain.usecases.InsertLocationDataUseCase
-import com.artezio.osport.tracker.domain.usecases.InsertPedometerDataUseCase
+import com.artezio.osport.tracker.domain.usecases.UpdateEventUseCase
 import com.artezio.osport.tracker.util.*
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
@@ -78,14 +77,16 @@ class TrackService : LifecycleService() {
     private var notificationBuilder: NotificationCompat.Builder? = null
     private var sensorEventListener: SensorEventListener? = null
 
+    private var stepDetector: StepDetector? = null
+
 
     private var isPaused: Boolean = false
 
     @Inject
-    lateinit var insertLocationDataUseCase: InsertLocationDataUseCase
+    lateinit var updateEventUseCase: UpdateEventUseCase
 
     @Inject
-    lateinit var insertPedometerDataUseCase: InsertPedometerDataUseCase
+    lateinit var trackServiceDataManager: TrackServiceDataManager
 
     @Inject
     lateinit var locationRequester: GpsLocationRequester
@@ -110,9 +111,7 @@ class TrackService : LifecycleService() {
                 eventId ?: -1L
             )
             Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
-            serviceIoScope.launch {
-                insertLocationDataUseCase.execute(locationPoint)
-            }
+            trackServiceDataManager.insertLocationData(locationPoint)
         }
     }
     private val locationRequest: LocationRequest by lazy {
@@ -140,7 +139,10 @@ class TrackService : LifecycleService() {
             Log.d(STEPS_TAG, "Permissions granted")
             try {
                 if (LocationRequester.checkIsGmsAvailable(this)) {
-                    Log.d(STEPS_TAG, "GMS is available: ${LocationRequester.checkIsGmsAvailable(this)}")
+                    Log.d(
+                        STEPS_TAG,
+                        "GMS is available: ${LocationRequester.checkIsGmsAvailable(this)}"
+                    )
                     fusedLocationProviderClient.requestLocationUpdates(
                         locationRequest, locationCallback, Looper.getMainLooper()
                     )
@@ -155,29 +157,27 @@ class TrackService : LifecycleService() {
 
     private fun runPedometer(id: Long) {
         Log.d(STEPS_TAG, "Step counter doesn't exists, but accelerometer is exists")
-        val stepDetector = StepDetector(object : StepDetector.StepListener {
+        stepDetector = StepDetector(object : StepDetector.StepListener {
             override fun step(timeNs: Long) {
                 if (!isPaused) {
                     stepCount += 1
                 }
                 stepsLiveData.postValue(stepCount)
-                Log.d(STEPS_TAG, "Steps: $stepCount")
-                serviceIoScope.launch {
-                    insertPedometerDataUseCase.execute(
-                        PedometerData(
-                            stepCount,
-                            System.currentTimeMillis(),
-                            id
-                        )
+                Log.d(STEPS_TAG, "Steps: $stepCount time: $timeNs ns")
+                Log.d(STEPS_TAG, "Steps from livedata: ${stepsLiveData.value}")
+                trackServiceDataManager.insertPedometerData(
+                    PedometerData(
+                        stepsLiveData.value!!,
+                        System.currentTimeMillis(),
+                        id
                     )
-                }
-                receiveSteps(stepCount)
+                )
             }
         })
         sensorEventListener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
                 if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-                    stepDetector.updateAccel(
+                    stepDetector?.updateAccel(
                         event.timestamp, event.values[0], event.values[1], event.values[2]
                     )
                 }
@@ -262,9 +262,7 @@ class TrackService : LifecycleService() {
                 eventId ?: -1L
             )
             Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
-            serviceIoScope.launch {
-                insertLocationDataUseCase.execute(locationPoint)
-            }
+            trackServiceDataManager.insertLocationData(locationPoint)
         }
     }
 
@@ -327,9 +325,14 @@ class TrackService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(STEPS_TAG, "onDestroy: ")
+        eventId?.let {
+            trackServiceDataManager.updateEvent(it)
+        }
         sensorManager.unregisterListener(sensorEventListener)
         serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
         serviceLifecycleState.postValue(ServiceLifecycleState.NOT_STARTED)
+        stepsLiveData.postValue(0)
+        stepDetector = null
         timer.cancel()
     }
 

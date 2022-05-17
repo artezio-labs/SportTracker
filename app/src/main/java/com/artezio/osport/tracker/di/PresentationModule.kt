@@ -5,6 +5,7 @@ import com.artezio.osport.tracker.data.mappers.DomainToPresentationMapper
 import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
+import com.artezio.osport.tracker.data.trackservice.TrackServiceDataManager
 import com.artezio.osport.tracker.domain.usecases.*
 import com.artezio.osport.tracker.presentation.tracker.AccuracyFactory
 import com.artezio.osport.tracker.util.ResourceProvider
@@ -103,4 +104,27 @@ object PresentationModule {
     @Provides
     fun provideUpdateEventNameUseCase(repository: EventsRepository) =
         UpdateEventNameUseCase(repository)
+
+    @Provides
+    fun provideGetAllEventsListUseCase(repository: EventsRepository) =
+        GetAllEventsListUseCase(repository)
+
+    @Provides
+    fun providesTrackServiceDataManager(
+        insertLocationDataUseCase: InsertLocationDataUseCase,
+        insertPedometerDataUseCase: InsertPedometerDataUseCase,
+        updateEventUseCase: UpdateEventUseCase,
+        getEventByIdUseCase: GetEventByIdUseCase,
+        getAllLocationsByIdUseCase: GetAllLocationsByIdUseCase,
+        getStepCountUseCase: GetStepCountUseCase,
+        getLastEventUseCase: GetLastEventUseCase,
+    ) = TrackServiceDataManager(
+        insertLocationDataUseCase,
+        insertPedometerDataUseCase,
+        updateEventUseCase,
+        getEventByIdUseCase,
+        getAllLocationsByIdUseCase,
+        getStepCountUseCase,
+        getLastEventUseCase
+    )
 }

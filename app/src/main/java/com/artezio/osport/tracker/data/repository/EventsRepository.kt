@@ -41,6 +41,9 @@ class EventsRepository @Inject constructor(
         dao.updateEventName(name, startDate)
     }
 
+    override suspend fun getAllEventsList(): List<Event> =
+        dao.getAllEvents()
+
     override suspend fun updateEvent(id: Long, name: String, startDate: Long) {
         dao.updateSpecificEventFields(id, name, startDate, null)
     }

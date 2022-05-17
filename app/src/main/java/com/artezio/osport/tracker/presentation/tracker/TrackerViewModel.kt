@@ -12,6 +12,7 @@ import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.LocationPointData
+import com.artezio.osport.tracker.domain.usecases.GetAllEventsListUseCase
 import com.artezio.osport.tracker.domain.usecases.GetLastEventIdUseCase
 import com.artezio.osport.tracker.domain.usecases.GetLocationsByEventIdUseCase
 import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
@@ -29,6 +30,7 @@ class TrackerViewModel @Inject constructor(
     private val getLastEventIdUseCase: GetLastEventIdUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
+    private val getAllEventsListUseCase: GetAllEventsListUseCase,
     private val accuracyFactory: AccuracyFactory
 ) : BaseViewModel() {
     val lastEventIdFlow: Flow<Long>
@@ -46,8 +48,10 @@ class TrackerViewModel @Inject constructor(
 
     fun generateEvent() = viewModelScope.launch(Dispatchers.IO) {
         val currentTime = System.currentTimeMillis()
+        val newEventName = formatEventName(currentTime)
+        val events = getAllEventsListUseCase.execute()
         val event = Event(
-            name = "Тренировка от ${millisecondsToDateFormat(currentTime)}",
+            name = buildEventName(newEventName, events),
             startDate = currentTime,
             endDate = null,
             sportsmanId = 0
@@ -163,6 +167,28 @@ class TrackerViewModel @Inject constructor(
     }
 
     fun navigateToSaveEventFragment(eventId: Long) {
-        navigate(SessionRecordingFragmentDirections.actionSessionRecordingFragmentToSaveEventFragment2(eventId))
+        navigate(
+            SessionRecordingFragmentDirections.actionSessionRecordingFragmentToSaveEventFragment2(
+                eventId
+            )
+        )
+    }
+
+    private fun buildEventName(newEventName: String, events: List<String>): String {
+        return try {
+            val lastSameElement = events.first { event -> event.startsWith(newEventName) }
+            Log.d("event_name", "Last event same name: $lastSameElement")
+            val lastSameElementNumber = lastSameElement.split("_")
+            if (lastSameElementNumber.size == 1) {
+                newEventName + "_{1}"
+            } else {
+                Log.d("event_name", "Last event same name split: $lastSameElementNumber")
+                "${newEventName}_{${lastSameElementNumber[1].replace("\\D".toRegex(), "").toInt() + 1}}"
+            }
+
+        } catch (ex: Exception) {
+            newEventName
+        }
+
     }
 }
