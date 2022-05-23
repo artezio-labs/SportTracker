@@ -12,10 +12,8 @@ import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.LocationPointData
-import com.artezio.osport.tracker.domain.usecases.GetAllEventsListUseCase
-import com.artezio.osport.tracker.domain.usecases.GetLastEventIdUseCase
-import com.artezio.osport.tracker.domain.usecases.GetLocationsByEventIdUseCase
-import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
+import com.artezio.osport.tracker.domain.model.PedometerData
+import com.artezio.osport.tracker.domain.usecases.*
 import com.artezio.osport.tracker.presentation.BaseViewModel
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.*
@@ -31,10 +29,14 @@ class TrackerViewModel @Inject constructor(
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
     private val getAllEventsListUseCase: GetAllEventsListUseCase,
-    private val accuracyFactory: AccuracyFactory
+    private val getDataForCadenceUseCase: GetDataForCadenceUseCase,
+    private val accuracyFactory: AccuracyFactory,
 ) : BaseViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
+
+    val pedometerDataForCadence: Flow<List<PedometerData>>
+        get() = getDataForCadenceUseCase.execute()
 
     val timerValueLiveData: LiveData<Double>
         get() = TrackService.timerValueLiveData
@@ -189,6 +191,10 @@ class TrackerViewModel @Inject constructor(
         } catch (ex: Exception) {
             newEventName
         }
+    }
 
+    fun calculateCadence(data: List<PedometerData>): Int {
+        if (data.isEmpty()) return 0
+        return data.last().stepCount - data.first().stepCount
     }
 }

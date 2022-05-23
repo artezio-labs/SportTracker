@@ -209,6 +209,33 @@
                 tools:text="Время" />
 
         </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/materialTextViewCadenceText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawableStart="@drawable/ic_tempo"
+                android:drawablePadding="8dp"
+                android:text="@string/tv_cadence_text"
+                android:textSize="16sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/materialTextViewCadenceValue"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawablePadding="8dp"
+                android:gravity="end"
+                android:textSize="16sp"
+                tools:text="Время" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

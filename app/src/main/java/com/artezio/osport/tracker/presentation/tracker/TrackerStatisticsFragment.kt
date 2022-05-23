@@ -15,6 +15,7 @@ import com.artezio.osport.tracker.util.MapUtils
 import com.artezio.osport.tracker.util.getTimerStringFromDouble
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding, TrackerViewModel>() {
@@ -27,6 +28,7 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding,
     private var distance = 0.0
     private var tempoValue = 0.0
     private var gpsPoints = 0
+    private var pauseCadence = 0
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -75,6 +77,7 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding,
                                 String.format("%.2f", averageSpeed)
                             binding.pauseTempoValue.text = String.format("%.2f", tempoValue)
                             binding.pauseGpsCountValue.text = gpsPoints.toString()
+                            binding.pauseCadenceValue.text = pauseCadence.toString()
                         }
                     }
                     if (binding.mapStatistics.visibility == View.VISIBLE
@@ -92,6 +95,13 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding,
             binding.textViewStepsValue.text = stepsString
             if (binding.materialCardViewPausedStatisticsCard.visibility == View.VISIBLE) {
                 binding.pauseStepsValue.text = stepsString
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.pedometerDataForCadence.collectLatest { data ->
+                val cadence = viewModel.calculateCadence(data)
+                binding.textViewCadenceValue.text = cadence.toString()
+                pauseCadence = cadence
             }
         }
     }

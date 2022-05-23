@@ -12,7 +12,7 @@ fun distanceBetween(firstLocation: LocationPointData, secondLocation: LocationPo
     }
     val secondPoint = Location("sp").apply {
         longitude = secondLocation.longitude
-        latitude =  secondLocation.latitude
+        latitude = secondLocation.latitude
     }
     return firstPoint.distanceTo(secondPoint)
 }

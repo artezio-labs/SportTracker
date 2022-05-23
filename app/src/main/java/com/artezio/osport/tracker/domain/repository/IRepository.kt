@@ -8,6 +8,8 @@ interface IRepository {
     interface IPedometerRepository {
         suspend fun addPedometerData(pedometerData: PedometerData)
         suspend fun getStepCount(eventId: Long): PedometerData
+        suspend fun getAllPedometerData(): List<PedometerData>
+        fun getAllPedometerDataFlow(): Flow<List<PedometerData>>
     }
 
     interface ILocationRepository {

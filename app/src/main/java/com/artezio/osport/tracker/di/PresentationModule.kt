@@ -127,4 +127,9 @@ object PresentationModule {
         getStepCountUseCase,
         getLastEventUseCase
     )
+
+    @Provides
+    fun providesGetDataForCadenceUseCase(repository: PedometerRepository) =
+        GetDataForCadenceUseCase(repository)
+
 }

@@ -130,7 +130,6 @@ class TrackService : LifecycleService() {
         LocalBroadcastManager
             .getInstance(this)
             .registerReceiver(ServiceEchoReceiver(), IntentFilter("ping"))
-
     }
 
 
@@ -165,13 +164,12 @@ class TrackService : LifecycleService() {
                 stepsLiveData.postValue(stepCount)
                 Log.d(STEPS_TAG, "Steps: $stepCount time: $timeNs ns")
                 Log.d(STEPS_TAG, "Steps from livedata: ${stepsLiveData.value}")
-                trackServiceDataManager.insertPedometerData(
-                    PedometerData(
-                        stepsLiveData.value!!,
-                        System.currentTimeMillis(),
-                        id
-                    )
+                val data = PedometerData(
+                    stepsLiveData.value!!,
+                    System.currentTimeMillis(),
+                    id
                 )
+                trackServiceDataManager.insertPedometerData(data)
             }
         })
         sensorEventListener = object : SensorEventListener {
@@ -210,7 +208,9 @@ class TrackService : LifecycleService() {
                     Log.d("steps", "Event id not found")
                 }
                 startForegroundService()
-                eventId?.let { if (!isPaused) runPedometer(it) }
+                eventId?.let {
+                    if (!isPaused) runPedometer(it)
+                }
                 subscribeToLocationUpdates()
                 startTimer(0.0, 0)
             }
@@ -325,9 +325,7 @@ class TrackService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(STEPS_TAG, "onDestroy: ")
-        eventId?.let {
-            trackServiceDataManager.updateEvent(it)
-        }
+        eventId?.let { trackServiceDataManager.updateEvent(it) }
         sensorManager.unregisterListener(sensorEventListener)
         serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
         serviceLifecycleState.postValue(ServiceLifecycleState.NOT_STARTED)

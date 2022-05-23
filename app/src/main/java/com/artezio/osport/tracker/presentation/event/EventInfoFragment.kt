@@ -51,6 +51,7 @@ class EventInfoFragment : BaseFragment<FragmentEventInfoBinding, EventInfoViewMo
             binding.materialTextViewTempoValue.text = eventInfo.tempo
             binding.materialTextViewStepsValue.text = eventInfo.steps
             binding.materialTextViewGPSValue.text = eventInfo.gpsPoints
+            binding.materialTextViewCadenceValue.text = eventInfo.cadence
         }
         lifecycleScope.launch {
             file = viewModel.writeGpx(id).await()

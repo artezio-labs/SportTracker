@@ -6,6 +6,7 @@ data class EventInfo(
     val speed: String,
     val distance: String,
     val tempo: String,
+    val cadence: String,
     val steps: String,
     val gpsPoints: String
 )
