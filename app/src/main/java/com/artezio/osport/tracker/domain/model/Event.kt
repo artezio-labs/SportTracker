@@ -11,12 +11,8 @@ import androidx.room.Relation
 data class Event(
     val name: String,
     val startDate: Long,
-    var endDate: Long? = null,
     val sportsmanId: Long,
     val timerValue: Double = 0.0,
-    val speedValue: Double = 0.0,
-    val stepsValue: Int = 0,
-    val gpsPointsValue: Int = 0
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
@@ -42,16 +38,6 @@ data class EventWithData(
         entity = TrackData::class
     )
     val trackDataList: List<TrackData>
-)
-
-data class EventWithLocations(
-    @Embedded val event: Event,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "eventId",
-        entity = LocationPointData::class
-    )
-    val locations: List<LocationPointData>
 )
 
 enum class EventStatus {

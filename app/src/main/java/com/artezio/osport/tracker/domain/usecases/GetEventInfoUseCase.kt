@@ -7,9 +7,7 @@ import com.artezio.osport.tracker.data.repository.PedometerRepository
 import com.artezio.osport.tracker.domain.model.EventInfo
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
-import com.artezio.osport.tracker.util.ResourceProvider
-import com.artezio.osport.tracker.util.distanceBetween
-import com.artezio.osport.tracker.util.formatTime
+import com.artezio.osport.tracker.util.*
 import javax.inject.Inject
 
 class GetEventInfoUseCase @Inject constructor(
@@ -25,10 +23,10 @@ class GetEventInfoUseCase @Inject constructor(
         val wholePedometerData = filterData(id)
         val title = event.name
         val time = event.timerValue
-        val speed = event.speedValue
+        val speed = calculateAvgSpeed(locations)
         val distance = calculateDistance(locations) / 1000
         val tempo = ((time / 60) + (time % 60)) / distance
-        val cadence = prepareCadenceData(wholePedometerData)
+        val cadence = calculateAvgCadence(wholePedometerData)
         return EventInfo(
             title = title,
             time = formatTime(event.timerValue, resourceProvider),
@@ -37,8 +35,20 @@ class GetEventInfoUseCase @Inject constructor(
             tempo = String.format("%.2f мин/км", tempo),
             cadence = cadence.toString(),
             steps = if (steps == null) "0" else steps.stepCount.toString(),
-            gpsPoints = event.gpsPointsValue.toString()
+            gpsPoints = locations.size.toString()
         )
+    }
+
+    private fun calculateAvgCadence(data: List<PedometerData>): Int {
+        if (data.isEmpty()) return 0
+        if (data.size == 1) return 1
+        val cadences = mutableListOf<Int>()
+        for (i in 1 until data.size - 1) {
+            val sublist = data.subList(0, i)
+            val currentMinuteData = sublist.filter { (sublist.last().time - it.time) <= MINUTE }
+            cadences.add(currentMinuteData.last().stepCount - currentMinuteData.first().stepCount)
+        }
+        return cadences.average().toInt()
     }
 
     private fun calculateDistance(locations: List<LocationPointData>): Double {
@@ -51,23 +61,6 @@ class GetEventInfoUseCase @Inject constructor(
         return totalDistance
     }
 
-    private fun prepareCadenceData(data: List<PedometerData>): Int {
-        val groupedData = groupDataByMinutes(data)
-        logCadenceData(groupedData)
-        val cadences = mutableListOf<Int>()
-        if (groupedData.isNotEmpty()) {
-            for ((minutes, dataPerMinute) in groupedData) {
-                cadences.add(calculateCadence(minutes, dataPerMinute))
-            }
-        }
-        Log.d("CADENCES", "Cadences list: $cadences")
-        return cadences.average().toInt()
-    }
-
-    private fun calculateCadence(minutes: Int, data: List<PedometerData>): Int {
-        return (data.last().stepCount - data.first().stepCount) / minutes
-    }
-
     private suspend fun filterData(id: Long): List<PedometerData> {
         val data = pedometerRepository.getAllPedometerData()
         if (data.size <= 1) return data
@@ -75,28 +68,15 @@ class GetEventInfoUseCase @Inject constructor(
             add(data[0])
         }
         for (i in 1 until data.size - 1) {
-            if (data[i].time - data[i - 1].time <= 3_000) {
+            if (data[i].time - data[i - 1].time <= CADENCE_STEP_FILTER_VALUE) {
                 filteredData.add(data[i])
             }
         }
         return filteredData.filter { it.eventId == id }
     }
 
-    private fun groupDataByMinutes(data: List<PedometerData>): Map<Int, List<PedometerData>> {
-        if (data.isEmpty()) return mutableMapOf()
-        val trackStartTime = data.first().time
-        val minutes = mutableListOf<Int>()
-        data.forEachIndexed { i, _ ->
-            val minute = (data[i].time - trackStartTime).toInt() / 60_000
-            minutes.add(if (minute == 0) 1 else minute)
-        }
-        return minutes.zip(data).groupBy { it.first }
-            .mapValues { values -> values.value.map { it.second } }
-    }
-
-    private fun logCadenceData(data: Map<Int, List<PedometerData>>) {
-        for ((k, v) in data) {
-            Log.d("CADENCE", "Minute: $k, data: $v")
-        }
+    private fun calculateAvgSpeed(data: List<LocationPointData>): Double {
+        if (data.isEmpty()) return 0.0
+        return data.map { it.speed }.average()
     }
 }

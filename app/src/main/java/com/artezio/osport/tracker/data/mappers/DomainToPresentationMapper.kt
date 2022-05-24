@@ -9,6 +9,7 @@ class DomainToPresentationMapper : IMapper<EventWithData, Item.Event> {
             id = obj.event.id,
             eventName = obj.event.name,
             startDate = obj.event.startDate,
-            endDate = obj.event.endDate
+            endDate = (obj.locationDataList.last().time
+                ?: obj.pedometerDataList.last().time) ?: obj.event.startDate
         )
 }

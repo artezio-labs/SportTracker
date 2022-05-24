@@ -55,7 +55,6 @@ class TrackerViewModel @Inject constructor(
         val event = Event(
             name = buildEventName(newEventName, events),
             startDate = currentTime,
-            endDate = null,
             sportsmanId = 0
         )
         Log.d("event_save", "Saved event: $event")

@@ -23,7 +23,7 @@ interface EventsDao {
     @Query(
         """
         UPDATE events 
-        SET name = :name, startDate = :startDate, endDate = :endDate
+        SET name = :name, startDate = :startDate
         WHERE id = :id
     """
     )
@@ -31,7 +31,6 @@ interface EventsDao {
         id: Long,
         name: String,
         startDate: Long = 0L,
-        endDate: Long?
     )
 
     @Query(
@@ -50,22 +49,14 @@ interface EventsDao {
         """
         UPDATE events
         SET name = :eventName,
-            endDate = :endDate,
-            timerValue = :timerValue, 
-            speedValue = :speedValue,
-            stepsValue = :stepsValue,
-            gpsPointsValue = :gpsPointsValue
+            timerValue = :timerValue
         WHERE startDate = :startDate
     """
     )
     suspend fun updateEvent(
         startDate: Long,
         eventName: String,
-        endDate: Long,
-        timerValue: Double,
-        speedValue: Double,
-        stepsValue: Int,
-        gpsPointsValue: Int
+        timerValue: Double
     )
 
     @Transaction

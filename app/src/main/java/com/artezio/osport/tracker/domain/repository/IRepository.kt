@@ -1,6 +1,9 @@
 package com.artezio.osport.tracker.domain.repository
 
-import com.artezio.osport.tracker.domain.model.*
+import com.artezio.osport.tracker.domain.model.Event
+import com.artezio.osport.tracker.domain.model.EventWithData
+import com.artezio.osport.tracker.domain.model.LocationPointData
+import com.artezio.osport.tracker.domain.model.PedometerData
 import kotlinx.coroutines.flow.Flow
 
 interface IRepository {
@@ -26,7 +29,7 @@ interface IRepository {
         suspend fun updateEvent(
             startDate: Long,
             name: String,
-            trackingStateModel: TrackingStateModel
+            timerValue: Double
         )
         fun getEventWithDataById(id: Long): Flow<EventWithData>
         fun getLastEventId(): Flow<Long>

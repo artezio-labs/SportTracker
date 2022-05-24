@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavDeepLinkBuilder
 import com.artezio.osport.tracker.R
@@ -34,6 +35,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
@@ -268,7 +270,7 @@ class TrackService : LifecycleService() {
 
     private fun startTimer(time: Double, steps: Int) {
         stepCount = steps
-        timer.scheduleAtFixedRate(TimeTask(time), 0, 1000)
+        lifecycleScope.launch(Dispatchers.IO) { timer.scheduleAtFixedRate(TimeTask(time), 0, 1000) }
     }
 
     private fun startForegroundService() {
@@ -345,12 +347,6 @@ class TrackService : LifecycleService() {
                 .getInstance(this@TrackService)
                 .sendBroadcastSync(Intent("pong"))
         }
-    }
-
-    private fun receiveSteps(steps: Int) {
-        val intent = Intent(STEPS_UPDATED)
-        intent.putExtra(STEPS_EXTRA, steps)
-        sendBroadcast(intent)
     }
 
     private inner class TimeTask(private var time: Double) : TimerTask() {

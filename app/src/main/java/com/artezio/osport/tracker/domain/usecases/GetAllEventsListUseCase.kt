@@ -8,6 +8,5 @@ class GetAllEventsListUseCase @Inject constructor(
 ) {
     suspend fun execute() = repository.getAllEventsList()
         .sortedByDescending { it.startDate }
-        .filter { it.endDate != null }
         .map { it.name }
 }

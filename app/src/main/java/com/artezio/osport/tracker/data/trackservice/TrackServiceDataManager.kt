@@ -46,9 +46,9 @@ class TrackServiceDataManager @Inject constructor(
         val trackingState = buildTrackingState(eventId, locations, steps)
         Log.d("event_save", "TrackerState before saving: $trackingState")
         if (eventName.isEmpty()) {
-            updateEventUseCase.execute(event.startDate, event.name, trackingState)
+            updateEventUseCase.execute(event.startDate, event.name, trackingState.timerValue)
         } else {
-            updateEventUseCase.execute(event.startDate, eventName, trackingState)
+            updateEventUseCase.execute(event.startDate, eventName, trackingState.timerValue)
         }
     }
 
