@@ -17,6 +17,7 @@ import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.TrackService
+import com.artezio.osport.tracker.util.DialogBuilder
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -100,8 +101,15 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
         }
 
         binding.fabFinishTracking.setOnClickListener {
-            viewModel.stopService(requireContext())
-            viewModel.navigateToSaveEventFragment(eventId)
+            TrackService.timerValueLiveData.value?.let {
+                if (it > 10) {
+                    viewModel.stopService(requireContext())
+                    viewModel.navigateToSaveEventFragment(eventId)
+                } else {
+                    showFinishTrackingWarningDialog()
+                }
+            }
+
         }
 
         binding.fabStart.setOnClickListener {
@@ -136,6 +144,27 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
                 }
             }
         }
+    }
+
+    private fun showFinishTrackingWarningDialog() {
+        DialogBuilder(
+            context = requireContext(),
+            title = getString(R.string.warning_dialogs_title),
+            message = getString(R.string.finish_tracking_warning_dialog_text),
+            positiveButtonText = getString(R.string.dialog_continue_text),
+            positiveButtonClick = { dialog, _ ->
+                viewModel.resumeTracking(requireContext())
+                dialog.dismiss()
+            },
+            negativeButtonText = getString(R.string.dialog_cancel_button_text),
+            negativeButtonClick = { dialog, _ ->
+                viewModel.deleteLastEvent()
+                viewModel.navigateBack()
+                viewModel.stopService(requireContext())
+                dialog.dismiss()
+            },
+            needsToShow = true
+        ).build()
     }
 
     override fun onDestroyView() {

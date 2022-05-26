@@ -20,6 +20,7 @@ class TrackerFragment : BaseFragment<FragmentTrackerBinding, TrackerViewModel>()
 
     override val viewModel: TrackerViewModel by viewModels()
 
+
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

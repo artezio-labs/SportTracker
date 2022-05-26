@@ -22,4 +22,7 @@
     <color name="accuracy_medium_color">#AFB42B</color>
     <color name="accuracy_bad_color">#B71C1C</color>
 
+    <color name="color_start_route">#00C853</color>
+    <color name="color_finish_route">#DD2C00</color>
+    <color name="color_route">#0091EA</color>
 </resources>

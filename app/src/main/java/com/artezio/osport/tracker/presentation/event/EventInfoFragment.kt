@@ -32,6 +32,7 @@ class EventInfoFragment : BaseFragment<FragmentEventInfoBinding, EventInfoViewMo
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding.buttonClose.setOnClickListener {
             viewModel.goBackToMainFragment()
         }

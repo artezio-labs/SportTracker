@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
@@ -18,7 +19,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding, TrackerViewModel>() {
+class TrackerStatisticsFragment :
+    BaseFragment<FragmentTrackerStatisticsBinding, TrackerViewModel>() {
 
     override var bottomNavigationViewVisibility = View.GONE
     override val viewModel: TrackerViewModel by viewModels()
@@ -48,13 +50,24 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding,
                     R.id.action_sessionRecordingFragment_to_mainFragment
                 )
         }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val event = viewModel.getLastEventId()
+            event?.let {
+                viewModel.getLocationsByEventId(it).collect { points ->
+                    if (points.isNotEmpty() && binding.mapStatistics.isVisible) {
+                        MapUtils.drawRoute(requireContext(), binding.mapStatistics, points)
+                    }
+                }
+            }
+        }
         observeData()
     }
 
     private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.lastEventIdFlow.collectLatest { lastEventId ->
-                viewModel.getLocationsByEventId(lastEventId).collect { locations ->
+                viewModel.getLocationsByEventIdWithAccuracy(lastEventId).collect { locations ->
                     if (locations.isNotEmpty()) {
                         averageSpeed = locations.map { it.first.speed * 3.6 }.average()
                         binding.textViewAverageSpeedValue.text =
@@ -79,12 +92,6 @@ class TrackerStatisticsFragment : BaseFragment<FragmentTrackerStatisticsBinding,
                             binding.pauseGpsCountValue.text = gpsPoints.toString()
                             binding.pauseCadenceValue.text = pauseCadence.toString()
                         }
-                    }
-                    if (binding.mapStatistics.visibility == View.VISIBLE
-                        && locations.isNotEmpty()
-                    ) {
-                        val lastLocation = locations.last()
-                        MapUtils.initMap(binding.mapStatistics, lastLocation.first)
                     }
                 }
             }

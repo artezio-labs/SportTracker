@@ -60,4 +60,7 @@
     <string name="tv_pause_steps_text">Шаги</string>
     <string name="tv_gps_pause_text">GPS-точки</string>
     <string name="tv_cadence_pause_text">Каденс (шаг/мин)</string>
+    <string name="finish_tracking_warning_dialog_text">Прошло слишком мало времени. Продолжите тренировку или начните сначала!</string>
+    <string name="dialog_continue_text">Продолжить</string>
+    <string name="dialog_cancel_button_text">Отменить</string>
 </resources>

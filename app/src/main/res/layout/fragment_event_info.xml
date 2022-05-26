@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     tools:context=".presentation.event.EventInfoFragment">
 
     <androidx.appcompat.widget.Toolbar
@@ -69,6 +70,7 @@
         android:id="@+id/eventInfoMap"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        mapbox:mapbox_cameraZoom="15.5"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -91,12 +93,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:gravity="center"
             android:background="@android:color/transparent"
+            android:gravity="center"
+            android:inputType="text"
             android:textSize="20sp"
             android:textStyle="bold"
-            tools:text="Тренировка от 18.04.2022"
-            android:inputType="text" />
+            tools:text="Тренировка от 18.04.2022" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -209,6 +211,7 @@
                 tools:text="Время" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

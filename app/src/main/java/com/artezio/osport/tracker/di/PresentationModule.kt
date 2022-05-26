@@ -2,6 +2,7 @@ package com.artezio.osport.tracker.di
 
 import android.content.Context
 import com.artezio.osport.tracker.data.mappers.DomainToPresentationMapper
+import com.artezio.osport.tracker.data.mappers.LocationToPointMapper
 import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
@@ -58,9 +59,10 @@ object PresentationModule {
     @Provides
     fun providesGetLocationsByEventIdUseCase(
         repository: LocationRepository,
-        accuracyFactory: AccuracyFactory
+        accuracyFactory: AccuracyFactory,
+        mapper: LocationToPointMapper
     ) =
-        GetLocationsByEventIdUseCase(repository, accuracyFactory)
+        GetLocationsByEventIdUseCase(repository, accuracyFactory, mapper)
 
     @Provides
     fun providesDomainToPresentationMapper() =
@@ -131,5 +133,8 @@ object PresentationModule {
     @Provides
     fun providesGetDataForCadenceUseCase(repository: PedometerRepository) =
         GetDataForCadenceUseCase(repository)
+
+    @Provides
+    fun providesLocationToPointMapper() = LocationToPointMapper()
 
 }

@@ -33,7 +33,9 @@ class TrackServiceDataManager @Inject constructor(
     fun updateEvent(eventId: Long) = scope.launch {
         val lastEvent = getLastEventUseCase.execute()
         Log.d("event_update", "Last event from db to update: $lastEvent")
-        update(eventId, lastEvent.name)
+        if (lastEvent != null) {
+            update(eventId, lastEvent.name)
+        }
     }
 
     private suspend fun update(eventId: Long, eventName: String) {
@@ -45,11 +47,13 @@ class TrackServiceDataManager @Inject constructor(
 
         val trackingState = buildTrackingState(eventId, locations, steps)
         Log.d("event_save", "TrackerState before saving: $trackingState")
-        if (eventName.isEmpty()) {
-            updateEventUseCase.execute(event.startDate, event.name, trackingState.timerValue)
-        } else {
-            updateEventUseCase.execute(event.startDate, eventName, trackingState.timerValue)
-        }
+        event?.let {
+            if (eventName.isEmpty()) {
+                updateEventUseCase.execute(it.startDate, it.name, trackingState.timerValue)
+            } else {
+                updateEventUseCase.execute(it.startDate, eventName, trackingState.timerValue)
+            }
+        } ?: Log.d("event_save", "Event is null")
     }
 
     private fun buildTrackingState(

@@ -65,8 +65,8 @@ class TrackerViewModelTest {
 
     @Test
     fun getLocationsByEventId() {
-        viewModel.getLocationsByEventId(1)
-        coVerify { getLocationsByEventIdUseCase.execute(1) }
+        viewModel.getLocationsByEventIdWithAccuracy(1)
+        coVerify { getLocationsByEventIdUseCase.executeWithAccuracy(1) }
     }
 
     @Test

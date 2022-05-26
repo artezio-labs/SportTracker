@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
 import com.artezio.osport.tracker.R
+import com.artezio.osport.tracker.data.mappers.LocationToPointMapper
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
@@ -17,8 +18,10 @@ import com.artezio.osport.tracker.domain.usecases.*
 import com.artezio.osport.tracker.presentation.BaseViewModel
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.*
+import com.mapbox.geojson.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,9 +31,13 @@ class TrackerViewModel @Inject constructor(
     private val getLastEventIdUseCase: GetLastEventIdUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val getLocationsByEventIdUseCase: GetLocationsByEventIdUseCase,
+    private val getAllLocationsByIdUseCase: GetAllLocationsByIdUseCase,
     private val getAllEventsListUseCase: GetAllEventsListUseCase,
     private val getDataForCadenceUseCase: GetDataForCadenceUseCase,
+    private val getLastEventUseCase: GetLastEventUseCase,
+    private val deleteEventUseCase: DeleteEventUseCase,
     private val accuracyFactory: AccuracyFactory,
+    private val mapper: LocationToPointMapper
 ) : BaseViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
@@ -44,9 +51,23 @@ class TrackerViewModel @Inject constructor(
     val stepsLiveData: LiveData<Int>
         get() = TrackService.stepsLiveData
 
+    val locations: MutableLiveData<List<Point>> = MutableLiveData()
+
     val currentFragmentIdLiveData = MutableLiveData(R.id.trackerFragment3)
 
+    fun getLocationsByEventIdWithAccuracy(id: Long) =
+        getLocationsByEventIdUseCase.executeWithAccuracy(id)
+
     fun getLocationsByEventId(id: Long) = getLocationsByEventIdUseCase.execute(id)
+
+    suspend fun getLastEventId(): Long? = viewModelScope.async(Dispatchers.IO) {
+        return@async getLastEventUseCase.execute()?.id
+    }.await()
+
+    fun deleteLastEvent() = viewModelScope.launch(Dispatchers.IO) {
+        val lastEvent = getLastEventUseCase.execute()
+        deleteEventUseCase.execute(lastEvent.startDate)
+    }
 
     fun generateEvent() = viewModelScope.launch(Dispatchers.IO) {
         val currentTime = System.currentTimeMillis()
@@ -184,7 +205,9 @@ class TrackerViewModel @Inject constructor(
                 newEventName + "_{1}"
             } else {
                 Log.d("event_name", "Last event same name split: $lastSameElementNumber")
-                "${newEventName}_{${lastSameElementNumber[1].replace("\\D".toRegex(), "").toInt() + 1}}"
+                "${newEventName}_{${
+                    lastSameElementNumber[1].replace("\\D".toRegex(), "").toInt() + 1
+                }}"
             }
 
         } catch (ex: Exception) {

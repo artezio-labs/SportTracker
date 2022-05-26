@@ -30,7 +30,7 @@ class GetLocationsByEventIdUseCaseTest {
 
     @Test
     fun execute() = runBlocking {
-        useCase.execute(1)
+        useCase.executeWithAccuracy(1)
         coVerifySequence {
             repository.getLocationsByEventId(1)
             flow<List<LocationPointData>> {  }.map {  }
