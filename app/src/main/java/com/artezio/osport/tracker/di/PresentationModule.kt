@@ -137,4 +137,7 @@ object PresentationModule {
     @Provides
     fun providesLocationToPointMapper() = LocationToPointMapper()
 
+    @Provides
+    fun provideObserveDistanceUseCase(repository: LocationRepository) =
+        ObserveDistanceUseCase(repository)
 }

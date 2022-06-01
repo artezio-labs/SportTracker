@@ -63,4 +63,5 @@
     <string name="finish_tracking_warning_dialog_text">Прошло слишком мало времени. Продолжите тренировку или начните сначала!</string>
     <string name="dialog_continue_text">Продолжить</string>
     <string name="dialog_cancel_button_text">Отменить</string>
+    <string name="tv_train_text">Тренировка</string>
 </resources>

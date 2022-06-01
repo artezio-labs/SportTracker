@@ -2,7 +2,6 @@ package com.artezio.osport.tracker.presentation
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -14,20 +13,20 @@ import android.hardware.SensorManager
 import android.os.*
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.navigation.NavDeepLinkBuilder
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
+import com.artezio.osport.tracker.data.trackservice.ServiceNotificationBuilder
 import com.artezio.osport.tracker.data.trackservice.TrackServiceDataManager
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
+import com.artezio.osport.tracker.domain.usecases.ObserveDistanceUseCase
 import com.artezio.osport.tracker.domain.usecases.UpdateEventUseCase
 import com.artezio.osport.tracker.util.*
 import com.google.android.gms.location.*
@@ -67,16 +66,9 @@ class TrackService : LifecycleService() {
 
     private var eventId: Long? = null
 
-    private val notificationPendingIntent: PendingIntent by lazy {
-        Log.d("event_save", "Event id: $eventId")
-        NavDeepLinkBuilder(this)
-            .setComponentName(MainActivity::class.java)
-            .setGraph(R.navigation.bottom_nav)
-            .setDestination(R.id.sessionRecordingFragment)
-            .createPendingIntent()
+    private val notificationBuilder: ServiceNotificationBuilder by lazy {
+        ServiceNotificationBuilder(this)
     }
-
-    private var notificationBuilder: NotificationCompat.Builder? = null
     private var sensorEventListener: SensorEventListener? = null
 
     private var stepDetector: StepDetector? = null
@@ -88,6 +80,9 @@ class TrackService : LifecycleService() {
     lateinit var updateEventUseCase: UpdateEventUseCase
 
     @Inject
+    lateinit var observeDistanceUseCase: ObserveDistanceUseCase
+
+    @Inject
     lateinit var trackServiceDataManager: TrackServiceDataManager
 
     @Inject
@@ -95,6 +90,7 @@ class TrackService : LifecycleService() {
 
     private var timer = Timer()
     private var timeToNotification = 0.0
+    private var distanceToNotification = 0.0
 
     private val localBinder = LocalBinder()
 
@@ -132,8 +128,8 @@ class TrackService : LifecycleService() {
         LocalBroadcastManager
             .getInstance(this)
             .registerReceiver(ServiceEchoReceiver(), IntentFilter("ping"))
-    }
 
+    }
 
     private fun subscribeToLocationUpdates() {
         if (hasLocationAndActivityRecordingPermission(this)) {
@@ -162,6 +158,7 @@ class TrackService : LifecycleService() {
             override fun step(timeNs: Long) {
                 if (!isPaused) {
                     stepCount += 1
+
                 }
                 stepsLiveData.postValue(stepCount)
                 Log.d(STEPS_TAG, "Steps: $stepCount time: $timeNs ns")
@@ -210,11 +207,25 @@ class TrackService : LifecycleService() {
                     Log.d("steps", "Event id not found")
                 }
                 startForegroundService()
+
                 eventId?.let {
                     if (!isPaused) runPedometer(it)
                 }
                 subscribeToLocationUpdates()
                 startTimer(0.0, 0)
+                eventId?.let {
+                    Log.d("observe_distance", "Event: $it")
+                    lifecycleScope.launch {
+                        observeDistanceUseCase.execute(it).collect { distance ->
+                            distanceToNotification = distance
+                            Log.d(
+                                "observe_distance",
+                                "Distance flow: $distance\n from notification: $distanceToNotification"
+                            )
+                        }
+                    }
+                }
+                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
@@ -228,6 +239,7 @@ class TrackService : LifecycleService() {
                 removeLocationUpdates()
                 serviceLifecycleState.postValue(ServiceLifecycleState.PAUSED)
                 isPaused = true
+                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
             }
             RESUME_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service resumed!")
@@ -246,6 +258,7 @@ class TrackService : LifecycleService() {
                 }
                 serviceLifecycleState.postValue(ServiceLifecycleState.RESUMED)
                 isPaused = false
+                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
             }
         }
         return START_STICKY
@@ -277,23 +290,10 @@ class TrackService : LifecycleService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
-
-        notificationBuilder = buildNotification(
-            this,
-            getTimerStringFromDouble(timeToNotification),
-        )
-        startForeground(FOREGROUND_SERVICE_ID, notificationBuilder?.build())
+        val notification =
+            notificationBuilder.buildNotification(timeToNotification, distanceToNotification)
+        startForeground(FOREGROUND_SERVICE_ID, notification)
     }
-
-    private fun buildNotification(
-        context: Context,
-        time: String,
-    ): NotificationCompat.Builder =
-        NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_tracker)
-            .setContentTitle("Идет запись данных")
-            .setContentText(time)
-            .setContentIntent(notificationPendingIntent)
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
@@ -353,14 +353,8 @@ class TrackService : LifecycleService() {
         override fun run() {
             if (!isPaused) {
                 time++
-                notificationManager.notify(
-                    FOREGROUND_SERVICE_ID,
-                    buildNotification(
-                        this@TrackService,
-                        getTimerStringFromDouble(time)
-                    ).build()
-                )
                 timerValueLiveData.postValue(time)
+                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
             }
         }
     }
@@ -370,10 +364,6 @@ class TrackService : LifecycleService() {
         private const val STEPS = "steps"
         private const val FOREGROUND_SERVICE_ID = 1234
         private const val STEPS_TAG = "STEPS_TAG"
-        private const val NOTIFICATION_ID = 19
-        private const val NO_SENSOR = "Sorry, sensor doesn't exists on your device"
-        const val STEPS_UPDATED = "stepCountUpdated"
-        const val STEPS_EXTRA = "stepsExtra"
 
         val serviceLifecycleState =
             MutableLiveData(ServiceLifecycleState.NOT_STARTED)

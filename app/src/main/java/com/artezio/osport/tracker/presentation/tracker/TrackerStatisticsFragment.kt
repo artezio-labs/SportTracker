@@ -52,12 +52,9 @@ class TrackerStatisticsFragment :
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val event = viewModel.getLastEventId()
-            event?.let {
-                viewModel.getLocationsByEventId(it).collect { points ->
-                    if (points.isNotEmpty() && binding.mapStatistics.isVisible) {
-                        MapUtils.drawRoute(requireContext(), binding.mapStatistics, points)
-                    }
+            viewModel.getLocationsByEventId().collect { points ->
+                if (points.isNotEmpty() && binding.mapStatistics.isVisible) {
+                    MapUtils.drawRoute(requireContext(), binding.mapStatistics, points)
                 }
             }
         }

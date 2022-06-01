@@ -23,6 +23,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -58,7 +59,10 @@ class TrackerViewModel @Inject constructor(
     fun getLocationsByEventIdWithAccuracy(id: Long) =
         getLocationsByEventIdUseCase.executeWithAccuracy(id)
 
-    fun getLocationsByEventId(id: Long) = getLocationsByEventIdUseCase.execute(id)
+    suspend fun getLocationsByEventId(): Flow<List<Point>> {
+        val id = getLastEventId()
+        return id?.let { getLocationsByEventIdUseCase.execute(it) } ?: flowOf(emptyList())
+    }
 
     suspend fun getLastEventId(): Long? = viewModelScope.async(Dispatchers.IO) {
         return@async getLastEventUseCase.execute()?.id
