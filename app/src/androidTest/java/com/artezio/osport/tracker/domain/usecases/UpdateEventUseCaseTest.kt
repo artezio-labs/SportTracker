@@ -35,7 +35,7 @@ class UpdateEventUseCaseTest {
 
     @Test
     fun executeUpdateWithTrackingState() = runBlocking {
-        useCase.execute(0, "Тест", trackingState)
-        coVerify { repository.updateEvent(0, "Тест", trackingState) }
+        useCase.execute(0, "Тест", 0.0)
+        coVerify { repository.updateEvent(0, "Тест", 0.0) }
     }
 }

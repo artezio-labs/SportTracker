@@ -7,7 +7,6 @@ plugins {
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
     id 'kotlin-parcelize'
     id 'jacoco'
-    id 'org.jetbrains.kotlinx.kover' version '0.5.0'
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
 }
@@ -27,6 +26,26 @@ configurations.all {
     }
 }
 
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = [
+            '**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*', '**/*$[0-9].*', '**/dagger.hilt*.*', '**/*databinding*'
+    ]
+    def debugTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def mainSrc = "$project.projectDir/src/main/java"
+
+    sourceDirectories.setFrom(files([mainSrc]))
+    classDirectories.setFrom(files([debugTree]))
+    executionData.setFrom(fileTree(dir: project.buildDir, includes: [
+            'jacoco/testDebugUnitTest.exec', 'outputs/code_coverage/debugAndroidTest/connected/**/*.ec'
+    ]))
+}
+
 android {
     compileSdk 31
 
@@ -38,6 +57,12 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "com.artezio.osport.tracker.CustomTestRunner"
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        test.java.srcDirs += 'src/test/kotlin'
+        androidTest.java.srcDirs += 'src/androidTest/kotlin'
     }
 
     testOptions {
@@ -67,53 +92,6 @@ android {
         viewBinding true
     }
 }
-
-project.afterEvaluate {
-    // Grab all build types and product flavors
-    def buildTypes = android.buildTypes.collect { type -> type.name }
-    def productFlavors = android.productFlavors.collect { flavor -> flavor.name }
-
-    // When no product flavors defined, use empty
-    if (!productFlavors) productFlavors.add('')
-
-    productFlavors.each { productFlavorName ->
-        buildTypes.each { buildTypeName ->
-            def sourceName, sourcePath
-            if (!productFlavorName) {
-                sourceName = sourcePath = "${buildTypeName}"
-            } else {
-                sourceName = "${productFlavorName}${buildTypeName.capitalize()}"
-                sourcePath = "${productFlavorName}/${buildTypeName}"
-            }
-            def testTaskName = "test${sourceName.capitalize()}UnitTest"
-
-            // Create coverage task of form 'testFlavorTypeCoverage' depending on 'testFlavorTypeUnitTest'
-            task "${testTaskName}Coverage"(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
-                group = "Reporting"
-                description = "Generate Jacoco coverage reports on the ${sourceName.capitalize()} build."
-                def fileFilter = ['com.artezio.osport.tracker.databinding.*']
-                def tree = fileTree(dir: "${project.buildDir}/intermediates/$buildTypeName/classes", excludes: fileFilter)
-                classDirectories.from = files(tree)
-
-                def coverageSourceDirs = [
-                        "src/main/java",
-                        "src/$productFlavorName/java",
-                        "src/$buildTypeName/java"
-                ]
-                getAdditionalClassDirs().setFrom(files(coverageSourceDirs))
-                getSourceDirectories().setFrom(files(coverageSourceDirs))
-                getExecutionData().setFrom(files("${project.buildDir}/jacoco/${testTaskName}.exec"))
-
-                reports {
-                    xml.enabled = true
-                    html.enabled = true
-                    html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
-                }
-            }
-        }
-    }
-}
-
 
 dependencies {
 
@@ -200,14 +178,14 @@ dependencies {
     }
 
     // ui-testing
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     androidTestImplementation 'androidx.test:runner:1.4.0'
     androidTestImplementation 'androidx.test:rules:1.4.0'
-    androidTestImplementation "androidx.test.espresso:espresso-web:3.3.0"
-    androidTestImplementation "androidx.test.espresso:espresso-contrib:3.3.0"
-    androidTestImplementation "androidx.test.espresso:espresso-accessibility:3.3.0"
-    debugImplementation "androidx.fragment:fragment-testing:1.4.1"
-    testImplementation 'org.hamcrest:hamcrest-core:2.2'
+//    androidTestImplementation "androidx.test.espresso:espresso-web:3.3.0"
+//    androidTestImplementation "androidx.test.espresso:espresso-contrib:3.3.0"
+//    androidTestImplementation "androidx.test.espresso:espresso-accessibility:3.3.0"
+//    debugImplementation "androidx.fragment:fragment-testing:1.4.1"
+//    testImplementation 'org.hamcrest:hamcrest-core:2.2'
 
 
     // kakao

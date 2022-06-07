@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class EventsRepositoryTest {
 
-    private lateinit var repository: EventsRepository
+    private lateinit var repository: com.artezio.osport.tracker.data.repository.EventsRepository
     private lateinit var dao: EventsDao
     private lateinit var testEvent: Event
     private lateinit var trackingStateModel: TrackingStateModel
@@ -22,7 +22,7 @@ class EventsRepositoryTest {
     @Before
     fun setUp() {
         dao = mockk(relaxed = true)
-        repository = EventsRepository(dao)
+        repository = com.artezio.osport.tracker.data.repository.EventsRepository(dao)
         testEvent = mockk(relaxed = true)
         trackingStateModel = mockk(relaxed = true)
     }
@@ -47,16 +47,12 @@ class EventsRepositoryTest {
 
     @Test
     fun updateEventWithTrackingState() = runBlocking {
-        repository.updateEvent(0, "Тест", trackingStateModel)
+        repository.updateEvent(0, "Тест", trackingStateModel.timerValue)
         coVerify {
             dao.updateEvent(
                 0,
                 "Тест",
                 any(),
-                trackingStateModel.timerValue,
-                trackingStateModel.speedValue,
-                trackingStateModel.stepsValue,
-                trackingStateModel.gpsPointsValue
             )
         }
     }
@@ -64,7 +60,7 @@ class EventsRepositoryTest {
     @Test
     fun updateEventWithNameAndStartDate() = runBlocking {
         repository.updateEvent(testEvent.id, testEvent.name, testEvent.startDate)
-        coVerify { dao.updateSpecificEventFields(testEvent.id, testEvent.name, testEvent.startDate, null) }
+        coVerify { dao.updateSpecificEventFields(testEvent.id, testEvent.name, testEvent.startDate) }
     }
 
     @Test
@@ -89,5 +85,19 @@ class EventsRepositoryTest {
     fun deleteEventByStartDate() = runBlocking {
         repository.deleteEventByStartDate(0)
         coVerify { dao.deleteEventByStartDate(0) }
+    }
+
+    @Test
+    fun test_update_event_name() = runBlocking {
+        val name = "Тест"
+        val startDate = 0L
+        repository.updateEventName(name, startDate)
+        coVerify { dao.updateEventName(name, startDate) }
+    }
+
+    @Test
+    fun test_get_all_events_list() = runBlocking {
+        repository.getAllEventsList()
+        coVerify { dao.getAllEvents() }
     }
 }

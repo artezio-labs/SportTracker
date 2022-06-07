@@ -1,4 +1,4 @@
-package com.artezio.osport.tracker.util
+package com.artezio.osport.tracker.domain.usecases
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.artezio.osport.tracker.domain.model.LocationPointData
@@ -12,21 +12,21 @@ class ExtensionsTest {
     @Test
     fun distanceBetween() {
         assertEquals(
-            distanceBetween(
+            com.artezio.osport.tracker.util.distanceBetween(
                 LocationPointData(0.0, 0.0, 0.0, 0F, 0F, 0L, 0, 0),
                 LocationPointData(0.0, 0.0, 0.0, 0F, 0F, 0L, 0, 0)
             ),
             0F
         )
         assertEquals(
-            distanceBetween(
+            com.artezio.osport.tracker.util.distanceBetween(
                 LocationPointData(10.0, 9.0, 0.0, 0F, 0F, 0L, 0, 0),
                 LocationPointData(9.0, 8.0, 0.0, 0F, 0F, 0L, 0, 0)
             ),
             155851.5F
         )
         assertEquals(
-            distanceBetween(
+            com.artezio.osport.tracker.util.distanceBetween(
                 LocationPointData(64.0, 10.0, 0.0, 0F, 0F, 0L, 0, 0),
                 LocationPointData(9.0, 17.0, 0.0, 0F, 0F, 0L, 0, 0)
             ),

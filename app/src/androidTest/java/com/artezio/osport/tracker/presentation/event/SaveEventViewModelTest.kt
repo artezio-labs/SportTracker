@@ -64,7 +64,7 @@ class SaveEventViewModelTest {
             updateEventUseCase.execute(
                 startDate = any(),
                 name = any(),
-                trackingStateModel = any()
+                time = any()
             )
         }
     }

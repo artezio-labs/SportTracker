@@ -42,6 +42,7 @@ class GetEventInfoUseCaseTest {
             eventsRepository.getEventById(TEST_EVENT_ID)
             locationsRepository.getAllLocationsById(TEST_EVENT_ID)
             pedometerRepository.getStepCount(TEST_EVENT_ID)
+            pedometerRepository.getAllPedometerData()
         }
     }
 

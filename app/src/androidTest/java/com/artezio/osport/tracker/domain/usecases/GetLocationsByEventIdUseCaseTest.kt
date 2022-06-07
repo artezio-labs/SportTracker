@@ -1,6 +1,7 @@
 package com.artezio.osport.tracker.domain.usecases
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.artezio.osport.tracker.data.mappers.LocationToPointMapper
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.presentation.tracker.AccuracyFactory
@@ -19,13 +20,15 @@ class GetLocationsByEventIdUseCaseTest {
     private lateinit var useCase: GetLocationsByEventIdUseCase
     private lateinit var repository: LocationRepository
     private lateinit var accuracyFactory: AccuracyFactory
+    private lateinit var mapper: LocationToPointMapper
 
 
     @Before
     fun setUp() {
         repository = mockk(relaxed = true)
         accuracyFactory = AccuracyFactory()
-        useCase = GetLocationsByEventIdUseCase(repository, accuracyFactory)
+        mapper = mockk(relaxed = true)
+        useCase = GetLocationsByEventIdUseCase(repository, accuracyFactory, mapper)
     }
 
     @Test

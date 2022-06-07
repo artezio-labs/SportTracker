@@ -3,6 +3,7 @@ package com.artezio.osport.tracker.presentation.tracker
 import android.content.Context
 import android.content.Intent
 import android.location.Location
+import android.location.LocationManager
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
@@ -38,7 +39,7 @@ class TrackerViewModel @Inject constructor(
     private val getLastEventUseCase: GetLastEventUseCase,
     private val deleteEventUseCase: DeleteEventUseCase,
     private val accuracyFactory: AccuracyFactory,
-    private val mapper: LocationToPointMapper
+    private val mapper: LocationToPointMapper,
 ) : BaseViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
@@ -222,5 +223,11 @@ class TrackerViewModel @Inject constructor(
     fun calculateCadence(data: List<PedometerData>): Int {
         if (data.isEmpty()) return 0
         return data.last().stepCount - data.first().stepCount
+    }
+
+    fun observeGpsEnabled(context: Context): LiveData<Boolean> {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        return liveData { emit(isGpsEnabled) }
     }
 }

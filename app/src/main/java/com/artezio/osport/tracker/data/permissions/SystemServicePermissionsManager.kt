@@ -2,30 +2,32 @@ package com.artezio.osport.tracker.data.permissions
 
 import android.content.Context
 import android.content.Intent
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
-import com.artezio.osport.tracker.presentation.MainActivity
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.liveData
 import com.artezio.osport.tracker.util.DialogBuilder
 
 class SystemServicePermissionsManager(
-    private val activity: MainActivity
+    private val context: Context
 ) : ISystemServicePermissionsManager {
 
     override fun hasNotificationPermissionEnabled(): Boolean {
-        return NotificationManagerCompat.from(activity).areNotificationsEnabled()
+        return NotificationManagerCompat.from(context).areNotificationsEnabled()
     }
 
     override fun hasPowerSafeModePermissionEnabled(): Boolean {
-        val powerManager = activity.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         var value = 0
         return when (Build.MANUFACTURER.trim()) {
             "Xiaomi" -> {
                 try {
-                    value = Settings.System.getInt(activity.contentResolver, "POWER_SAVE_MODE_OPEN")
+                    value = Settings.System.getInt(context.contentResolver, "POWER_SAVE_MODE_OPEN")
                     value == 1
                 } catch (e: Settings.SettingNotFoundException) {
                     Log.e("permissions_states", e.message.toString())
@@ -34,7 +36,7 @@ class SystemServicePermissionsManager(
             }
             "Huawei" -> {
                 try {
-                    value = Settings.System.getInt(activity.contentResolver, "SmartModeStatus")
+                    value = Settings.System.getInt(context.contentResolver, "SmartModeStatus")
                     value == 4
                 } catch (e: Settings.SettingNotFoundException) {
                     Log.e("permissions_states", e.message.toString())
@@ -43,7 +45,7 @@ class SystemServicePermissionsManager(
             }
             "HTC" -> {
                 try {
-                    value = Settings.System.getInt(activity.contentResolver, "user_powersaver_enable")
+                    value = Settings.System.getInt(context.contentResolver, "user_powersaver_enable")
                     value == 1
                 } catch (e: Settings.SettingNotFoundException) {
                     Log.e("permissions_states", e.message.toString())
@@ -52,7 +54,7 @@ class SystemServicePermissionsManager(
             }
             "Samsung" -> {
                 try {
-                    value = Settings.System.getInt(activity.contentResolver, "psm_switch")
+                    value = Settings.System.getInt(context.contentResolver, "psm_switch")
                     value == 1
                 } catch (e: Settings.SettingNotFoundException) {
                     Log.e("permissions_states", e.message.toString())
@@ -63,9 +65,15 @@ class SystemServicePermissionsManager(
         }
     }
 
+    override fun hasGPSEnabled(): LiveData<Boolean> {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        return liveData { emit(isGpsEnabled) }
+    }
+
     override fun sendUserToPowerSettings() {
         DialogBuilder(
-            context = activity,
+            context = context,
             title = "Внимание",
             message = """
                 Приложению требуется, чтобы режим экономии энергии был выключен, чтобы получаемые данные о тренировке были точными.
@@ -76,7 +84,7 @@ class SystemServicePermissionsManager(
             """.trimIndent(),
             positiveButtonText = "Да",
             positiveButtonClick = { _, _ ->
-                activity.startActivity(Intent(Settings.ACTION_SETTINGS))
+                context.startActivity(Intent(Settings.ACTION_SETTINGS))
             },
             negativeButtonText = "Не сейчас",
             negativeButtonClick = { dialog, _ -> dialog.cancel() }
@@ -85,7 +93,7 @@ class SystemServicePermissionsManager(
 
     override fun sendUserToAppNotificationSettings() {
         DialogBuilder(
-            context = activity,
+            context = context,
             title = "Внимание",
             message = """
                 Приложению требуется разрешение на показ уведомлений, чтобы данные могли записываться в фоне.
@@ -98,9 +106,9 @@ class SystemServicePermissionsManager(
             positiveButtonClick = { _, _ ->
                 val appSettingsIntent = Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", activity.packageName, null)
+                    Uri.fromParts("package", context.packageName, null)
                 )
-                activity.startActivity(appSettingsIntent)
+                context.startActivity(appSettingsIntent)
             },
             negativeButtonText = "Не сейчас",
             negativeButtonClick = { dialog, _ ->

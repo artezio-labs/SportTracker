@@ -25,7 +25,6 @@ open class SaveEventViewModel @Inject constructor(
 
     fun deleteLastEvent() = viewModelScope.launch(Dispatchers.IO) {
         val lastEvent = getLastEventUseCase.execute()
-        Log.d("event_delete", "Last event: $lastEvent")
         deleteEventUseCase.execute(lastEvent.startDate)
     }
 

@@ -14,6 +14,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class GetAllLocationDataUseCaseTest {
+
     private lateinit var usecase: GetAllLocationDataUseCase
     private lateinit var repository: LocationRepository
 

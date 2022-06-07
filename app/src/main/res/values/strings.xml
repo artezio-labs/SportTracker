@@ -64,4 +64,6 @@
     <string name="dialog_continue_text">Продолжить</string>
     <string name="dialog_cancel_button_text">Отменить</string>
     <string name="tv_train_text">Тренировка</string>
+    <string name="notification_paused">Запись данных приостановлена</string>
+    <string name="notification_resumed">Идет запись данных</string>
 </resources>

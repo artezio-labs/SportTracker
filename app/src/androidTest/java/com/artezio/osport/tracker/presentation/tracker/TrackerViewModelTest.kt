@@ -3,11 +3,10 @@ package com.artezio.osport.tracker.presentation.tracker
 import android.content.Context
 import androidx.lifecycle.LifecycleOwner
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.artezio.osport.tracker.data.mappers.LocationToPointMapper
 import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
-import com.artezio.osport.tracker.domain.usecases.GetLastEventIdUseCase
-import com.artezio.osport.tracker.domain.usecases.GetLocationsByEventIdUseCase
-import com.artezio.osport.tracker.domain.usecases.InsertEventUseCase
+import com.artezio.osport.tracker.domain.usecases.*
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.coVerify
@@ -34,6 +33,13 @@ class TrackerViewModelTest {
     private lateinit var bindingSessionFragment: FragmentSessionRecordingBinding
     private lateinit var bindingTrackerStatistics: FragmentTrackerStatisticsBinding
     private lateinit var accuracyFactory: AccuracyFactory
+    private lateinit var getAllLocationsByIdUseCase: GetAllLocationsByIdUseCase
+    private lateinit var getAllEventsListUseCase: GetAllEventsListUseCase
+    private lateinit var getDataForCadenceUseCase: GetDataForCadenceUseCase
+    private lateinit var getLastEventUseCase: GetLastEventUseCase
+    private lateinit var deleteEventUseCase: DeleteEventUseCase
+    private lateinit var mapper: LocationToPointMapper
+
 
     private val testMainScope = CoroutineScope(Dispatchers.Main)
 
@@ -43,11 +49,23 @@ class TrackerViewModelTest {
         insertEventUseCase = mockk(relaxed = true)
         getLocationsByEventIdUseCase = mockk(relaxed = true)
         accuracyFactory = AccuracyFactory()
+        getAllLocationsByIdUseCase = mockk(relaxed = true)
+        getAllEventsListUseCase = mockk(relaxed = true)
+        getDataForCadenceUseCase = mockk(relaxed = true)
+        getLastEventUseCase = mockk(relaxed = true)
+        deleteEventUseCase = mockk(relaxed = true)
+        mapper = mockk(relaxed = true)
         viewModel = TrackerViewModel(
             getLastEventIdUseCase,
             insertEventUseCase,
             getLocationsByEventIdUseCase,
-            accuracyFactory
+            accuracyFactory = accuracyFactory,
+            getAllLocationsByIdUseCase = getAllLocationsByIdUseCase,
+            getAllEventsListUseCase = getAllEventsListUseCase,
+            getDataForCadenceUseCase = getDataForCadenceUseCase,
+            getLastEventUseCase = getLastEventUseCase,
+            deleteEventUseCase = deleteEventUseCase,
+            mapper = mapper,
         )
         context = mockk(relaxed = true)
         googleMap = mockk(relaxed = true)

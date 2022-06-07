@@ -36,6 +36,7 @@ class ServiceNotificationBuilder(
         distance: String,
         notificationPendingIntent: PendingIntent,
     ): NotificationCompat.Builder {
+        val title: String
         val action = if (TrackService.serviceLifecycleState.value == ServiceLifecycleState.PAUSED) {
             val intent = Intent(context, TrackService::class.java).apply {
                 action = RESUME_FOREGROUND_SERVICE
@@ -46,7 +47,9 @@ class ServiceNotificationBuilder(
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
-            NotificationCompat.Action.Builder(R.drawable.ic_resume, RESUME_RECORDING, pendingIntent).build()
+            title = context.getString(R.string.notification_paused)
+            NotificationCompat.Action(R.drawable.ic_resume, RESUME_RECORDING, pendingIntent)
+
         } else {
             val intent = Intent(context, TrackService::class.java).apply {
                 action = PAUSE_FOREGROUND_SERVICE
@@ -57,13 +60,15 @@ class ServiceNotificationBuilder(
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
-            NotificationCompat.Action.Builder(R.drawable.ic_baseline_pause_24, PAUSE_RECORDING, pendingIntent).build()
+            title = context.getString(R.string.notification_resumed)
+            NotificationCompat.Action(R.drawable.ic_baseline_pause_24, PAUSE_RECORDING, pendingIntent)
         }
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_tracker)
-            .setContentTitle("Идет запись данных")
+            .setContentTitle(title)
             .setContentText("$time - $distance")
             .addAction(action)
+            .setAutoCancel(true)
             .setContentIntent(notificationPendingIntent)
     }
 
@@ -77,7 +82,7 @@ class ServiceNotificationBuilder(
     }
 
     fun notify(time: Double, distance: Double) {
-        notificationManager.cancel(FOREGROUND_SERVICE_ID)
+        notificationManager.cancelAll()
         notificationManager.notify(
             FOREGROUND_SERVICE_ID,
             buildNotification(

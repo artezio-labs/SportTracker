@@ -13,14 +13,14 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class LocationRepositoryTest {
 
-    private lateinit var repository: LocationRepository
+    private lateinit var repository: com.artezio.osport.tracker.data.repository.LocationRepository
     private lateinit var dao: LocationDao
     private lateinit var location: LocationPointData
 
     @Before
     fun setUp() {
         dao = mockk(relaxed = true)
-        repository = LocationRepository(dao)
+        repository = com.artezio.osport.tracker.data.repository.LocationRepository(dao)
         location = mockk(relaxed = true)
     }
 

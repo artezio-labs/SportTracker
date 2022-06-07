@@ -27,7 +27,7 @@ class EventsDaoTest {
             TrackerDb::class.java
         ).build()
         dao = db.eventsDao()
-        testEvent = Event("Тестовый ивент", 0, 0, 0, 0.0, 0.0, 0, 0)
+        testEvent = Event("Тестовый ивент", 0, 0, 0.0)
     }
 
     @Test
@@ -56,12 +56,11 @@ class EventsDaoTest {
     fun updateEventBySpecificFields() = runBlocking {
         dao.insertEvent(testEvent)
         val eventToUpdate =
-            testEvent.copy(name = "Обновленный ивент", startDate = 342342304, endDate = 384923842)
+            testEvent.copy(name = "Обновленный ивент", startDate = 342342304, 0, 0.0)
         dao.updateSpecificEventFields(
             1,
             eventToUpdate.name,
             eventToUpdate.startDate,
-            eventToUpdate.endDate
         )
         assert(dao.getEventById(1) == eventToUpdate)
     }
@@ -72,21 +71,13 @@ class EventsDaoTest {
         val eventToUpdate = Event(
             name = "Обновленный ивент",
             startDate = 0,
-            endDate = 23423423853,
-            0,
-            15.7,
-            35.8,
-            60,
-            60
+            sportsmanId = 0,
+            timerValue = 0.0
         )
         dao.updateEvent(
             startDate = eventToUpdate.startDate,
             eventName = eventToUpdate.name,
-            endDate = eventToUpdate.endDate!!,
             timerValue = eventToUpdate.timerValue,
-            speedValue = eventToUpdate.speedValue,
-            stepsValue = eventToUpdate.stepsValue,
-            gpsPointsValue = eventToUpdate.gpsPointsValue
         )
         assert(dao.getEventById(1) == eventToUpdate)
     }

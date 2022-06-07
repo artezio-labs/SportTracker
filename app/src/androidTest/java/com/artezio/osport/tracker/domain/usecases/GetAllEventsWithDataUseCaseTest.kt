@@ -11,13 +11,13 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class GetAllEventsWithDataUseCaseTest {
-    private lateinit var usecase: GetAllEventsWithDataUseCase
+    private lateinit var usecase: com.artezio.osport.tracker.domain.usecases.GetAllEventsWithDataUseCase
     private lateinit var repository: EventsRepository
 
     @Before
     fun setUp() {
         repository = mockk(relaxed = true)
-        usecase = GetAllEventsWithDataUseCase(repository)
+        usecase = com.artezio.osport.tracker.domain.usecases.GetAllEventsWithDataUseCase(repository)
     }
 
     @Test

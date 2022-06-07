@@ -13,14 +13,14 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class PedometerRepositoryTest {
 
-    private lateinit var repository: PedometerRepository
+    private lateinit var repository: com.artezio.osport.tracker.data.repository.PedometerRepository
     private lateinit var dao: PedometerDao
     private lateinit var pedometerData: PedometerData
 
     @Before
     fun setUp() {
         dao = mockk(relaxed = true)
-        repository = PedometerRepository(dao)
+        repository = com.artezio.osport.tracker.data.repository.PedometerRepository(dao)
         pedometerData = mockk(relaxed = true)
     }
 
@@ -34,5 +34,17 @@ class PedometerRepositoryTest {
     fun getStepCount() = runBlocking {
         repository.getStepCount(1)
         coVerify { dao.getStepCount(1) }
+    }
+
+    @Test
+    fun test_get_all_pedometer_data() = runBlocking {
+        repository.getAllPedometerData()
+        coVerify { dao.getAllPedometerData() }
+    }
+
+    @Test
+    fun test_get_all_pedometer_data_flow() = runBlocking {
+        repository.getAllPedometerDataFlow()
+        coVerify { dao.getAllPedometerDataFlow() }
     }
 }

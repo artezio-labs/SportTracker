@@ -125,7 +125,6 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
-
         }
 
         viewModel.currentFragmentIdLiveData.observe(viewLifecycleOwner) { currentFragmentId ->

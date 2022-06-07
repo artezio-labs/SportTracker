@@ -225,7 +225,7 @@ class TrackService : LifecycleService() {
                         }
                     }
                 }
-                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
+//                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")

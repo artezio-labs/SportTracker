@@ -1,17 +1,13 @@
 package com.artezio.osport.tracker.presentation.event
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.artezio.osport.tracker.domain.usecases.GetAllLocationsByIdUseCase
-import com.artezio.osport.tracker.domain.usecases.GetEventByIdUseCase
-import com.artezio.osport.tracker.domain.usecases.GetEventInfoUseCase
-import com.artezio.osport.tracker.domain.usecases.UpdateEventNameUseCase
+import com.artezio.osport.tracker.data.gpx.GPX
+import com.artezio.osport.tracker.domain.usecases.*
 import io.mockk.coVerify
 import io.mockk.mockk
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
+
 class EventInfoViewModelTest {
 
     private lateinit var viewModel: EventInfoViewModel
@@ -19,6 +15,8 @@ class EventInfoViewModelTest {
     private lateinit var getEventInfoUseCase: GetEventInfoUseCase
     private lateinit var updateEventNameUseCase: UpdateEventNameUseCase
     private lateinit var getEventByIdUseCase: GetEventByIdUseCase
+    private lateinit var deleteEventUseCase: DeleteEventUseCase
+    private lateinit var gpx: GPX
 
     @Before
     fun setUp() {
@@ -26,11 +24,15 @@ class EventInfoViewModelTest {
         getEventInfoUseCase = mockk(relaxed = true)
         updateEventNameUseCase = mockk(relaxed = true)
         getEventByIdUseCase = mockk(relaxed = true)
+        deleteEventUseCase = mockk(relaxed = true)
+        gpx = mockk(relaxed = true)
         viewModel = EventInfoViewModel(
             getEventInfoUseCase,
             getAllLocationsByIdUseCase,
             updateEventNameUseCase,
-            getEventByIdUseCase
+            getEventByIdUseCase,
+            deleteEventUseCase,
+            gpx
         )
     }
 

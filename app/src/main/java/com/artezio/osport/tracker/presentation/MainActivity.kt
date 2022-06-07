@@ -12,6 +12,10 @@ import androidx.navigation.fragment.NavHostFragment
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.permissions.PermissionsManager
 import com.artezio.osport.tracker.data.permissions.SystemServicePermissionsManager
+import com.artezio.osport.tracker.data.permissions.chain.Chain
+import com.artezio.osport.tracker.data.permissions.chain.LocationPermissionLink
+import com.artezio.osport.tracker.data.permissions.chain.NotificationPermissionLink
+import com.artezio.osport.tracker.data.permissions.chain.PowerModePermissionLink
 import com.artezio.osport.tracker.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -31,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val permissionsManager: PermissionsManager = PermissionsManager(this)
+
     private val systemServicePermissionsManager = SystemServicePermissionsManager(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,6 +75,16 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+    }
+
+    // цепь для замены страшного вложенного ифа сверху
+    // пока неравильно работает, доведу до ума попозже
+    private fun buildChain() {
+        var allPermissionsGranted: Boolean? = false
+        val chain = Chain(this, navController)
+        chain.process(LocationPermissionLink(this))
+        chain.process(NotificationPermissionLink(this))
+        chain.process(PowerModePermissionLink(this, navController))
     }
 
     override fun onBackPressed() {
