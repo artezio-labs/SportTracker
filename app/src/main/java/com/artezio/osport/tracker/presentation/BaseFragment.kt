@@ -25,7 +25,6 @@ abstract class BaseFragment<B : ViewBinding, VM : BaseViewModel> : Fragment(), I
         super.onStart()
         setVisibility()
     }
-
     abstract fun initBinding(inflater: LayoutInflater, container: ViewGroup?): B
 
     override fun onCreateView(

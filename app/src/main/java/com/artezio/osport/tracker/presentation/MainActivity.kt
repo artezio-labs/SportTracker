@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -17,6 +18,8 @@ import com.artezio.osport.tracker.data.permissions.chain.LocationPermissionLink
 import com.artezio.osport.tracker.data.permissions.chain.NotificationPermissionLink
 import com.artezio.osport.tracker.data.permissions.chain.PowerModePermissionLink
 import com.artezio.osport.tracker.databinding.ActivityMainBinding
+import com.artezio.osport.tracker.presentation.tracker.ScheduleTrackingBottomSheetDialog
+import com.artezio.osport.tracker.util.DialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -57,8 +60,14 @@ class MainActivity : AppCompatActivity() {
                     if (permissionsManager.hasLocationPermissionsGranted()) {
                         if (systemServicePermissionsManager.hasNotificationPermissionEnabled()) {
                             if (!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
-                                navController.navigate(R.id.action_mainFragment_to_sessionRecordingFragment)
+                                Log.d("permissions_state", "All permissions is granted")
+                                createSessionChoosingDialog()
                             } else {
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.warning_turn_off_doze_mode),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 systemServicePermissionsManager.sendUserToPowerSettings()
                             }
                         } else {
@@ -66,7 +75,9 @@ class MainActivity : AppCompatActivity() {
                         }
                     } else {
                         permissionsManager.request()
+
                     }
+                    Log.d("permissions_state", "onCreate: ")
                     false
                 }
                 else -> {
@@ -75,6 +86,29 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+    }
+
+    private fun createSessionChoosingDialog() {
+        DialogBuilder(
+            this,
+            title = getString(R.string.recording_type_dialog_title),
+            message = getString(R.string.recording_type_dialog_description),
+            positiveButtonText = getString(R.string.recording_type_dialog_positive_button_text),
+            positiveButtonClick = { dialog, _ ->
+                dialog.cancel()
+                val bottomSheet = ScheduleTrackingBottomSheetDialog()
+                bottomSheet.show(
+                    supportFragmentManager,
+                    ScheduleTrackingBottomSheetDialog.TAG
+                )
+            },
+            negativeButtonText = getString(R.string.recording_type_dialog_negative_button_text),
+            negativeButtonClick = { dialog, _ ->
+                dialog.cancel()
+                navController.navigate(R.id.action_mainFragment_to_sessionRecordingFragment)
+            },
+            needsToShow = true
+        ).build()
     }
 
     // цепь для замены страшного вложенного ифа сверху

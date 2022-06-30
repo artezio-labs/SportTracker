@@ -76,6 +76,8 @@ class TrackService : LifecycleService() {
 
     private var isPaused: Boolean = false
 
+    private var planned = false
+
     @Inject
     lateinit var updateEventUseCase: UpdateEventUseCase
 
@@ -140,9 +142,11 @@ class TrackService : LifecycleService() {
                         STEPS_TAG,
                         "GMS is available: ${LocationRequester.checkIsGmsAvailable(this)}"
                     )
-                    fusedLocationProviderClient.requestLocationUpdates(
-                        locationRequest, locationCallback, Looper.getMainLooper()
-                    )
+                    serviceIoScope.launch {
+                        fusedLocationProviderClient.requestLocationUpdates(
+                            locationRequest, locationCallback, Looper.getMainLooper()
+                        )
+                    }
                 } else {
                     subscribeToGpsLocationUpdates()
                 }
@@ -198,39 +202,17 @@ class TrackService : LifecycleService() {
         Log.d("timer_value", "Service is started")
         when (intent?.action) {
             START_FOREGROUND_SERVICE -> {
-                eventId = intent.getLongExtra("eventId", -1L)
-                serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
-                val id = intent.getLongExtra("eventId", -1)
-                if (id != -1L) {
-                    eventId = id
-                } else {
-                    Log.d("steps", "Event id not found")
-                }
-                startForegroundService()
-
-                eventId?.let {
-                    if (!isPaused) runPedometer(it)
-                }
-                subscribeToLocationUpdates()
-                startTimer(0.0, 0)
-                eventId?.let {
-                    Log.d("observe_distance", "Event: $it")
-                    lifecycleScope.launch {
-                        observeDistanceUseCase.execute(it).collect { distance ->
-                            distanceToNotification = distance
-                            Log.d(
-                                "observe_distance",
-                                "Distance flow: $distance\n from notification: $distanceToNotification"
-                            )
-                        }
-                    }
-                }
-//                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
+                onStartService(intent)
+            }
+            START_PLANNED_SERVICE -> {
+                planned = true
+                onStartService(intent)
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
                 stopForeground(true)
                 stopSelf()
+                planned = false
                 serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
             }
             PAUSE_FOREGROUND_SERVICE -> {
@@ -240,6 +222,7 @@ class TrackService : LifecycleService() {
                 serviceLifecycleState.postValue(ServiceLifecycleState.PAUSED)
                 isPaused = true
                 timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
+//                timerValueLiveData.value?.let { notificationBuilder.buildNotification(it, distanceToNotification) }
             }
             RESUME_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service resumed!")
@@ -262,6 +245,36 @@ class TrackService : LifecycleService() {
             }
         }
         return START_STICKY
+    }
+
+    private fun onStartService(intent: Intent) {
+        eventId = intent.getLongExtra("eventId", -1L)
+        serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
+        val id = intent.getLongExtra("eventId", -1)
+        if (id != -1L) {
+            eventId = id
+        } else {
+            Log.d("steps", "Event id not found")
+        }
+        startForegroundService()
+
+        eventId?.let {
+            if (!isPaused) runPedometer(it)
+        }
+        subscribeToLocationUpdates()
+        startTimer(0.0, 0)
+        eventId?.let {
+            Log.d("observe_distance", "Event: $it")
+            lifecycleScope.launch {
+                observeDistanceUseCase.execute(it).collect { distance ->
+                    distanceToNotification = distance
+                    Log.d(
+                        "observe_distance",
+                        "Distance flow: $distance\n from notification: $distanceToNotification"
+                    )
+                }
+            }
+        }
     }
 
     private fun subscribeToGpsLocationUpdates() {

@@ -190,15 +190,17 @@ object MapUtils {
     }
 
     private fun setMapCamera(map: MapboxMap, locations: List<Point>) {
-        map.setCamera(
-            CameraOptions.Builder().center(
-                Point.fromLngLat(
-                    locations.last().longitude(),
-                    locations.last().latitude(),
-                    locations.last().altitude()
-                )
-            ).build()
-        )
+        if (locations.isNotEmpty()) {
+            map.setCamera(
+                CameraOptions.Builder().center(
+                    Point.fromLngLat(
+                        locations.last().longitude(),
+                        locations.last().latitude(),
+                        locations.last().altitude()
+                    )
+                ).build()
+            )
+        }
     }
 
     private fun setupGesturesListener() {

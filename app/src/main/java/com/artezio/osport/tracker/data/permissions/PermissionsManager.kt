@@ -18,6 +18,8 @@ class PermissionsManager(
     private val activity: MainActivity
 ) : IPermissionsManager {
 
+
+
     private val permissionsToBeRequested =
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) arrayOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -33,6 +35,7 @@ class PermissionsManager(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACTIVITY_RECOGNITION,
+        NOTIFICATION_ANDROID13_PERMISSION
     )
 
     private val locationPermissions = arrayOf(
@@ -48,6 +51,11 @@ class PermissionsManager(
             requestPermissionsAndroidQAndBelow()
         } else {
             requestPermissionsAndroidRAndAbove()
+            ActivityCompat.requestPermissions(
+                activity,
+                arrayOf(accessBackgroundLocationPermission),
+                PERMISSIONS_REQUEST_CODE
+            )
         }
     }
 
@@ -72,7 +80,6 @@ class PermissionsManager(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION,
             )
         } else {
             locationPermissions
@@ -259,5 +266,6 @@ class PermissionsManager(
 
     companion object {
         private const val PERMISSIONS_REQUEST_CODE = 1234
+        private const val NOTIFICATION_ANDROID13_PERMISSION = "android.permission.POST_NOTIFICATIONS"
     }
 }

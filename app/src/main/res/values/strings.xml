@@ -66,4 +66,17 @@
     <string name="tv_train_text">Тренировка</string>
     <string name="notification_paused">Запись данных приостановлена</string>
     <string name="notification_resumed">Идет запись данных</string>
+    <string name="time_start_and_finish_recording_warning">Выберите время начала и конца сессии!</string>
+    <string name="recording_start_button_text">Начало Записи</string>
+    <string name="time_to_start_recording_text">Выберите время начала сессии</string>
+    <string name="button_plan_session_text">Запланировать</string>
+    <string name="train_planned_text">Тренировка запланирована!</string>
+    <string name="warning_text">НАПОМИНАНИЕ</string>
+    <string name="its_time_to_start_recording">Время начать запись!</string>
+    <string name="recording_type_dialog_description">Выберите \"Запланировать\", чтобы в указанное вами время, пришло уведомление, напоминающее начать запись. Выберите \"Начать\", чтобы сразу начать запись данных.</string>
+    <string name="recording_type_dialog_title">Запланировать или начать сейчас</string>
+    <string name="recording_type_dialog_positive_button_text">Запланировать</string>
+    <string name="recording_type_dialog_negative_button_text">Начать</string>
+    <string name="warning_reminder_before_text">Начало тренировки через минуту!</string>
+    <string name="warning_turn_off_doze_mode">Выключите энергосбережение</string>
 </resources>

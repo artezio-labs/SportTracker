@@ -23,6 +23,8 @@ class GpsLocationRequester(
     }
 
     override fun unsubscribeToLocationUpdates() {
-        locationManager.removeUpdates(locationListener)
+        if (::locationListener.isInitialized) {
+            locationManager.removeUpdates(locationListener)
+        }
     }
 }

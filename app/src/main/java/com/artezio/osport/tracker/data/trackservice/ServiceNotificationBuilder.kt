@@ -61,7 +61,11 @@ class ServiceNotificationBuilder(
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
             title = context.getString(R.string.notification_resumed)
-            NotificationCompat.Action(R.drawable.ic_baseline_pause_24, PAUSE_RECORDING, pendingIntent)
+            NotificationCompat.Action(
+                R.drawable.ic_baseline_pause_24,
+                PAUSE_RECORDING,
+                pendingIntent
+            )
         }
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_tracker)
@@ -73,6 +77,7 @@ class ServiceNotificationBuilder(
     }
 
     fun buildNotification(time: Double, distance: Double): Notification {
+        notificationManager.cancelAll()
         Log.d("notification_builder", "Time: $time, distance: $distance")
         return buildNotificationView(
             getTimerStringFromDouble(time),
