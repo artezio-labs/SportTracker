@@ -14,4 +14,5 @@ val EVENT_NAME_FORMATTER = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 
 const val TIMER_START_POINT = 0.0
 const val CADENCE_STEP_FILTER_VALUE = 3_000
-const val MINUTE = 60_000
+const val MINUTE_IN_MILLIS = 60_000L
+const val HOUR_IN_MILLIS = 1000 * 3600L

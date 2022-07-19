@@ -39,6 +39,7 @@ class TrackerViewModel @Inject constructor(
     private val getLastEventUseCase: GetLastEventUseCase,
     private val deleteEventUseCase: DeleteEventUseCase,
     private val accuracyFactory: AccuracyFactory,
+    private val updateEventUseCase: UpdateEventUseCase,
     private val mapper: LocationToPointMapper,
 ) : BaseViewModel() {
     val lastEventIdFlow: Flow<Long>
@@ -60,13 +61,17 @@ class TrackerViewModel @Inject constructor(
     fun getLocationsByEventIdWithAccuracy(id: Long) =
         getLocationsByEventIdUseCase.executeWithAccuracy(id)
 
+    fun updateEvent(id: Long, event: Event) = viewModelScope.launch(Dispatchers.IO) {
+        // todo переделать с новым entity
+    }
+
     suspend fun getLocationsByEventId(): Flow<List<Point>> {
         val id = getLastEventId()
         return id?.let { getLocationsByEventIdUseCase.execute(it) } ?: flowOf(emptyList())
     }
 
     suspend fun getLastEventId(): Long? = viewModelScope.async(Dispatchers.IO) {
-        return@async getLastEventUseCase.execute()?.id
+        return@async getLastEventUseCase.execute().id
     }.await()
 
     fun deleteLastEvent() = viewModelScope.launch(Dispatchers.IO) {
@@ -74,17 +79,20 @@ class TrackerViewModel @Inject constructor(
         deleteEventUseCase.execute(lastEvent.startDate)
     }
 
-    fun generateEvent() = viewModelScope.launch(Dispatchers.IO) {
-        val currentTime = System.currentTimeMillis()
-        val newEventName = formatEventName(currentTime)
-        val events = getAllEventsListUseCase.execute()
-        val event = Event(
-            name = buildEventName(newEventName, events),
-            startDate = currentTime,
-            sportsmanId = 0
-        )
-        Log.d("event_save", "Saved event: $event")
-        insertEventUseCase.execute(event)
+    fun generateEvent(isPlanned: Boolean, eventName: String = "", startDate: Long = 0L){
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentTime = System.currentTimeMillis()
+            val newEventName = formatEventName(currentTime)
+            val events = getAllEventsListUseCase.execute()
+            val event = Event(
+                name = eventName.ifEmpty { buildEventName(newEventName, events) },
+                startDate = if (startDate == 0L) currentTime else startDate,
+                sportsmanId = 0,
+            )
+            Log.d("event_save", "Saved event: $event")
+            insertEventUseCase.execute(event)
+            // todo также переделать с новым entity
+        }
     }
 
     fun startService(context: Context, lastEventId: Long) {
@@ -221,8 +229,7 @@ class TrackerViewModel @Inject constructor(
     }
 
     fun calculateCadence(data: List<PedometerData>): Int {
-        if (data.isEmpty()) return 0
-        return data.last().stepCount - data.first().stepCount
+        return EventInfoUtils.calculateAvgCadence(data)
     }
 
     fun observeGpsEnabled(context: Context): LiveData<Boolean> {

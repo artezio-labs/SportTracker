@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
                         if (systemServicePermissionsManager.hasNotificationPermissionEnabled()) {
                             if (!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
                                 Log.d("permissions_state", "All permissions is granted")
-                                createSessionChoosingDialog()
+                                navController.navigate(R.id.action_mainFragment_to_sessionRecordingFragment)
                             } else {
                                 Toast.makeText(
                                     this,
@@ -86,29 +86,6 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
-    }
-
-    private fun createSessionChoosingDialog() {
-        DialogBuilder(
-            this,
-            title = getString(R.string.recording_type_dialog_title),
-            message = getString(R.string.recording_type_dialog_description),
-            positiveButtonText = getString(R.string.recording_type_dialog_positive_button_text),
-            positiveButtonClick = { dialog, _ ->
-                dialog.cancel()
-                val bottomSheet = ScheduleTrackingBottomSheetDialog()
-                bottomSheet.show(
-                    supportFragmentManager,
-                    ScheduleTrackingBottomSheetDialog.TAG
-                )
-            },
-            negativeButtonText = getString(R.string.recording_type_dialog_negative_button_text),
-            negativeButtonClick = { dialog, _ ->
-                dialog.cancel()
-                navController.navigate(R.id.action_mainFragment_to_sessionRecordingFragment)
-            },
-            needsToShow = true
-        ).build()
     }
 
     // цепь для замены страшного вложенного ифа сверху

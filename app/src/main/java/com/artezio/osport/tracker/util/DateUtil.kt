@@ -38,3 +38,19 @@ fun formatTime(time: Double, resourceProvider: ResourceProvider): String {
 
 fun formatEventName(milliseconds: Long): String =
     EVENT_NAME_FORMATTER.format(Date(milliseconds))
+
+fun convertHoursOrMinutesToMilliseconds(time: Int, timeUnit: Int): Long {
+    return when (timeUnit) {
+        Calendar.HOUR -> time * HOUR_IN_MILLIS
+        Calendar.MINUTE -> time * MINUTE_IN_MILLIS
+        else -> throw IllegalArgumentException("Unknown time unit")
+    }
+}
+
+fun convertMillisTo(millis: Long, calendarTimeUnit: Int): Int {
+    return when (calendarTimeUnit) {
+        Calendar.HOUR -> (millis / HOUR_IN_MILLIS).toInt()
+        Calendar.MINUTE -> (millis / MINUTE_IN_MILLIS).toInt()
+        else -> 0
+    }
+}

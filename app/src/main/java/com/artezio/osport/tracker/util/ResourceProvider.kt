@@ -12,4 +12,7 @@ class ResourceProvider @Inject constructor(
 ) {
     fun getString(@StringRes id: Int): String =
         context.getString(id)
+
+    fun getStringArray(id: Int): Array<String> =
+        context.resources.getStringArray(id)
 }

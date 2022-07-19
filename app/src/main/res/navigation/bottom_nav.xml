@@ -72,6 +72,6 @@
             app:destination="@id/mainFragment"
             app:popUpTo="@id/backToMainDialog"
             app:popUpToInclusive="true" />
-    </dialog>
+    </dialog><action android:id="@+id/action_global_eventInfoFragment" app:destination="@id/eventInfoFragment"/>
 
 </navigation>

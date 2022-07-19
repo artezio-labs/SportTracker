@@ -14,6 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.artezio.osport.tracker.databinding.FragmentMainBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.main.recycler.EventsRecyclerAdapter
+import com.artezio.osport.tracker.presentation.main.viewpager.ViewPagerAdapter
+import com.artezio.osport.tracker.presentation.tracker.ScheduleTrackingBottomSheetDialog
+import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -21,28 +24,23 @@ import kotlinx.coroutines.launch
 class MainFragment : BaseFragment<FragmentMainBinding, MainViewModel>(), IFragment {
 
     override var onBackPressed: Boolean = false
-
     override val viewModel: MainViewModel by viewModels()
-    private val eventsAdapter: EventsRecyclerAdapter by lazy(LazyThreadSafetyMode.NONE) {
-        EventsRecyclerAdapter(this)
-    }
 
-    @SuppressLint("MissingPermission")
+    private lateinit var viewPagerAdapter: ViewPagerAdapter
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        Log.d("events", "onViewCreated: ")
-
-        binding.eventsRecyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = eventsAdapter
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.eventsWithDataFlow.collect {
-                    eventsAdapter.list = viewModel.buildListOfEvents(it)
-                }
-            }
+        viewPagerAdapter = ViewPagerAdapter(this)
+        binding.viewpager.adapter = viewPagerAdapter
+        TabLayoutMediator(binding.trackerTabs, binding.viewpager) { tab, position ->
+            tab.text = viewModel.getTabsTitles()[position]
+        }.attach()
+        binding.buttonPlanTrack.setOnClickListener {
+            val bottomSheet = ScheduleTrackingBottomSheetDialog()
+            bottomSheet.show(
+                childFragmentManager,
+                ScheduleTrackingBottomSheetDialog.TAG
+            )
         }
     }
 

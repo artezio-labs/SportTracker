@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.EventRecyclerItemBinding
 import com.artezio.osport.tracker.presentation.event.EventInfoFragmentArgs
+import com.artezio.osport.tracker.presentation.main.FinishedTracksFragment
 import com.artezio.osport.tracker.presentation.main.IFragment
 import com.artezio.osport.tracker.presentation.main.MainFragment
 import com.artezio.osport.tracker.util.millisecondsToDateFormat
@@ -52,8 +53,8 @@ class EventsRecyclerAdapter(
         }
 
         private fun navigate(item: Item) {
-            (fragment as MainFragment).findNavController().navigate(
-                R.id.action_mainFragment_to_eventInfoFragment,
+            (fragment as FinishedTracksFragment).findNavController().navigate(
+                R.id.action_global_eventInfoFragment,
                 EventInfoFragmentArgs((item as Item.Event).id).toBundle()
             )
         }

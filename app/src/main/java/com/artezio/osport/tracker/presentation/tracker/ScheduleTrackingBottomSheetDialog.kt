@@ -1,22 +1,26 @@
 package com.artezio.osport.tracker.presentation.tracker
 
 import android.app.*
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.text.format.DateFormat
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.Toast
+import androidx.fragment.app.viewModels
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.ScheduleTrackingBottomDialogLayoutBinding
-import com.artezio.osport.tracker.presentation.tracker.shedule.RecordingStartReceiver
-import com.artezio.osport.tracker.presentation.tracker.shedule.TrackerScheduler
-import com.artezio.osport.tracker.presentation.tracker.shedule.TrackerSchedulerLauncher
-import com.artezio.osport.tracker.util.MINUTE
+import com.artezio.osport.tracker.domain.model.Event
+import com.artezio.osport.tracker.util.HOUR_IN_MILLIS
+import com.artezio.osport.tracker.util.convertHoursOrMinutesToMilliseconds
+import com.artezio.osport.tracker.util.convertMillisTo
+import com.artezio.osport.tracker.util.millisecondsToDateFormat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.timepicker.MaterialTimePicker
+import com.google.android.material.timepicker.TimeFormat
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
@@ -24,92 +28,156 @@ import java.util.*
 class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
 
     private var dateStart: Long = 0
+    private var dateEnd: Long = 0
+    private var eventName: String = ""
+    private var eventId: Long = 0L
+    private var alreadyExists: Boolean = false
 
-    private val trackerScheduler: TrackerScheduler by lazy {
-        TrackerScheduler(requireContext())
-    }
+    private val viewModel: TrackerViewModel by viewModels()
+    private var pickedTime: Long = 0L
 
     private val binding: ScheduleTrackingBottomDialogLayoutBinding by lazy {
         val inflater = LayoutInflater.from(requireContext())
         ScheduleTrackingBottomDialogLayoutBinding.inflate(inflater)
     }
 
-    private val alarmManager: AlarmManager by lazy {
-        requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        eventId = arguments?.getLong("eventId") ?: 0L
+        eventName = arguments?.getString("eventName") ?: ""
+        dateStart = arguments?.getLong("startDate") ?: 0L
+        dateEnd = arguments?.getLong("endDate") ?: 0L
+        alreadyExists = arguments?.getBoolean("exists") ?: false
+
+        if (alreadyExists) {
+            binding.bottomSheetDialogTitle.text =
+                getString(R.string.schedule_tracking_bottom_sheet_title_edit)
+        }
+
+        setValues(eventName, dateStart, dateEnd)
+
+        binding.eventNameTIL.editText?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                eventName = p0.toString()
+            }
+
+            override fun afterTextChanged(p0: Editable?) {}
+
+        })
         binding.buttonStart.setOnClickListener {
-            setTime(binding.buttonStart)
+            pick(binding.buttonStart)
+        }
+        binding.buttonFinish.setOnClickListener {
+            pick(binding.buttonFinish)
         }
         binding.buttonSchedule.setOnClickListener {
-            if ((dateStart != 0L)) {
-//                trackerScheduler.schedule(dateStart)
-                TrackerSchedulerLauncher.launch(requireContext(), dateStart)
-                this.dismiss()
-                Toast.makeText(requireContext(), getString(R.string.train_planned_text), Toast.LENGTH_SHORT)
-                    .show()
+            if (alreadyExists) {
+                generateEvent()
             } else {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.time_start_and_finish_recording_warning),
-                    Toast.LENGTH_SHORT
-                ).show()
+                updateEvent()
             }
+
+        }
+        binding.buttonCancel.setOnClickListener {
+            this.dismiss()
         }
         return BottomSheetDialog(requireContext(), theme).apply {
             setContentView(binding.root)
         }
     }
 
-    private fun setTime(view: Button) {
-        Calendar.getInstance().apply {
-            this.set(Calendar.SECOND, 0)
-            this.set(Calendar.MILLISECOND, 0)
-            activity?.let {
-                DatePickerDialog(
-                    it,
-                    0,
-                    { _, year, month, dayOfMonth ->
-                        this.set(Calendar.YEAR, year)
-                        this.set(Calendar.MONTH, month)
-                        this.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                        TimePickerDialog(
-                            it,
-                            0,
-                            { _, hour, min ->
-                                this.set(Calendar.HOUR_OF_DAY, hour)
-                                this.set(Calendar.MINUTE, min)
-                                val dateFormatted = DateFormat.format("dd-MM-yyyy HH:mm", this)
-                                view.text = dateFormatted
-                                dateStart = this.timeInMillis
-                                Log.d("bottom_nav", "Time: $dateStart")
-                            },
-                            this.get(Calendar.HOUR_OF_DAY),
-                            this.get(Calendar.MINUTE),
-                            true
-                        ).show()
-                    },
-                    this.get(Calendar.YEAR),
-                    this.get(Calendar.MONTH),
-                    this.get(Calendar.DAY_OF_MONTH)
-                ).apply { datePicker.minDate = System.currentTimeMillis() }
-                    .show()
-            }
+    private fun setValues(name: String, startDate: Long, endDate: Long) {
+        if (name.isNotEmpty()) binding.eventNameTIL.editText?.setText(name)
+        if (startDate != 0L) binding.buttonStart.text = millisecondsToDateFormat(startDate)
+        if (endDate != 0L) binding.buttonFinish.text = millisecondsToDateFormat(endDate)
+    }
+
+    private fun updateEvent() {
+        val event = Event(
+            eventName,
+            dateStart,
+            dateEnd
+        )
+        viewModel.updateEvent(eventId, event)
+    }
+
+
+    private fun generateEvent() {
+        if (dateStart != 0L && dateEnd != 0L) {
+            viewModel.generateEvent(
+                isPlanned = true,
+                eventName = eventName,
+                startDate = dateStart
+            )
+            Log.d("eventId", eventId.toString())
+//            TrackerSchedulerLauncher.schedule(
+//                requireContext(),
+//                eventId + 1,
+//                dateStart,
+//                dateEnd,
+//                eventName,
+//            )
+            this.dismiss()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.train_planned_text),
+                Toast.LENGTH_SHORT
+            )
+                .show()
+        } else {
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.time_start_and_finish_recording_warning),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
-    private fun setStartAlarm() {
-        val intent = Intent(requireContext(), RecordingStartReceiver::class.java).apply {
-            putExtra("time", dateStart)
+    fun pick(view: Button) {
+        val picker = MaterialDatePicker.Builder.datePicker()
+            .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+            .setTitleText("Выберите дату")
+            .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+            .build()
+        picker.addOnPositiveButtonClickListener {
+            pickedTime = it
+            pickTime(dateStart, view)
+            picker.dismiss()
         }
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(),
-            START_NOTIFICATION_CODE,
-            intent,
-            PendingIntent.FLAG_CANCEL_CURRENT
-        )
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, dateStart - MINUTE, pendingIntent)
+        picker.show(childFragmentManager, "date_picker")
+    }
+
+    private fun pickTime(startDate: Long, view: Button) {
+        val picker = MaterialTimePicker.Builder()
+            .setHour(convertMillisTo(startDate, Calendar.HOUR))
+            .setMinute(convertMillisTo(startDate, Calendar.MINUTE))
+            .setTimeFormat(TimeFormat.CLOCK_24H)
+            .setPositiveButtonText("Ок")
+            .setNegativeButtonText("Отмена")
+            .build()
+        picker.addOnPositiveButtonClickListener {
+            pickedTime += (convertHoursOrMinutesToMilliseconds(
+                picker.hour,
+                Calendar.HOUR
+            ) + convertHoursOrMinutesToMilliseconds(
+                picker.minute,
+                Calendar.MINUTE
+            )) - 3 * HOUR_IN_MILLIS
+            when (view.id) {
+                binding.buttonStart.id -> {
+                    binding.buttonStart.text = millisecondsToDateFormat(pickedTime)
+                    dateStart = pickedTime
+                }
+                binding.buttonFinish.id -> {
+                    binding.buttonFinish.text = millisecondsToDateFormat(pickedTime)
+                    dateEnd = pickedTime
+                }
+                else -> {}
+            }
+            picker.dismiss()
+        }
+        picker.show(childFragmentManager, "time_picker")
     }
 
     override fun getTheme(): Int {

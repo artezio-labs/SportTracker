@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.artezio.osport.tracker.util.MINUTE
+import com.artezio.osport.tracker.util.MINUTE_IN_MILLIS
 
 class TrackerWorkerScheduler(
     private val context: Context,
@@ -39,7 +39,7 @@ class TrackerWorkerScheduler(
             intentAccuracy,
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
-        alarmManager.setExact(AlarmManager.RTC, startTime - MINUTE, pendingIntentAccuracy)
+        alarmManager.setExact(AlarmManager.RTC, startTime - MINUTE_IN_MILLIS, pendingIntentAccuracy)
         return Result.success()
     }
     companion object {

@@ -4,7 +4,7 @@ import android.util.Log
 import com.artezio.osport.tracker.data.repository.PedometerRepository
 import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.util.CADENCE_STEP_FILTER_VALUE
-import com.artezio.osport.tracker.util.MINUTE
+import com.artezio.osport.tracker.util.MINUTE_IN_MILLIS
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -17,7 +17,7 @@ class GetDataForCadenceUseCase @Inject constructor(
         } else {
             Log.d("CADENCE", "pedometer data: $data")
             val result = mutableListOf<PedometerData>()
-            val dataInLastMinute = data?.filter { (data.last().time - it.time) <= MINUTE }
+            val dataInLastMinute = data?.filter { (data.last().time - it.time) <= MINUTE_IN_MILLIS }
             Log.d(
                 "CADENCE",
                 "pedometer data after filter: $dataInLastMinute \n data size: ${dataInLastMinute.size}"

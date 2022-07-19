@@ -7,15 +7,12 @@ import com.artezio.osport.tracker.domain.model.PedometerData
 object EventInfoUtils {
 
     fun calculateAvgCadence(data: List<PedometerData>): Int {
-        if (data.isEmpty()) return 0
-        if (data.size == 1) return data[0].stepCount
-        val cadences = mutableListOf<Int>()
-        for (i in 1 until data.size - 1) {
-            val sublist = data.subList(0, i)
-            val currentMinuteData = sublist.filter { (sublist.last().time - it.time) <= MINUTE }
-            cadences.add(currentMinuteData.last().stepCount - currentMinuteData.first().stepCount)
-        }
-        return cadences.average().toInt()
+        if (data.size <= 1) return 0
+        val lastSteps = (data.last().stepCount * 60)
+        val time = (data.last().time - data.first().time) / 1000
+        val cadence = if (time == 0L) 0 else lastSteps / time
+        Log.d("cadence", "New cadence: $cadence")
+        return cadence.toInt()
     }
 
     fun calculateDistance(locations: List<LocationPointData>): Double {
