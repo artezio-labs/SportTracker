@@ -109,6 +109,7 @@ dependencies {
     // hilt
     implementation "com.google.dagger:hilt-android:2.41"
     kapt "com.google.dagger:hilt-compiler:2.41"
+    kapt "androidx.hilt:hilt-compiler:1.0.0"
 
     // navigation
     def nav_version = "2.4.0"
@@ -181,11 +182,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     androidTestImplementation 'androidx.test:runner:1.4.0'
     androidTestImplementation 'androidx.test:rules:1.4.0'
-//    androidTestImplementation "androidx.test.espresso:espresso-web:3.3.0"
-//    androidTestImplementation "androidx.test.espresso:espresso-contrib:3.3.0"
-//    androidTestImplementation "androidx.test.espresso:espresso-accessibility:3.3.0"
-//    debugImplementation "androidx.fragment:fragment-testing:1.4.1"
-//    testImplementation 'org.hamcrest:hamcrest-core:2.2'
 
 
     // kakao
@@ -200,6 +196,8 @@ dependencies {
 
     // work manager
     implementation 'androidx.work:work-runtime-ktx:2.7.1'
+    implementation 'androidx.hilt:hilt-common:1.0.0'
+    implementation 'androidx.hilt:hilt-work:1.0.0'
 }
 
 kapt {

@@ -15,6 +15,7 @@ import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
+import com.artezio.osport.tracker.domain.model.PlannedEvent
 import com.artezio.osport.tracker.domain.usecases.*
 import com.artezio.osport.tracker.presentation.BaseViewModel
 import com.artezio.osport.tracker.presentation.TrackService
@@ -38,9 +39,12 @@ class TrackerViewModel @Inject constructor(
     private val getDataForCadenceUseCase: GetDataForCadenceUseCase,
     private val getLastEventUseCase: GetLastEventUseCase,
     private val deleteEventUseCase: DeleteEventUseCase,
-    private val accuracyFactory: AccuracyFactory,
     private val updateEventUseCase: UpdateEventUseCase,
-    private val mapper: LocationToPointMapper,
+    private val getPlannedEventByIdUseCase: GetPlannedEventByIdUseCase,
+    private val insertPlannedEventUseCase: InsertPlannedEventUseCase,
+    private val getAllPlannedEventsUseCase: GetAllPlannedEventsUseCase,
+    private val accuracyFactory: AccuracyFactory,
+    private val mapper: LocationToPointMapper
 ) : BaseViewModel() {
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
@@ -61,8 +65,16 @@ class TrackerViewModel @Inject constructor(
     fun getLocationsByEventIdWithAccuracy(id: Long) =
         getLocationsByEventIdUseCase.executeWithAccuracy(id)
 
-    fun updateEvent(id: Long, event: Event) = viewModelScope.launch(Dispatchers.IO) {
-        // todo переделать с новым entity
+    fun updateEvent(id: Long, event: PlannedEvent) = viewModelScope.launch(Dispatchers.IO) {
+        val plannedEvent = getPlannedEventByIdUseCase.execute(id)
+        Log.d("planner_worker_states", "Last planned event from db: $plannedEvent")
+        val updatedEvent = plannedEvent.copy(
+            name = event.name,
+            startDate = event.startDate,
+            endDate = event.endDate,
+        )
+        Log.d("planner_worker_states", "Updated event (last): $updatedEvent")
+        updateEventUseCase.execute(id, updatedEvent)
     }
 
     suspend fun getLocationsByEventId(): Flow<List<Point>> {
@@ -79,7 +91,7 @@ class TrackerViewModel @Inject constructor(
         deleteEventUseCase.execute(lastEvent.startDate)
     }
 
-    fun generateEvent(isPlanned: Boolean, eventName: String = "", startDate: Long = 0L){
+    fun generateEvent(eventName: String = "", startDate: Long = 0L){
         viewModelScope.launch(Dispatchers.IO) {
             val currentTime = System.currentTimeMillis()
             val newEventName = formatEventName(currentTime)
@@ -91,7 +103,18 @@ class TrackerViewModel @Inject constructor(
             )
             Log.d("event_save", "Saved event: $event")
             insertEventUseCase.execute(event)
-            // todo также переделать с новым entity
+        }
+    }
+
+    fun generatePlannedEvent(eventName: String = "",  dateStart: Long, dateEnd: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val events = getAllPlannedEventsUseCase.execute().map { it.name }
+            val plannedEvent = PlannedEvent(
+                name = eventName.ifEmpty { buildEventName(formatEventName(dateStart), events) },
+                startDate = dateStart,
+                endDate = dateEnd,
+            )
+            insertPlannedEvent(plannedEvent)
         }
     }
 
@@ -236,5 +259,9 @@ class TrackerViewModel @Inject constructor(
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         return liveData { emit(isGpsEnabled) }
+    }
+
+    fun insertPlannedEvent(event: PlannedEvent) = viewModelScope.launch(Dispatchers.IO) {
+        insertPlannedEventUseCase.execute(event)
     }
 }

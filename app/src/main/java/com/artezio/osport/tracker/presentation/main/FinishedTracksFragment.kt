@@ -9,7 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.artezio.osport.tracker.databinding.FragmentFinishedTracksBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
-import com.artezio.osport.tracker.presentation.main.recycler.EventsRecyclerAdapter
+import com.artezio.osport.tracker.presentation.main.recycler.finished_events.EventsRecyclerAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

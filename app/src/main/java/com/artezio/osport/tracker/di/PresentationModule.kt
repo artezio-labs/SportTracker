@@ -1,6 +1,7 @@
 package com.artezio.osport.tracker.di
 
 import android.content.Context
+import com.artezio.osport.tracker.data.mappers.DomainPlannedEventsToPresentationMapper
 import com.artezio.osport.tracker.data.mappers.DomainToPresentationMapper
 import com.artezio.osport.tracker.data.mappers.LocationToPointMapper
 import com.artezio.osport.tracker.data.repository.EventsRepository
@@ -140,4 +141,28 @@ object PresentationModule {
     @Provides
     fun provideObserveDistanceUseCase(repository: LocationRepository) =
         ObserveDistanceUseCase(repository)
+
+    @Provides
+    fun providesGetPlannedEventByIdUseCase(repository: EventsRepository) =
+        GetPlannedEventByIdUseCase(repository)
+
+    @Provides
+    fun providesDeletePlannedEventUseCase(repository: EventsRepository) =
+        DeletePlannedEventUseCase(repository)
+
+    @Provides
+    fun providesGetAllPlannedEventsUseCase(repository: EventsRepository) =
+        GetAllPlannedEventsUseCase(repository)
+
+    @Provides
+    fun providesDomainPlannedEventsToPresentationMapper() =
+        DomainPlannedEventsToPresentationMapper()
+
+    @Provides
+    fun providesInsertPlannedEventUseCase(repository: EventsRepository) =
+        InsertPlannedEventUseCase(repository)
+
+    @Provides
+    fun providesGetLastPlannedEventUseCase(repository: EventsRepository) =
+        GetLastPlannedEventUseCase(repository)
 }

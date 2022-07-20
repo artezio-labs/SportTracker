@@ -54,7 +54,7 @@
             tools:text="Запланировано ✔ ❌" />
 
         <ImageView
-            android:id="@+id/imageViewInfoButton"
+            android:id="@+id/imageViewDeleteButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_delete"

@@ -1,4 +1,4 @@
-package com.artezio.osport.tracker.presentation.main.recycler
+package com.artezio.osport.tracker.presentation.main.recycler.finished_events
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -9,7 +9,7 @@ import com.artezio.osport.tracker.databinding.EventRecyclerItemBinding
 import com.artezio.osport.tracker.presentation.event.EventInfoFragmentArgs
 import com.artezio.osport.tracker.presentation.main.FinishedTracksFragment
 import com.artezio.osport.tracker.presentation.main.IFragment
-import com.artezio.osport.tracker.presentation.main.MainFragment
+import com.artezio.osport.tracker.presentation.main.recycler.Item
 import com.artezio.osport.tracker.util.millisecondsToDateFormat
 
 class EventsRecyclerAdapter(

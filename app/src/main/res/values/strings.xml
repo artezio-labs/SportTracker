@@ -81,6 +81,7 @@
     <string name="recording_type_dialog_negative_button_text">Начать</string>
     <string name="warning_reminder_before_text">Начало тренировки через минуту!</string>
     <string name="warning_turn_off_doze_mode">Выключите энергосбережение</string>
+    <string name="schedule_tracking_bottom_sheet_button_update_text">Обновить</string>
 
     <string-array name="tabs_titles">
         <item>Запланированные</item>

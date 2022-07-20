@@ -1,6 +1,6 @@
 package com.artezio.osport.tracker.presentation.tracker
 
-import android.app.*
+import android.app.Dialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,7 +11,8 @@ import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.ScheduleTrackingBottomDialogLayoutBinding
-import com.artezio.osport.tracker.domain.model.Event
+import com.artezio.osport.tracker.domain.model.PlannedEvent
+import com.artezio.osport.tracker.presentation.tracker.shedule.TrackerSchedulerLauncher
 import com.artezio.osport.tracker.util.HOUR_IN_MILLIS
 import com.artezio.osport.tracker.util.convertHoursOrMinutesToMilliseconds
 import com.artezio.osport.tracker.util.convertMillisTo
@@ -42,15 +43,19 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        eventId = arguments?.getLong("eventId") ?: 0L
+        eventId = arguments?.getLong("eventId") ?: -1L
+        Log.d("planner_worker_states", "Event id in dialog: $eventId")
         eventName = arguments?.getString("eventName") ?: ""
         dateStart = arguments?.getLong("startDate") ?: 0L
         dateEnd = arguments?.getLong("endDate") ?: 0L
         alreadyExists = arguments?.getBoolean("exists") ?: false
 
+
         if (alreadyExists) {
             binding.bottomSheetDialogTitle.text =
                 getString(R.string.schedule_tracking_bottom_sheet_title_edit)
+            binding.buttonSchedule.text =
+                getString(R.string.schedule_tracking_bottom_sheet_button_update_text)
         }
 
         setValues(eventName, dateStart, dateEnd)
@@ -72,10 +77,12 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
             pick(binding.buttonFinish)
         }
         binding.buttonSchedule.setOnClickListener {
-            if (alreadyExists) {
-                generateEvent()
-            } else {
-                updateEvent()
+            if (checkRequiredFields()) {
+                if (alreadyExists) {
+                    updateEvent()
+                } else {
+                    generateEvent()
+                }
             }
 
         }
@@ -94,44 +101,56 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
     }
 
     private fun updateEvent() {
-        val event = Event(
+        val event = PlannedEvent(
             eventName,
             dateStart,
             dateEnd
         )
+        Log.d("planner_worker_states", "updateEvent: $event \n Event id before update: $eventId")
         viewModel.updateEvent(eventId, event)
+        TrackerSchedulerLauncher.schedule(
+            requireContext(),
+            eventId + 1,
+            dateStart,
+            dateEnd,
+            eventName,
+        )
+        this.dismiss()
     }
 
-
-    private fun generateEvent() {
-        if (dateStart != 0L && dateEnd != 0L) {
-            viewModel.generateEvent(
-                isPlanned = true,
-                eventName = eventName,
-                startDate = dateStart
-            )
-            Log.d("eventId", eventId.toString())
-//            TrackerSchedulerLauncher.schedule(
-//                requireContext(),
-//                eventId + 1,
-//                dateStart,
-//                dateEnd,
-//                eventName,
-//            )
-            this.dismiss()
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.train_planned_text),
-                Toast.LENGTH_SHORT
-            )
-                .show()
-        } else {
+    private fun checkRequiredFields(): Boolean {
+        return if (dateStart != 0L && dateEnd != 0L) true
+        else {
             Toast.makeText(
                 requireContext(),
                 getString(R.string.time_start_and_finish_recording_warning),
                 Toast.LENGTH_SHORT
             ).show()
+            false
         }
+    }
+
+
+    private fun generateEvent() {
+        viewModel.generatePlannedEvent(eventName, dateStart, dateEnd)
+        viewModel.generateEvent(
+            eventName = eventName,
+            startDate = dateStart
+        )
+        Log.d("eventId", eventId.toString())
+        TrackerSchedulerLauncher.schedule(
+            requireContext(),
+            eventId + 1,
+            dateStart,
+            dateEnd,
+            eventName,
+        )
+        this.dismiss()
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.train_planned_text),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     fun pick(view: Button) {

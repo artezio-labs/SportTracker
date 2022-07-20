@@ -1,6 +1,7 @@
 package com.artezio.osport.tracker.domain.usecases
 
 import com.artezio.osport.tracker.data.repository.EventsRepository
+import com.artezio.osport.tracker.domain.model.PlannedEvent
 import javax.inject.Inject
 
 open class UpdateEventUseCase @Inject constructor(
@@ -11,4 +12,7 @@ open class UpdateEventUseCase @Inject constructor(
 
     suspend fun execute(startDate: Long, name: String, time: Double) =
         repository.updateEvent(startDate, name, time)
+
+    suspend fun execute(id: Long, event: PlannedEvent) =
+        repository.updatePlannedEvent(id, event)
 }

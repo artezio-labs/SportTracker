@@ -114,7 +114,7 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
 
         binding.fabStart.setOnClickListener {
             fusedLocationProvider.removeLocationUpdates(locationCallback)
-            viewModel.generateEvent(isPlanned = false)
+            viewModel.generateEvent()
             startService()
         }
 

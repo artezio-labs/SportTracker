@@ -1,7 +1,10 @@
 package com.artezio.osport.tracker.data.db
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.OnConflictStrategy.REPLACE
+import androidx.room.Query
+import androidx.room.Transaction
 import com.artezio.osport.tracker.domain.model.Event
 import com.artezio.osport.tracker.domain.model.EventWithData
 import com.artezio.osport.tracker.domain.model.PlannedEvent
@@ -90,12 +93,37 @@ interface EventsDao {
     suspend fun getLastEvent(): Event
 
     @Query("SELECT * FROM planned_events")
-    fun getAllPlannedEvents(): Flow<List<PlannedEvent>>
+    fun getAllPlannedEventsFlow(): Flow<List<PlannedEvent>>
 
-    @Update(onConflict = REPLACE)
-    fun updatePlannedEvent(event: PlannedEvent)
+    @Query(
+        """
+        UPDATE planned_events
+        SET name = :name,
+            startDate = :startDate,
+            endDate = :endDate
+        WHERE id = :id
+    """
+    )
+    fun updatePlannedEvent(id: Long, name: String, startDate: Long, endDate: Long)
 
     @Query("DELETE FROM planned_events WHERE id = :id")
     suspend fun deletePlannedEventById(id: Long)
 
+    @Query("SELECT * FROM planned_events WHERE id = :id")
+    suspend fun getPlannedEventById(id: Long): PlannedEvent
+
+    @Insert(onConflict = REPLACE)
+    suspend fun insertPlannedEvent(event: PlannedEvent)
+
+    @Query(
+        """
+        SELECT * 
+        FROM planned_events
+        WHERE id = (SELECT MAX(id) FROM planned_events)
+    """
+    )
+    suspend fun getLastPlannedEvent(): PlannedEvent
+
+    @Query("SELECT * FROM planned_events")
+    fun getAllPlannedEvents(): List<PlannedEvent>
 }

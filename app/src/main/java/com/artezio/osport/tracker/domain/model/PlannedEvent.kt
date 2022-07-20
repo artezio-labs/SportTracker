@@ -11,4 +11,8 @@ data class PlannedEvent(
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L
+
+    override fun toString(): String {
+        return "PlannedEvent(id='$id', name='$name', startDate=$startDate, endDate=$endDate)"
+    }
 }

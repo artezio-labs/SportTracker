@@ -205,14 +205,12 @@ class TrackService : LifecycleService() {
                 onStartService(intent)
             }
             START_PLANNED_SERVICE -> {
-                planned = true
                 onStartService(intent)
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
                 stopForeground(true)
                 stopSelf()
-                planned = false
                 serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
             }
             PAUSE_FOREGROUND_SERVICE -> {
@@ -222,7 +220,6 @@ class TrackService : LifecycleService() {
                 serviceLifecycleState.postValue(ServiceLifecycleState.PAUSED)
                 isPaused = true
                 timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
-//                timerValueLiveData.value?.let { notificationBuilder.buildNotification(it, distanceToNotification) }
             }
             RESUME_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service resumed!")

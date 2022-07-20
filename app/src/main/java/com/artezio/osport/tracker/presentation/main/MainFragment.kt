@@ -1,27 +1,33 @@
 package com.artezio.osport.tracker.presentation.main
 
-import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
+import com.artezio.osport.tracker.R
+import com.artezio.osport.tracker.data.permissions.PermissionsManager
+import com.artezio.osport.tracker.data.permissions.SystemServicePermissionsManager
 import com.artezio.osport.tracker.databinding.FragmentMainBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
-import com.artezio.osport.tracker.presentation.main.recycler.EventsRecyclerAdapter
+import com.artezio.osport.tracker.presentation.MainActivity
 import com.artezio.osport.tracker.presentation.main.viewpager.ViewPagerAdapter
 import com.artezio.osport.tracker.presentation.tracker.ScheduleTrackingBottomSheetDialog
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainFragment : BaseFragment<FragmentMainBinding, MainViewModel>(), IFragment {
+
+    private val permissionsManager: PermissionsManager by lazy {
+        PermissionsManager(activity as MainActivity)
+    }
+    private val systemServicePermissionsManager by lazy {
+        SystemServicePermissionsManager(requireContext())
+    }
 
     override var onBackPressed: Boolean = false
     override val viewModel: MainViewModel by viewModels()
@@ -36,11 +42,36 @@ class MainFragment : BaseFragment<FragmentMainBinding, MainViewModel>(), IFragme
             tab.text = viewModel.getTabsTitles()[position]
         }.attach()
         binding.buttonPlanTrack.setOnClickListener {
-            val bottomSheet = ScheduleTrackingBottomSheetDialog()
-            bottomSheet.show(
-                childFragmentManager,
-                ScheduleTrackingBottomSheetDialog.TAG
-            )
+            val isNotificationsEnabled =
+                systemServicePermissionsManager.hasNotificationPermissionEnabled()
+            val isPowerSafeModeEnabled =
+                systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()
+            Log.d("permissions_states", "$isNotificationsEnabled $isPowerSafeModeEnabled")
+            Log.d("permissions_states", "Manufacturer: ${Build.MANUFACTURER}")
+            if (permissionsManager.hasLocationPermissionsGranted()) {
+                if (systemServicePermissionsManager.hasNotificationPermissionEnabled()) {
+                    if (!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
+                        Log.d("permissions_state", "All permissions is granted")
+                        val bottomSheet = ScheduleTrackingBottomSheetDialog()
+                        bottomSheet.show(
+                            childFragmentManager,
+                            ScheduleTrackingBottomSheetDialog.TAG
+                        )
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.warning_turn_off_doze_mode),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        systemServicePermissionsManager.sendUserToPowerSettings()
+                    }
+                } else {
+                    systemServicePermissionsManager.sendUserToAppNotificationSettings()
+                }
+            } else {
+                permissionsManager.request()
+            }
+
         }
     }
 
