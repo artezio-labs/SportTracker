@@ -7,12 +7,13 @@ import androidx.room.PrimaryKey
 data class PlannedEvent(
     val name: String,
     val startDate: Long,
-    val endDate: Long,
+    val duration: Int = 120,
+    val calibrationTime: Int = 1
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L
 
     override fun toString(): String {
-        return "PlannedEvent(id='$id', name='$name', startDate=$startDate, endDate=$endDate)"
+        return "PlannedEvent(id='$id', name='$name', startDate=$startDate, duration=$duration)"
     }
 }

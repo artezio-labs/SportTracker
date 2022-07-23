@@ -100,11 +100,11 @@ interface EventsDao {
         UPDATE planned_events
         SET name = :name,
             startDate = :startDate,
-            endDate = :endDate
+            duration = :duration
         WHERE id = :id
     """
     )
-    fun updatePlannedEvent(id: Long, name: String, startDate: Long, endDate: Long)
+    fun updatePlannedEvent(id: Long, name: String, startDate: Long, duration: Int)
 
     @Query("DELETE FROM planned_events WHERE id = :id")
     suspend fun deletePlannedEventById(id: Long)

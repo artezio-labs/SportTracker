@@ -27,6 +27,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import java.util.regex.Pattern
 import javax.inject.Inject
 
 @HiltViewModel
@@ -71,7 +72,8 @@ class TrackerViewModel @Inject constructor(
         val updatedEvent = plannedEvent.copy(
             name = event.name,
             startDate = event.startDate,
-            endDate = event.endDate,
+            duration = event.duration,
+            calibrationTime = event.calibrationTime
         )
         Log.d("planner_worker_states", "Updated event (last): $updatedEvent")
         updateEventUseCase.execute(id, updatedEvent)
@@ -91,7 +93,7 @@ class TrackerViewModel @Inject constructor(
         deleteEventUseCase.execute(lastEvent.startDate)
     }
 
-    fun generateEvent(eventName: String = "", startDate: Long = 0L){
+    fun generateEvent(eventName: String = "", startDate: Long = 0L) {
         viewModelScope.launch(Dispatchers.IO) {
             val currentTime = System.currentTimeMillis()
             val newEventName = formatEventName(currentTime)
@@ -106,13 +108,14 @@ class TrackerViewModel @Inject constructor(
         }
     }
 
-    fun generatePlannedEvent(eventName: String = "",  dateStart: Long, dateEnd: Long) {
+    fun generatePlannedEvent(eventName: String = "", dateStart: Long, duration: Int = 1, calibrationTime: Int = 1) {
         viewModelScope.launch(Dispatchers.IO) {
             val events = getAllPlannedEventsUseCase.execute().map { it.name }
             val plannedEvent = PlannedEvent(
                 name = eventName.ifEmpty { buildEventName(formatEventName(dateStart), events) },
                 startDate = dateStart,
-                endDate = dateEnd,
+                duration = if (duration == 0) 1 else duration,
+                calibrationTime = if (calibrationTime == 0) 1 else calibrationTime,
             )
             insertPlannedEvent(plannedEvent)
         }
@@ -263,5 +266,16 @@ class TrackerViewModel @Inject constructor(
 
     fun insertPlannedEvent(event: PlannedEvent) = viewModelScope.launch(Dispatchers.IO) {
         insertPlannedEventUseCase.execute(event)
+    }
+
+    fun validateString(string: String, pattern: StringValidationPattern): Boolean {
+        return when (pattern) {
+            StringValidationPattern.DATE -> {
+                Pattern.compile("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$").matcher(string).matches()
+            }
+            StringValidationPattern.NUMBER -> {
+                Pattern.compile("^\\d+$").matcher(string).matches() && string != "0"
+            }
+        }
     }
 }

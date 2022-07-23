@@ -7,6 +7,9 @@ import kotlin.math.roundToInt
 fun millisecondsToDateFormat(milliseconds: Long): String =
     DATE_FORMATTER.format(Date(milliseconds))
 
+fun millisecondsToDateFormatForPlanning(milliseconds: Long): String =
+    DATE_FORMATTER_FOR_PLANNING.format(Date(milliseconds))
+
 fun dateToMilliseconds(date: String): Long =
     DATE_FORMATTER.parse(date).time
 

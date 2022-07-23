@@ -25,12 +25,14 @@ class TrackerStartPlanningTrainWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val eventName = inputData.getString(EVENT_NAME) ?: ""
         val plannedEvent = getLastPlannedEventUseCase.execute()
+        val timerDelay = inputData.getLong(TIMER_DELAY, 0)
         val lastEventId = getLastEventId()
         deletePlannedEventUseCase.execute(if (plannedEvent != null) plannedEvent.id else 0L)
         val intent = Intent(context, TrackService::class.java).apply {
             action = START_PLANNED_SERVICE
             putExtra(EVENT_ID, lastEventId)
             putExtra(EVENT_NAME, eventName)
+            putExtra(TIMER_DELAY, timerDelay)
         }
         context.startService(intent)
         return Result.success()
@@ -48,5 +50,6 @@ class TrackerStartPlanningTrainWorker @AssistedInject constructor(
     companion object {
         private const val EVENT_NAME = "eventName"
         private const val EVENT_ID = "eventId"
+        private const val TIMER_DELAY = "timer_delay"
     }
 }

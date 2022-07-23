@@ -47,8 +47,8 @@ class PlannedEventsRecyclerAdapter(
             val event = item as Item.PlannedEvent
             binding.textViewEventTitle.text = event.eventName
             binding.textViewEventStartDate.text = millisecondsToDateFormat(event.startDate)
-            binding.textViewEventEndDate.text =
-                if (event.endDate != null) millisecondsToDateFormat(event.endDate) else ""
+            val durationString = "Длительность: ${item.duration} мин."
+            binding.textViewEventEndDate.text = durationString
             binding.root.setOnClickListener {
                 showBottomSheetDialog(event)
             }
@@ -80,7 +80,8 @@ class PlannedEventsRecyclerAdapter(
                     "eventId" to event.id,
                     "eventName" to event.eventName,
                     "startDate" to event.startDate,
-                    "endDate" to event.endDate,
+                    "duration" to event.duration,
+                    "calibration" to event.calibrationTime,
                     "exists" to true
                 )
             }

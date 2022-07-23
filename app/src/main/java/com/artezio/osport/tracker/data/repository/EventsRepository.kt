@@ -34,7 +34,7 @@ class EventsRepository @Inject constructor(
     }
 
     override suspend fun updatePlannedEvent(id: Long, event: PlannedEvent) {
-        dao.updatePlannedEvent(id, event.name, event.startDate, event.endDate)
+        dao.updatePlannedEvent(id, event.name, event.startDate, event.duration)
     }
 
     override suspend fun updateEventName(name: String, startDate: Long) {

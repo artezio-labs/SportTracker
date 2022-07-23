@@ -70,7 +70,7 @@
     <string name="recording_start_button_text">Начало Записи</string>
     <string name="recording_finish_button_text">Конец Записи</string>
     <string name="schedule_tracking_bottom_sheet_title_edit">Изменить</string>
-    <string name="time_to_start_recording_text">Выберите время начала сессии</string>
+    <string name="time_to_start_recording_text">Планирование тренировки</string>
     <string name="button_plan_session_text">Ок</string>
     <string name="train_planned_text">Тренировка запланирована!</string>
     <string name="warning_text">НАПОМИНАНИЕ</string>
@@ -82,6 +82,7 @@
     <string name="warning_reminder_before_text">Начало тренировки через минуту!</string>
     <string name="warning_turn_off_doze_mode">Выключите энергосбережение</string>
     <string name="schedule_tracking_bottom_sheet_button_update_text">Обновить</string>
+    <string name="date_range_pick_warning">Неверно выбран временной интервал!</string>
 
     <string-array name="tabs_titles">
         <item>Запланированные</item>

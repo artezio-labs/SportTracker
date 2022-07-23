@@ -14,7 +14,7 @@ import com.artezio.osport.tracker.domain.model.*
         TrackingStateModel::class,
         PlannedEvent::class
     ],
-    version = 5
+    version = 6
 )
 @TypeConverters(Converters::class)
 abstract class TrackerDb : RoomDatabase() {

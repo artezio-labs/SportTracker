@@ -206,11 +206,27 @@ class TrackService : LifecycleService() {
             }
             START_PLANNED_SERVICE -> {
                 onStartService(intent)
+                val delay = intent.getLongExtra("timer_delay", 0L)
+                if (delay != 0L) {
+                    Timer().schedule(object : TimerTask() {
+                        override fun run() {
+                            sensorManager.unregisterListener(sensorEventListener)
+                            removeLocationUpdates()
+                            stopSelf()
+                            stopForeground(true)
+                            serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
+                        }
+                    }, delay)
+                } else {
+                    Log.d("timer_delay", "Wrong delay: $delay")
+                }
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
-                stopForeground(true)
+                sensorManager.unregisterListener(sensorEventListener)
+                removeLocationUpdates()
                 stopSelf()
+                stopForeground(true)
                 serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
             }
             PAUSE_FOREGROUND_SERVICE -> {
@@ -219,7 +235,12 @@ class TrackService : LifecycleService() {
                 removeLocationUpdates()
                 serviceLifecycleState.postValue(ServiceLifecycleState.PAUSED)
                 isPaused = true
-                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
+                timerValueLiveData.value?.let {
+                    notificationBuilder.notify(
+                        it,
+                        distanceToNotification
+                    )
+                }
             }
             RESUME_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service resumed!")
@@ -238,7 +259,12 @@ class TrackService : LifecycleService() {
                 }
                 serviceLifecycleState.postValue(ServiceLifecycleState.RESUMED)
                 isPaused = false
-                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
+                timerValueLiveData.value?.let {
+                    notificationBuilder.notify(
+                        it,
+                        distanceToNotification
+                    )
+                }
             }
         }
         return START_STICKY
@@ -364,7 +390,12 @@ class TrackService : LifecycleService() {
             if (!isPaused) {
                 time++
                 timerValueLiveData.postValue(time)
-                timerValueLiveData.value?.let { notificationBuilder.notify(it, distanceToNotification) }
+                timerValueLiveData.value?.let {
+                    notificationBuilder.notify(
+                        it,
+                        distanceToNotification
+                    )
+                }
             }
         }
     }

@@ -17,7 +17,6 @@
         <!-- Это нужно чтобы вылючить Dark Mode на некоторых телефонах, например Xiaomi -->
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
         <!-- Date and time picker dialogs theme -->
-<!--        <item name="android:datePickerDialogTheme">@style/TimeAndDatePickerDialogsTheme</item>-->
     </style>
 
     <style name="Theme.SportTracker.NoActionBar">
@@ -37,6 +36,10 @@
 
     <style name="CustomBottomSheet" parent="Widget.MaterialComponents.BottomSheet">
         <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
+        <item name="behavior_skipCollapsed">true</item>
+        <item name="behavior_fitToContents">true</item>
+        <item name="behavior_peekHeight">1000dp</item> // yep, that helped to skip collapsed state at initial
+        <item name="behavior_hideable">true</item>
     </style>
 
     <style name="CustomShapeAppearanceBottomSheetDialog" parent="">
@@ -60,5 +63,16 @@
     <style name="TextButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
         <item name="android:textColor">@color/app_theme_color</item>
         <item name="android:backgroundTint">@android:color/transparent</item>
+    </style>
+
+    <!-- Bottom sheet full screen -->
+    <style name="Widget.MyApp.BottomSheet.Modal" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="behavior_skipCollapsed">true</item>
+        <item name="behavior_fitToContents">true</item>
+        <item name="behavior_peekHeight">1000dp</item> // yep, that helped to skip collapsed state at initial
+        <item name="behavior_hideable">true</item>
+    </style>
+    <style name="Theme.MyApp.BottomSheetDialog" parent="Theme.Design.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.MyApp.BottomSheet.Modal</item>
     </style>
 </resources>

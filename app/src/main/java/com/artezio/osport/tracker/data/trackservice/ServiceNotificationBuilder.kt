@@ -45,7 +45,7 @@ class ServiceNotificationBuilder(
                 context,
                 PENDING_INTENT_REQUEST_CODE,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             title = context.getString(R.string.notification_paused)
             NotificationCompat.Action(R.drawable.ic_resume, RESUME_RECORDING, pendingIntent)
@@ -58,7 +58,7 @@ class ServiceNotificationBuilder(
                 context,
                 PENDING_INTENT_REQUEST_CODE,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             title = context.getString(R.string.notification_resumed)
             NotificationCompat.Action(

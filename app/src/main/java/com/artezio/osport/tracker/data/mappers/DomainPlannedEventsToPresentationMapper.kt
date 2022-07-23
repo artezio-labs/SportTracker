@@ -9,7 +9,8 @@ class DomainPlannedEventsToPresentationMapper : IMapper<PlannedEvent, Item.Plann
             id = obj.id,
             eventName = obj.name,
             startDate = obj.startDate,
-            endDate = obj.endDate,
+            duration = obj.duration,
+            calibrationTime = obj.calibrationTime,
         )
     }
 
