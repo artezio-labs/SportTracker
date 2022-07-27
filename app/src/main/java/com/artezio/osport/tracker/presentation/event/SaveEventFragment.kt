@@ -9,6 +9,7 @@ import androidx.navigation.fragment.findNavController
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentSaveEventBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
+import com.artezio.osport.tracker.util.DialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -21,14 +22,30 @@ class SaveEventFragment : BaseFragment<FragmentSaveEventBinding, SaveEventViewMo
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.getLastEventName()
         binding.buttonSaveEvent.setOnClickListener {
             val eventName = binding.eventNameTIL.editText?.editableText.toString()
             viewModel.updateEvent(eventName)
             navigate()
         }
         binding.buttonDeleteEvent.setOnClickListener {
-            viewModel.deleteLastEvent()
-            navigate()
+            val dialog = DialogBuilder(
+                context = requireContext(),
+                title = "Внимание!",
+                message = "Вы действительно хотите удалить записанную сессию?",
+                positiveButtonText = "Да",
+                positiveButtonClick = { dialog, _ ->
+                    viewModel.deleteLastEvent()
+                    navigate()
+                    dialog.dismiss()
+                },
+                negativeButtonText = "Отмена",
+                negativeButtonClick = { dialog, _ -> dialog.cancel() },
+                needsToShow = true
+            ).build()
+        }
+        viewModel.eventNameLiveData.observe(viewLifecycleOwner) {
+            binding.eventNameTIL.editText?.setText(it)
         }
     }
     override fun initBinding(

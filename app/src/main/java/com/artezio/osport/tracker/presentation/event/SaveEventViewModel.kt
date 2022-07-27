@@ -1,6 +1,7 @@
 package com.artezio.osport.tracker.presentation.event
 
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
@@ -23,6 +24,8 @@ open class SaveEventViewModel @Inject constructor(
     private val updateEventUseCase: UpdateEventUseCase,
 ) : BaseViewModel() {
 
+    val eventNameLiveData = MutableLiveData<String>()
+
     fun deleteLastEvent() = viewModelScope.launch(Dispatchers.IO) {
         val lastEvent = getLastEventUseCase.execute()
         deleteEventUseCase.execute(lastEvent.startDate)
@@ -34,6 +37,11 @@ open class SaveEventViewModel @Inject constructor(
             Log.d("event_update", "Last event from db to update: $lastEvent")
             update(lastEvent.id, eventName)
         }
+    }
+
+    fun getLastEventName() = viewModelScope.launch(Dispatchers.IO) {
+        val lastEvent = getLastEventUseCase.execute()
+        eventNameLiveData.postValue(lastEvent.name)
     }
 
     private suspend fun update(eventId: Long, eventName: String) {

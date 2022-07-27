@@ -13,6 +13,7 @@ import com.artezio.osport.tracker.presentation.main.PlannedTracksFragment
 import com.artezio.osport.tracker.presentation.main.recycler.Item
 import com.artezio.osport.tracker.presentation.main.recycler.finished_events.BaseViewHolder
 import com.artezio.osport.tracker.presentation.tracker.ScheduleTrackingBottomSheetDialog
+import com.artezio.osport.tracker.util.DialogBuilder
 import com.artezio.osport.tracker.util.UNIQUE_WORK_NAME
 import com.artezio.osport.tracker.util.WORK_TAG
 import com.artezio.osport.tracker.util.millisecondsToDateFormat
@@ -53,7 +54,7 @@ class PlannedEventsRecyclerAdapter(
                 showBottomSheetDialog(event)
             }
             binding.imageViewDeleteButton.setOnClickListener {
-                deletePlannedEvent(event)
+                showOnDeleteDialog(item)
             }
             val isEnqueued =
                 WorkManager.getInstance((fragment as PlannedTracksFragment).requireContext())
@@ -78,7 +79,7 @@ class PlannedEventsRecyclerAdapter(
             val bottomSheet = ScheduleTrackingBottomSheetDialog().apply {
                 arguments = bundleOf(
                     "eventId" to event.id,
-                    "eventName" to event.eventName,
+                    "eventName" to "${event.eventName}",
                     "startDate" to event.startDate,
                     "duration" to event.duration,
                     "calibration" to event.calibrationTime,
@@ -91,6 +92,23 @@ class PlannedEventsRecyclerAdapter(
                 ScheduleTrackingBottomSheetDialog.TAG
             )
         }
+
+        private fun showOnDeleteDialog(item: Item.PlannedEvent) {
+            val dialog = DialogBuilder(
+                context = (fragment as PlannedTracksFragment).requireContext(),
+                title = "Внимание!",
+                message = "Вы действительно хотите удалить запланированную сессию?",
+                positiveButtonText = "Да",
+                positiveButtonClick = { dialog, _ ->
+                    deletePlannedEvent(item)
+                    dialog.dismiss()
+                },
+                negativeButtonText = "Отмена",
+                negativeButtonClick = { dialog, _ -> dialog.cancel() },
+                needsToShow = true
+            ).build()
+        }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlannedEventsViewHolder {

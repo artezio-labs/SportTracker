@@ -7,14 +7,7 @@ import java.util.*
 
 object DatePicker {
 
-    fun pickDateAndTime(context: Context, fragmentManager: FragmentManager): Long {
-        Calendar.getInstance().apply {
-            this.set(Calendar.SECOND,0)
-            this.set(Calendar.MILLISECOND,0)
-            context.let {
-                MaterialDatePicker.Builder.datePicker().build()
-            }
-        }
-        return 1
-    }
+    fun pickTime() {}
+
+    fun pickDate() {}
 }

@@ -1,15 +1,11 @@
 package com.artezio.osport.tracker.presentation.tracker
 
 import android.app.Dialog
-import android.content.res.Resources
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.artezio.osport.tracker.R
@@ -20,6 +16,8 @@ import com.artezio.osport.tracker.util.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.DateValidatorPointForward
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
@@ -37,6 +35,7 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
     private var alreadyExists: Boolean = false
 
     private val viewModel: TrackerViewModel by viewModels()
+    private var pickedDate: Long = -1L
     private var pickedTime: Long = 0L
 
     private val binding: ScheduleTrackingBottomDialogLayoutBinding by lazy {
@@ -48,9 +47,10 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
         eventId = arguments?.getLong("eventId") ?: -1L
         Log.d("planner_worker_states", "Event id in dialog: $eventId")
         eventName = arguments?.getString("eventName") ?: ""
-        dateStart = arguments?.getLong("startDate") ?: 0L
+        dateStart =
+            arguments?.getLong("startDate") ?: (getCurrentTimeMillis() + 5 * MINUTE_IN_MILLIS)
         duration = arguments?.getInt("duration") ?: 120
-        calibrationTime = arguments?.getInt("calibration") ?: 1
+        calibrationTime = arguments?.getInt("calibration") ?: 60
         alreadyExists = arguments?.getBoolean("exists") ?: false
 
         if (alreadyExists) {
@@ -59,19 +59,28 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
             binding.buttonSchedule.text =
                 getString(R.string.schedule_tracking_bottom_sheet_button_update_text)
         } else {
-            binding.eventNameTIL.editText?.setText(millisecondsToDateFormatForPlanning(System.currentTimeMillis()))
+            binding.eventNameTIL.editText?.setText(
+                millisecondsToDateFormatForPlanning(
+                    getCurrentTimeMillis() + 5 * MINUTE_IN_MILLIS
+                )
+            )
         }
 
         setValues(eventName, dateStart, duration)
+        calculateStartTime()
 
         binding.eventNameTIL.editText?.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                eventName = p0.toString()
+            }
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 eventName = p0.toString()
             }
 
-            override fun afterTextChanged(p0: Editable?) {}
+            override fun afterTextChanged(p0: Editable?) {
+                eventName = p0.toString()
+            }
 
         })
 
@@ -79,7 +88,10 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                duration = p0.toString().toInt()
+                val durationString = p0.toString()
+                if (durationString.isNotBlankOrEmpty()) {
+                    duration = durationString.toInt()
+                }
             }
 
             override fun afterTextChanged(p0: Editable?) {}
@@ -89,14 +101,20 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                calibrationTime = p0.toString().toInt()
+                val calibrationTimeString = p0.toString()
+                if (calibrationTimeString.isNotBlankOrEmpty()) {
+                    calibrationTime = calibrationTimeString.toInt()
+                }
             }
 
             override fun afterTextChanged(p0: Editable?) {}
 
         })
-        binding.buttonStartEditText.setOnClickListener {
-            pick()
+        binding.buttonDateEditText.setOnClickListener {
+            pickDate()
+        }
+        binding.buttonTimeEditText.setOnClickListener {
+            pickTime(dateStart)
         }
         binding.buttonSchedule.setOnClickListener {
             if (validateInputs()) {
@@ -105,13 +123,8 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
                 } else {
                     generateEvent()
                 }
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Проверьте правильность заполнения полей!",
-                    Toast.LENGTH_SHORT
-                ).show()
             }
+            Log.d("picker_date", "start date: $dateStart")
         }
         binding.buttonCancel.setOnClickListener {
             this.dismiss()
@@ -123,35 +136,82 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
         }
     }
 
-    private fun validateInputs(): Boolean {
-        return binding.eventNameTIL.editText?.text.toString()
-            .isNotBlankOrEmpty() && viewModel.validateString(
-            binding.buttonStart.editText?.text.toString(),
-            StringValidationPattern.DATE
-        ) && viewModel.validateString(
-            binding.buttonDuration.editText?.text.toString(),
-            StringValidationPattern.NUMBER
-        ) && viewModel.validateString(
-            binding.buttonCalibrationTime.editText?.text.toString(),
-            StringValidationPattern.NUMBER
+    private fun calculateStartTime() {
+        dateStart = getMillisFromDateString(binding.buttonDate.editText?.editableText.toString()) +
+                getMillisFromString(binding.buttonTime.editText?.editableText.toString())
+        Log.d(
+            "pick_time",
+            "Millis: $dateStart, date: ${millisecondsToDateFormatForPlanning(dateStart)}"
         )
     }
 
+    private fun validateInputs(): Boolean {
+        var isValid = true
+        if (binding.eventNameTIL.editText?.editableText.toString().isBlankOrEmpty()) {
+            binding.eventNameTIL.error = "Поле не должно быть пустым!"
+            isValid = false
+        }
+        if (binding.buttonDate.editText?.editableText.toString().isBlankOrEmpty()) {
+            binding.buttonDate.error = "Поле не должно быть пустым!"
+            isValid = false
+        }
+        if (binding.buttonTime.editText?.editableText.toString().isBlankOrEmpty()) {
+            binding.buttonTime.error = "Поле не должно быть пустым!"
+            isValid = false
+        }
+        if (binding.buttonDuration.editText?.editableText.toString().isBlankOrEmpty()) {
+            binding.buttonDuration.error = "Поле не должно быть пустым!"
+            isValid = false
+        }
+        if (binding.buttonCalibrationTime.editText?.editableText.toString().isBlankOrEmpty()) {
+            binding.buttonCalibrationTime.error = "Поле не должно быть пустым!"
+            isValid = false
+        }
+
+        if (binding.buttonDuration.editText?.editableText.toString().isNotBlankOrEmpty()) {
+            if (binding.buttonDuration.editText?.editableText.toString().toInt() !in 5..1440) {
+                binding.buttonDuration.error = "Длительность должна быть от 5 до 1440 минут!"
+                isValid = false
+            }
+        }
+
+        if (binding.buttonCalibrationTime.editText?.editableText.toString().isNotBlankOrEmpty()) {
+            if (binding.buttonCalibrationTime.editText?.editableText.toString()
+                    .toInt() !in 10..600
+            ) {
+                binding.buttonCalibrationTime.error =
+                    "Допустимое время калибровки от 10 до 600 секунд!"
+                isValid = false
+            }
+        }
+        return isValid
+    }
 
     private fun setValues(name: String, startDate: Long, duration: Int) {
         if (name.isNotEmpty()) binding.eventNameTIL.editText?.setText(name)
-        if (startDate != 0L) binding.buttonStart.editText?.setText(
-            millisecondsToDateFormatForPlanning(
-                startDate
-            )
-        )
+        if (startDate != 0L) {
+            val date = formatEventName(startDate)
+            Log.d("pick_time", "Date: $date")
+            binding.buttonDate.editText?.setText(formatEventName(startDate))
+            binding.buttonTime.editText?.setText(getTimeFromMillis(startDate))
+        } else {
+            val date = formatEventName(getCurrentTimeMillis())
+            Log.d("pick_time", "Date: $date")
+            binding.buttonDate.editText?.setText(formatEventName(getCurrentTimeMillis()))
+            binding.buttonTime.editText?.setText(getTimeFromMillis(getCurrentTimeMillis() + 5 * MINUTE_IN_MILLIS))
+        }
         if (duration != 0) binding.buttonDuration.editText?.setText(duration.toString())
         if (calibrationTime != 0) binding.buttonCalibrationTime.editText?.setText(calibrationTime.toString())
     }
 
     private fun updateEvent() {
+        val name = binding.eventNameTIL.editText?.editableText.toString()
         val event = PlannedEvent(
-            eventName,
+            if (viewModel.validateString(
+                    name,
+                    StringValidationPattern.DATE
+                )
+            ) "${binding.buttonDate.editText?.editableText.toString()} ${binding.buttonTime.editText?.editableText.toString()}" else name,
             dateStart,
             duration,
         )
@@ -169,14 +229,16 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
     }
 
     private fun generateEvent() {
+        val eventNameDate = binding.buttonDate.editText?.editableText.toString()
+        val name = binding.eventNameTIL.editText?.editableText.toString()
         viewModel.generatePlannedEvent(
-            eventName,
+            if (name.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")) "$eventNameDate ${getTimeFromMillis(dateStart)}" else name,
             dateStart,
             duration,
             calibrationTime
         )
         viewModel.generateEvent(
-            eventName = eventName,
+            if (name.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")) "$eventNameDate ${getTimeFromMillis(dateStart)}" else name,
             startDate = dateStart
         )
         Log.d("eventId", eventId.toString())
@@ -196,22 +258,26 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
         ).show()
     }
 
-    private fun pick() {
+    private fun pickDate() {
+        val constraints = CalendarConstraints.Builder()
+            .setValidator(DateValidatorPointForward.now())
+            .build()
         val picker = MaterialDatePicker.Builder.datePicker()
             .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
             .setTitleText("Выберите дату")
             .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+            .setCalendarConstraints(constraints)
             .build()
         picker.addOnPositiveButtonClickListener {
-            pickedTime = it - 3 * HOUR_IN_MILLIS
-            if (pickedTime <= System.currentTimeMillis() - 24 * HOUR_IN_MILLIS) {
-                Toast.makeText(
-                    requireContext(),
-                    "Дата начала не может быть меньше текущей!",
-                    Toast.LENGTH_SHORT
-                ).show()
+            Log.d("pick_time", "pickDate: $it")
+            if (it < getCurrentTimeMillis()) {
+                binding.buttonDate.error = "Дата начала не может быть меньше текущей!"
             } else {
-                pickTime(dateStart)
+                val date = formatEventName(it)
+                Log.d("pick_time", "Date: $date")
+                binding.buttonDateEditText.setText(date)
+                pickedDate = it
+                calculateStartTime()
                 picker.dismiss()
             }
         }
@@ -219,40 +285,57 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
     }
 
     private fun pickTime(startDate: Long) {
-        if (startDate != 0L && startDate < System.currentTimeMillis()) {
-            Toast.makeText(
-                requireContext(),
-                "Время начала не может быть меньше текущего!",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-        val pickerTime = startDate.ifZero { System.currentTimeMillis() + 4 * HOUR_IN_MILLIS }
-        val picker = MaterialTimePicker.Builder()
-            .setInputMode(MaterialTimePicker.INPUT_MODE_KEYBOARD)
-            .setHour(convertMillisTo(pickerTime, Calendar.HOUR))
-            .setMinute(convertMillisTo(0L, Calendar.MINUTE))
-            .setTimeFormat(TimeFormat.CLOCK_24H)
-            .setPositiveButtonText("Ок")
-            .setNegativeButtonText("Отмена")
-            .build()
+        var pickerTime = 0L
+        val timeFromTextField =
+            if (binding.buttonTime.editText?.editableText.toString().isNotBlankOrEmpty()) {
+                binding.buttonTime.editText?.editableText.toString().split(":").map { it.toInt() }
+            } else {
+                pickerTime = startDate.ifZero { getCurrentTimeMillis(plus = HOUR_IN_MILLIS) }
+                mutableListOf(
+                    convertMillisTo(pickerTime, Calendar.HOUR_OF_DAY),
+                    convertMillisTo(pickerTime, Calendar.MINUTE)
+                )
+            }
+        Log.d("pick_time", "pickTime: $pickerTime")
+        val picker = MaterialTimePicker.Builder().apply {
+            setInputMode(MaterialTimePicker.INPUT_MODE_KEYBOARD)
+            setHour(timeFromTextField[0])
+            setMinute(timeFromTextField[1])
+            setTimeFormat(TimeFormat.CLOCK_24H)
+            setPositiveButtonText("Ок")
+            setNegativeButtonText("Отмена")
+        }.build()
         picker.addOnPositiveButtonClickListener {
-            pickedTime += convertHoursOrMinutesToMilliseconds(
+            pickedTime = convertHoursOrMinutesToMilliseconds(
                 picker.hour,
-                Calendar.HOUR
+                Calendar.HOUR_OF_DAY
             ) + convertHoursOrMinutesToMilliseconds(
                 picker.minute,
                 Calendar.MINUTE
-            )
-            Log.d(
-                "pick_time",
-                "pickTime start: $pickedTime current time: ${System.currentTimeMillis()}"
-            )
-            binding.buttonStart.editText?.setText(millisecondsToDateFormatForPlanning(pickedTime))
-            dateStart = pickedTime
-            picker.dismiss()
-
+            ) - 3 * HOUR_IN_MILLIS
+            val timeFromMillis = getTimeFromMillis(pickedTime)
+            Log.d("pick_time", "pickTime from millis: $timeFromMillis")
+            if (!validateTime(timeFromMillis)) {
+                binding.buttonTime.isErrorEnabled = true
+                binding.buttonTime.error = "Выбранное время не может быть меньше текущего!"
+                Log.d(
+                    "pick_time",
+                    "pickTime start: ${getTimeFromMillis(pickedTime)} current time: ${getCurrentTimeMillis()} diff: ${
+                        getTimeFromMillis(
+                            pickedDate + pickedTime - (getCurrentTimeMillis())
+                        )
+                    }"
+                )
+            } else {
+                binding.buttonTime.error = null
+                binding.buttonTime.isErrorEnabled = false
+                binding.buttonTime.editText?.setText(getTimeFromMillis(pickedTime))
+                binding.buttonTime.editText?.error = null
+                calculateStartTime()
+                Log.d("pick_time", "Date start final: ${formatEventName(dateStart)}")
+                picker.dismiss()
+            }
         }
-
         picker.show(childFragmentManager, "time_picker")
     }
 
