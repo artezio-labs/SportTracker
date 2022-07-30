@@ -13,10 +13,7 @@ import com.artezio.osport.tracker.presentation.main.PlannedTracksFragment
 import com.artezio.osport.tracker.presentation.main.recycler.Item
 import com.artezio.osport.tracker.presentation.main.recycler.finished_events.BaseViewHolder
 import com.artezio.osport.tracker.presentation.tracker.ScheduleTrackingBottomSheetDialog
-import com.artezio.osport.tracker.util.DialogBuilder
-import com.artezio.osport.tracker.util.UNIQUE_WORK_NAME
-import com.artezio.osport.tracker.util.WORK_TAG
-import com.artezio.osport.tracker.util.millisecondsToDateFormat
+import com.artezio.osport.tracker.util.*
 import kotlinx.coroutines.*
 
 class PlannedEventsRecyclerAdapter(
@@ -62,11 +59,8 @@ class PlannedEventsRecyclerAdapter(
                         "${UNIQUE_WORK_NAME}_${event.id}"
                     ).get().map { it.state }.all { it == WorkInfo.State.ENQUEUED }
             Log.d("planner_worker_states", "Worker states: $isEnqueued")
-            binding.textViewIsPlanned.text = if (isEnqueued) {
-                "Запланировано ✔"
-            } else {
-                "Не запланировано ❌"
-            }
+            val enqueuedString = "Калибровка запустится ${millisecondsToDateFormat(event.startDate - event.calibrationTime * SECOND_IN_MILLIS)}"
+            binding.textViewIsPlanned.text = enqueuedString
         }
 
         private fun deletePlannedEvent(item: Item.PlannedEvent) {

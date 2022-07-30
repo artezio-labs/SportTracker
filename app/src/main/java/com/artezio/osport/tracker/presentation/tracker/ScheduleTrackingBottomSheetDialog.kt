@@ -8,6 +8,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.lifecycleScope
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.ScheduleTrackingBottomDialogLayoutBinding
 import com.artezio.osport.tracker.domain.model.PlannedEvent
@@ -22,6 +24,8 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.util.*
 
 @AndroidEntryPoint
@@ -231,31 +235,62 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
     private fun generateEvent() {
         val eventNameDate = binding.buttonDate.editText?.editableText.toString()
         val name = binding.eventNameTIL.editText?.editableText.toString()
-        viewModel.generatePlannedEvent(
-            if (name.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")) "$eventNameDate ${getTimeFromMillis(dateStart)}" else name,
-            dateStart,
-            duration,
-            calibrationTime
-        )
-        viewModel.generateEvent(
-            if (name.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")) "$eventNameDate ${getTimeFromMillis(dateStart)}" else name,
-            startDate = dateStart
-        )
-        Log.d("eventId", eventId.toString())
-        TrackerSchedulerLauncher.schedule(
-            requireContext(),
-            eventId + 1,
-            dateStart,
-            duration,
-            calibrationTime,
-            eventName
-        )
-        this.dismiss()
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.train_planned_text),
-            Toast.LENGTH_SHORT
-        ).show()
+        lifecycleScope.launch {
+            val period = dateStart..dateStart + duration * MINUTE_IN_MILLIS
+            Log.d("has_union", "$period")
+            viewModel.checkScheduledTrainingForPeriod(dateStart, duration)
+                .asFlow()
+                .collectLatest { hasIntersections ->
+                    if (hasIntersections) {
+                        showHasIntersectionsDialog()
+                    } else {
+                        viewModel.generatePlannedEvent(
+                            if (name.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")) "$eventNameDate ${
+                                getTimeFromMillis(
+                                    dateStart
+                                )
+                            }" else name,
+                            dateStart,
+                            duration,
+                            calibrationTime
+                        )
+                        viewModel.generateEvent(
+                            if (name.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")) "$eventNameDate ${
+                                getTimeFromMillis(
+                                    dateStart
+                                )
+                            }" else name,
+                            startDate = dateStart
+                        )
+                        Log.d("eventId", eventId.toString())
+                        TrackerSchedulerLauncher.schedule(
+                            requireContext(),
+                            eventId + 1,
+                            dateStart,
+                            duration,
+                            calibrationTime,
+                            eventName
+                        )
+                        this@ScheduleTrackingBottomSheetDialog.dismiss()
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.train_planned_text),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+        }
+    }
+
+    private fun showHasIntersectionsDialog() {
+        DialogBuilder(
+            context = requireContext(),
+            title = "Внимание",
+            message = "Период, который вы выбрали пересекается с другими запланированными тренировками. Выберите другую дату старта или длительность.",
+            positiveButtonText = "Ок",
+            positiveButtonClick = { dialog, _ -> dialog.cancel() },
+            needsToShow = true
+        ).build()
     }
 
     private fun pickDate() {

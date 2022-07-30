@@ -58,7 +58,23 @@ class TrackerStatisticsFragment :
                 }
             }
         }
+        observeCalibrationData()
         observeData()
+
+    }
+
+    private fun observeCalibrationData() {
+        viewModel.calibrationTimeLiveData.observe(viewLifecycleOwner) {
+            if (binding.accuracyCalibrationMode.visibility == View.VISIBLE) {
+                Log.d("gps_calibration", "CTime from livedata: $it")
+                binding.textViewCalibrationTimer.text = viewModel.formatCalibrationTimeString(it)
+            }
+        }
+        viewModel.calibrationAccuracyLiveData.observe(viewLifecycleOwner) {
+            if (binding.accuracyCalibrationMode.visibility == View.VISIBLE) {
+                binding.textViewCalibrationAccuracy.text = viewModel.formatAccuracyString(it)
+            }
+        }
     }
 
     private fun observeData() {

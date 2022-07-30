@@ -59,6 +59,12 @@ class TrackerViewModel @Inject constructor(
     val stepsLiveData: LiveData<Int>
         get() = TrackService.stepsLiveData
 
+    val calibrationTimeLiveData: LiveData<Long>
+        get() = TrackService.calibrationTimeState
+
+    val calibrationAccuracyLiveData: LiveData<Float>
+        get() = TrackService.calibrationAccuracyState
+
     val locations: MutableLiveData<List<Point>> = MutableLiveData()
 
     val currentFragmentIdLiveData = MutableLiveData(R.id.trackerFragment3)
@@ -108,7 +114,12 @@ class TrackerViewModel @Inject constructor(
         }
     }
 
-    fun generatePlannedEvent(eventName: String = "", dateStart: Long, duration: Int = 1, calibrationTime: Int = 1) {
+    fun generatePlannedEvent(
+        eventName: String = "",
+        dateStart: Long,
+        duration: Int = 1,
+        calibrationTime: Int = 1
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             val events = getAllPlannedEventsUseCase.execute().map { it.name }
             val plannedEvent = PlannedEvent(
@@ -181,6 +192,12 @@ class TrackerViewModel @Inject constructor(
                     binding.fabToSessionMap.visibility = View.GONE
                     binding.llAccuracy.visibility = View.VISIBLE
                 }
+                ServiceLifecycleState.CALIBRATING -> {
+                    binding.llAccuracy.visibility = View.GONE
+                    binding.fabToSessionStatistics.visibility = View.GONE
+                    binding.fabToSessionMap.visibility = View.VISIBLE
+                    binding.fabStart.visibility = View.GONE
+                }
             }
         }
     }
@@ -194,10 +211,20 @@ class TrackerViewModel @Inject constructor(
                 ServiceLifecycleState.PAUSED -> {
                     binding.statisticsPaused.visibility = View.VISIBLE
                     binding.statisticsNotPaused.visibility = View.GONE
+                    binding.accuracyCalibrationMode.visibility = View.GONE
+                    binding.toolbarTitle.text = "Запись"
+                }
+                ServiceLifecycleState.CALIBRATING -> {
+                    binding.statisticsPaused.visibility = View.GONE
+                    binding.accuracyCalibrationMode.visibility = View.VISIBLE
+                    binding.statisticsNotPaused.visibility = View.GONE
+                    binding.toolbarTitle.text = "Калибровка точности"
                 }
                 else -> {
                     binding.statisticsPaused.visibility = View.GONE
                     binding.statisticsNotPaused.visibility = View.VISIBLE
+                    binding.accuracyCalibrationMode.visibility = View.GONE
+                    binding.toolbarTitle.text = "Запись"
                 }
             }
         }
@@ -277,5 +304,19 @@ class TrackerViewModel @Inject constructor(
                 Pattern.compile("^\\d+$").matcher(string).matches() && string != "0"
             }
         }
+    }
+
+    fun checkScheduledTrainingForPeriod(startDate: Long, duration: Int) =
+        liveData(Dispatchers.IO) {
+            val plannedEvents = getAllPlannedEventsUseCase.execute()
+            emit(plannedEvents.any { it.hasIntersection(startDate, duration * MINUTE_IN_MILLIS) })
+        }
+
+    fun formatCalibrationTimeString(time: Long): String {
+        return "Оставшееся время: ${formatTimeToNotification(time)}"
+    }
+
+    fun formatAccuracyString(accuracy: Float): String {
+        return "Текущая точность: ${String.format("%.2f", accuracy)} м."
     }
 }

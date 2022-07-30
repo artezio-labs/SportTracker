@@ -11,10 +11,7 @@ import androidx.navigation.NavDeepLinkBuilder
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.presentation.MainActivity
 import com.artezio.osport.tracker.presentation.TrackService
-import com.artezio.osport.tracker.util.PAUSE_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.RESUME_FOREGROUND_SERVICE
-import com.artezio.osport.tracker.util.distanceToString
-import com.artezio.osport.tracker.util.getTimerStringFromDouble
+import com.artezio.osport.tracker.util.*
 
 class ServiceNotificationBuilder(
     private val context: Context
@@ -97,11 +94,32 @@ class ServiceNotificationBuilder(
         )
     }
 
+    fun buildGpsCalibrationNotification(time: Long): Notification {
+        return NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_calibration)
+            .setContentTitle("Калибровка GPS датчика")
+            .setContentText("До конца калибровки осталось: ${formatTimeToNotification(time)}")
+            .setContentIntent(notificationPendingIntent)
+            .setAutoCancel(false)
+            .build()
+    }
+
+    fun notify(time: Long) {
+        notificationManager.notify(
+            FOREGROUND_SERVICE_ID,
+            buildGpsCalibrationNotification(
+                time
+            )
+        )
+    }
+
     companion object {
         private const val CHANNEL_ID = "com.artezio.sporttracker.CHANNEL_ID"
+        private const val PLANNED_CHANNEL_ID = "com.artezio.sporttracker.PLANNED_CHANNEL_ID"
         private const val FOREGROUND_SERVICE_ID = 1234
         private const val PENDING_INTENT_REQUEST_CODE = 123456
         private const val RESUME_RECORDING = "Возобновить запись"
         private const val PAUSE_RECORDING = "Приостановить запись"
+        private const val CALIBRATION = "Приостановить запись"
     }
 }

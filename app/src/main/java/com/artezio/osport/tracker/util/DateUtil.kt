@@ -156,6 +156,14 @@ fun getMillisFromString(time: String): Long {
     return hoursAndMinutes[0] * HOUR_IN_MILLIS + hoursAndMinutes[1] * MINUTE_IN_MILLIS
 }
 
+fun formatTimeToNotification(time: Long): String {
+    return String.format(
+        "%02d:%02d",
+        time / 60,
+        time % 60
+    )
+}
+
 
 
 

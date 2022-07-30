@@ -24,6 +24,7 @@ import com.artezio.osport.tracker.data.trackservice.TrackServiceDataManager
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
+import com.artezio.osport.tracker.domain.model.AccuracyCalibrationState
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.domain.usecases.ObserveDistanceUseCase
@@ -31,12 +32,10 @@ import com.artezio.osport.tracker.domain.usecases.UpdateEventUseCase
 import com.artezio.osport.tracker.util.*
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
 import javax.inject.Inject
+import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
 class TrackService : LifecycleService() {
@@ -76,7 +75,9 @@ class TrackService : LifecycleService() {
 
     private var isPaused: Boolean = false
 
-    private var planned = false
+    private var isCalibrating: Boolean = false
+
+    private var calibrationTimeToNotification: Long = 0
 
     @Inject
     lateinit var updateEventUseCase: UpdateEventUseCase
@@ -110,8 +111,13 @@ class TrackService : LifecycleService() {
                 batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
                 eventId ?: -1L
             )
-            Log.d(STEPS_TAG, "onLocationResult: $locationPoint")
-            trackServiceDataManager.insertLocationData(locationPoint)
+            if (isCalibrating) {
+                Log.d(STEPS_TAG, "onLocationResultAccuracy: ${locationPoint.accuracy}")
+                calibrationAccuracyState.postValue(lastLocation.accuracy)
+            } else {
+                Log.d(STEPS_TAG, "onLocationResultAccuracy: ${locationPoint.accuracy}")
+                trackServiceDataManager.insertLocationData(locationPoint)
+            }
         }
     }
     private val locationRequest: LocationRequest by lazy {
@@ -205,9 +211,31 @@ class TrackService : LifecycleService() {
                 onStartService(intent)
             }
             START_PLANNED_SERVICE -> {
-                onStartService(intent)
+                serviceLifecycleState.postValue(ServiceLifecycleState.CALIBRATING)
+                isCalibrating = true
+                val calibrationTime = intent.getLongExtra("calibration_time", 60 * SECOND_IN_MILLIS)
                 val delay = intent.getLongExtra("timer_delay", 0L)
+                Log.d("gps_calibration", "Delay: $delay")
                 if (delay != 0L) {
+                    startForegroundService()
+                    subscribeToLocationUpdates()
+                    object : CountDownTimer(calibrationTime, SECOND_IN_MILLIS) {
+                        override fun onTick(p0: Long) {
+                            calibrationTimeToNotification = p0 / SECOND_IN_MILLIS
+                            calibrationTimeState.postValue(p0 / SECOND_IN_MILLIS)
+                            Log.d(
+                                "gps_calibration",
+                                "calibrationTimeToNotification: $calibrationTimeToNotification \n onTick: $p0"
+                            )
+                            notificationBuilder.notify(calibrationTimeToNotification)
+                        }
+
+                        override fun onFinish() {
+                            isCalibrating = false
+                            onStartService(intent, true)
+                            serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
+                        }
+                    }.start()
                     Timer().schedule(object : TimerTask() {
                         override fun run() {
                             sensorManager.unregisterListener(sensorEventListener)
@@ -217,8 +245,6 @@ class TrackService : LifecycleService() {
                             serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
                         }
                     }, delay)
-                } else {
-                    Log.d("timer_delay", "Wrong delay: $delay")
                 }
             }
             STOP_FOREGROUND_SERVICE -> {
@@ -270,7 +296,7 @@ class TrackService : LifecycleService() {
         return START_STICKY
     }
 
-    private fun onStartService(intent: Intent) {
+    private fun onStartService(intent: Intent, isAlreadyForegroundStarted: Boolean = false) {
         eventId = intent.getLongExtra("eventId", -1L)
         serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
         val id = intent.getLongExtra("eventId", -1)
@@ -279,12 +305,14 @@ class TrackService : LifecycleService() {
         } else {
             Log.d("steps", "Event id not found")
         }
-        startForegroundService()
+        if (!isAlreadyForegroundStarted) {
+            startForegroundService()
+            subscribeToLocationUpdates()
+        }
 
         eventId?.let {
             if (!isPaused) runPedometer(it)
         }
-        subscribeToLocationUpdates()
         startTimer(0.0, 0)
         eventId?.let {
             Log.d("observe_distance", "Event: $it")
@@ -326,10 +354,14 @@ class TrackService : LifecycleService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
-        val notification =
+        val notification = if (isCalibrating) {
+            notificationBuilder.buildGpsCalibrationNotification(calibrationTimeToNotification)
+        } else {
             notificationBuilder.buildNotification(timeToNotification, distanceToNotification)
+        }
         startForeground(FOREGROUND_SERVICE_ID, notification)
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
@@ -410,5 +442,7 @@ class TrackService : LifecycleService() {
             MutableLiveData(ServiceLifecycleState.NOT_STARTED)
         val timerValueLiveData = MutableLiveData(0.0)
         val stepsLiveData = MutableLiveData(0)
+        val calibrationTimeState = MutableLiveData(0L)
+        val calibrationAccuracyState = MutableLiveData(0F)
     }
 }

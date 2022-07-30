@@ -8,7 +8,6 @@ import androidx.work.WorkerParameters
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.STOP_FOREGROUND_SERVICE
 
-
 class TrackerFinishPlanningTrainWorker(
     private val context: Context,
     private val workerParams: WorkerParameters,
