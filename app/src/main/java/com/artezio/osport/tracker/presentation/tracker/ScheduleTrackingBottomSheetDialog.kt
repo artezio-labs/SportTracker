@@ -238,14 +238,14 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
         lifecycleScope.launch {
             val period = dateStart..dateStart + duration * MINUTE_IN_MILLIS
             Log.d("has_union", "$period")
-            viewModel.checkScheduledTrainingForPeriod(dateStart, duration)
+            viewModel.checkScheduledTrainingForPeriod(dateStart, duration, calibrationTime)
                 .asFlow()
                 .collectLatest { hasIntersections ->
                     if (hasIntersections) {
                         showHasIntersectionsDialog()
                     } else {
                         viewModel.generatePlannedEvent(
-                            if (name.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")) "$eventNameDate ${
+                            if (viewModel.validateInput(name)) "$eventNameDate ${
                                 getTimeFromMillis(
                                     dateStart
                                 )
@@ -255,7 +255,7 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
                             calibrationTime
                         )
                         viewModel.generateEvent(
-                            if (name.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")) "$eventNameDate ${
+                            if (viewModel.validateInput(name)) "$eventNameDate ${
                                 getTimeFromMillis(
                                     dateStart
                                 )

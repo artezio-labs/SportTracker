@@ -306,10 +306,10 @@ class TrackerViewModel @Inject constructor(
         }
     }
 
-    fun checkScheduledTrainingForPeriod(startDate: Long, duration: Int) =
+    fun checkScheduledTrainingForPeriod(startDate: Long, duration: Int, calibrationTime: Int) =
         liveData(Dispatchers.IO) {
             val plannedEvents = getAllPlannedEventsUseCase.execute()
-            emit(plannedEvents.any { it.hasIntersection(startDate, duration * MINUTE_IN_MILLIS) })
+            emit(plannedEvents.any { it.hasIntersection(startDate - calibrationTime * SECOND_IN_MILLIS, duration) })
         }
 
     fun formatCalibrationTimeString(time: Long): String {
@@ -318,5 +318,9 @@ class TrackerViewModel @Inject constructor(
 
     fun formatAccuracyString(accuracy: Float): String {
         return "Текущая точность: ${String.format("%.2f", accuracy)} м."
+    }
+
+    fun validateInput(string: String): Boolean {
+        return string.matches("^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$")
     }
 }

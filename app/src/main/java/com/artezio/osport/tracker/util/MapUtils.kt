@@ -2,6 +2,7 @@ package com.artezio.osport.tracker.util
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.location.Location
 import androidx.core.content.ContextCompat
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.domain.model.LocationPointData
@@ -10,10 +11,7 @@ import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
-import com.mapbox.maps.CameraOptions
-import com.mapbox.maps.MapView
-import com.mapbox.maps.MapboxMap
-import com.mapbox.maps.Style
+import com.mapbox.maps.*
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.interpolate
 import com.mapbox.maps.extension.style.image.image
 import com.mapbox.maps.extension.style.layers.generated.circleLayer
@@ -24,6 +22,7 @@ import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.PuckBearingSource
+import com.mapbox.maps.plugin.animation.easeTo
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
@@ -66,9 +65,15 @@ object MapUtils {
         mapView.apply {
             getMapboxMap().apply {
                 loadStyleUri(Style.SATELLITE)
+                setBounds(
+                    CameraBoundsOptions.Builder()
+                        .minZoom(6.5)
+                        .maxZoom(16.5)
+                        .build()
+                )
                 setCamera(
                     CameraOptions.Builder()
-                        .zoom(14.0)
+                        .zoom(15.0)
                         .build()
                 )
             }
@@ -201,6 +206,18 @@ object MapUtils {
                 ).build()
             )
         }
+    }
+
+    fun setMapCamera(map: MapboxMap, location: Location) {
+        map.setCamera(
+            CameraOptions.Builder().center(
+                Point.fromLngLat(
+                    location.longitude,
+                    location.latitude,
+                    location.altitude
+                )
+            ).zoom(15.0).build()
+        )
     }
 
     private fun setupGesturesListener() {

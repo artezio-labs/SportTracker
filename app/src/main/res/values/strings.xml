@@ -84,6 +84,8 @@
     <string name="schedule_tracking_bottom_sheet_button_update_text">Обновить</string>
     <string name="date_range_pick_warning">Неверно выбран временной интервал!</string>
     <string name="gps_calibration_mode_title_text">Идет калибровка точности GPS-датчика. Пожалуйста, подождите...</string>
+    <string name="toolbar_title_recording_text">Запись</string>
+    <string name="my_location_button_content_description_text">Моё местоположение</string>
 
     <string-array name="tabs_titles">
         <item>Запланированные</item>

@@ -40,6 +40,6 @@ fun LongRange.hasIntersect(other: LongRange): Boolean {
     }
 }
 
-fun between(number: Long, start: Long, end: Long): Boolean {
-    return number >= start && number <= end
+fun Long.between(start: Long, end: Long): Boolean {
+    return this in start..end
 }
