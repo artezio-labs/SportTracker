@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/mainFragmentBottomNavItem"
+        android:id="@+id/mainFragment"
         android:icon="@drawable/ic_main_page"
-        android:title="Главная"/>
+        android:title="@string/menu_main_bottom_nav_item_text"/>
 
-    <item android:id="@+id/sessionRecordingFragmentBottomNavItem"
+    <item android:id="@+id/sessionRecordingFragment"
         android:icon="@drawable/ic_record"
-        android:title="Запись"/>
+        android:title="@string/menu_recording_bottom_nav_item_text"/>
+
+    <item android:id="@+id/profileFragment"
+        android:icon="@drawable/ic_profile"
+        android:title="@string/menu_profile_bottom_nav_item_text"/>
 </menu>

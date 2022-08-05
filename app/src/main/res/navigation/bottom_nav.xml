@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_mainFragment_to_eventInfoFragment"
             app:destination="@id/eventInfoFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
     </fragment>
 
     <fragment
@@ -73,5 +76,29 @@
             app:popUpTo="@id/backToMainDialog"
             app:popUpToInclusive="true" />
     </dialog><action android:id="@+id/action_global_eventInfoFragment" app:destination="@id/eventInfoFragment"/>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.artezio.osport.tracker.presentation.profile.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profileFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_sessionRecordingFragment"
+            app:destination="@id/sessionRecordingFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.artezio.osport.tracker.presentation.settings.SettingsFragment"
+        android:label="fragment_settings"
+        tools:layout="@layout/fragment_settings" >
+        <action
+            android:id="@+id/action_settingsFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+    </fragment>
 
 </navigation>

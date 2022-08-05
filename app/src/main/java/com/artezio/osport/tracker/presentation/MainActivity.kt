@@ -18,8 +18,6 @@ import com.artezio.osport.tracker.data.permissions.chain.LocationPermissionLink
 import com.artezio.osport.tracker.data.permissions.chain.NotificationPermissionLink
 import com.artezio.osport.tracker.data.permissions.chain.PowerModePermissionLink
 import com.artezio.osport.tracker.databinding.ActivityMainBinding
-import com.artezio.osport.tracker.presentation.tracker.ScheduleTrackingBottomSheetDialog
-import com.artezio.osport.tracker.util.DialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -47,10 +45,9 @@ class MainActivity : AppCompatActivity() {
         changeStatusBarColor()
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.sessionRecordingFragmentBottomNavItem -> {
+                R.id.sessionRecordingFragment -> {
                     val isNotificationsEnabled =
                         systemServicePermissionsManager.hasNotificationPermissionEnabled()
                     val isPowerSafeModeEnabled =
@@ -61,7 +58,7 @@ class MainActivity : AppCompatActivity() {
                         if (systemServicePermissionsManager.hasNotificationPermissionEnabled()) {
                             if (!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
                                 Log.d("permissions_state", "All permissions is granted")
-                                navController.navigate(R.id.action_mainFragment_to_sessionRecordingFragment)
+                                navController.navigate(R.id.sessionRecordingFragment)
                             } else {
                                 Toast.makeText(
                                     this,
@@ -80,8 +77,13 @@ class MainActivity : AppCompatActivity() {
                     Log.d("permissions_state", "onCreate: ")
                     false
                 }
+                R.id.profileFragment -> {
+                    navController.navigate(R.id.action_mainFragment_to_profileFragment)
+                    true
+                }
                 else -> {
-                    false
+                    navController.navigate(R.id.action_profileFragment_to_mainFragment)
+                    true
                 }
             }
 

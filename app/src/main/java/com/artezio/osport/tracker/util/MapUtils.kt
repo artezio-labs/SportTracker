@@ -22,7 +22,6 @@ import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.PuckBearingSource
-import com.mapbox.maps.plugin.animation.easeTo
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
@@ -67,13 +66,13 @@ object MapUtils {
                 loadStyleUri(Style.SATELLITE)
                 setBounds(
                     CameraBoundsOptions.Builder()
-                        .minZoom(6.5)
-                        .maxZoom(16.5)
+                        .minZoom(CAMERA_MIN_ZOOM)
+                        .maxZoom(CAMERA_MAX_ZOOM)
                         .build()
                 )
                 setCamera(
                     CameraOptions.Builder()
-                        .zoom(15.0)
+                        .zoom(CAMERA_STABLE_ZOOM)
                         .build()
                 )
             }
@@ -95,7 +94,7 @@ object MapUtils {
             style(styleUri = Style.SATELLITE) {
                 if (locations.size > 1) {
                     +geoJsonSource(LINE_SOURCE) {
-                        maxzoom(17)
+                        maxzoom(CAMERA_MAX_ZOOM.toLong())
                         featureCollection(
                             FeatureCollection.fromFeatures(
                                 arrayOf(
@@ -208,7 +207,7 @@ object MapUtils {
         }
     }
 
-    fun setMapCamera(map: MapboxMap, location: Location) {
+    fun setMapCamera(map: MapboxMap, location: Location,  zoom: Double = 15.0) {
         map.setCamera(
             CameraOptions.Builder().center(
                 Point.fromLngLat(
@@ -216,7 +215,7 @@ object MapUtils {
                     location.latitude,
                     location.altitude
                 )
-            ).zoom(15.0).build()
+            ).zoom(zoom).build()
         )
     }
 

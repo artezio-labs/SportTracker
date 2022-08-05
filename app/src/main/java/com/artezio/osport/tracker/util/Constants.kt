@@ -21,3 +21,9 @@ const val CADENCE_STEP_FILTER_VALUE = 3_000
 const val MINUTE_IN_MILLIS = 60_000L
 const val HOUR_IN_MILLIS = 1000 * 60 * 60L
 const val SECOND_IN_MILLIS = 1000L
+
+const val CAMERA_MIN_ZOOM = 6.5
+const val CAMERA_MAX_ZOOM = 16.5
+const val CAMERA_STABLE_ZOOM = 15.0
+
+const val EVENT_NAME_DATE_REGULAR_EXPRESSION = "^([1-9]|([012][0-9])|(3[01]))-([0]{0,1}[1-9]|1[012])-\\d\\d\\d\\d [012]{0,1}[0-9]:[0-6][0-9]\$"

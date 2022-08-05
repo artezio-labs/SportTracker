@@ -86,6 +86,14 @@
     <string name="gps_calibration_mode_title_text">Идет калибровка точности GPS-датчика. Пожалуйста, подождите...</string>
     <string name="toolbar_title_recording_text">Запись</string>
     <string name="my_location_button_content_description_text">Моё местоположение</string>
+    <string name="profile_title_text">Профиль</string>
+    <string name="go_to_settings_button_context_description_text">Настройки</string>
+    <string name="settings_title_text">Настройки</string>
+    <string name="frequency_setting_text">Частота (секунды)</string>
+    <string name="distance_setting_text">Растояние (метры)</string>
+    <string name="menu_main_bottom_nav_item_text">Главная</string>
+    <string name="menu_recording_bottom_nav_item_text">Запись</string>
+    <string name="menu_profile_bottom_nav_item_text">Профиль</string>
 
     <string-array name="tabs_titles">
         <item>Запланированные</item>
