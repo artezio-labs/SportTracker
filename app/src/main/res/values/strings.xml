@@ -95,6 +95,14 @@
     <string name="menu_recording_bottom_nav_item_text">Запись</string>
     <string name="menu_profile_bottom_nav_item_text">Профиль</string>
 
+    <string name="gps_setting_frequency_input_title_text">Введите частоту</string>
+    <string name="gps_setting_distance_input_title_text">Введите расстояние</string>
+    <string name="gps_setting_frequency_input_hint_text">Частота (в секундах)</string>
+    <string name="gps_setting_distance_input_hint_text">Дистанция (в метрах)</string>
+    <string name="freq_setting_error_text">Значение должно быть от 1 до 60!</string>
+    <string name="distance_setting_error_text">Значение должно быть в диапазоне от 3 до 200</string>
+
+
     <string-array name="tabs_titles">
         <item>Запланированные</item>
         <item>Завершенные</item>

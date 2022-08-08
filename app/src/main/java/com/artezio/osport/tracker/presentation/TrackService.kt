@@ -10,6 +10,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.location.Location
 import android.os.*
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -18,13 +19,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.artezio.osport.tracker.R
+import com.artezio.osport.tracker.data.preferences.SettingsPreferencesManager
 import com.artezio.osport.tracker.data.trackservice.ServiceLifecycleState
 import com.artezio.osport.tracker.data.trackservice.ServiceNotificationBuilder
 import com.artezio.osport.tracker.data.trackservice.TrackServiceDataManager
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
-import com.artezio.osport.tracker.domain.model.AccuracyCalibrationState
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.domain.usecases.ObserveDistanceUseCase
@@ -32,10 +33,12 @@ import com.artezio.osport.tracker.domain.usecases.UpdateEventUseCase
 import com.artezio.osport.tracker.util.*
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
-import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
 class TrackService : LifecycleService() {
@@ -91,9 +94,15 @@ class TrackService : LifecycleService() {
     @Inject
     lateinit var locationRequester: GpsLocationRequester
 
+    @Inject
+    lateinit var settingsPreferencesManager: SettingsPreferencesManager
+
     private var timer = Timer()
     private var timeToNotification = 0.0
     private var distanceToNotification = 0.0
+
+    private var distanceFilter = 0
+    private var previousLocation: Location? = null
 
     private val localBinder = LocalBinder()
 
@@ -116,15 +125,29 @@ class TrackService : LifecycleService() {
                 calibrationAccuracyState.postValue(lastLocation.accuracy)
             } else {
                 Log.d(STEPS_TAG, "onLocationResultAccuracy: ${locationPoint.accuracy}")
-                trackServiceDataManager.insertLocationData(locationPoint)
+                previousLocation?.let {
+                    val distance = it.distanceTo(lastLocation)
+                    if (distance < distanceFilter) {
+                        trackServiceDataManager.insertLocationData(locationPoint)
+                    }
+                }
+                previousLocation = lastLocation
             }
         }
     }
     private val locationRequest: LocationRequest by lazy {
+        var initialInterval = 1000L
+        if (this::settingsPreferencesManager.isInitialized) {
+            lifecycleScope.launch {
+                settingsPreferencesManager.get(true).collect {
+                    initialInterval = it.toLong() * SECOND_IN_MILLIS
+                }
+            }
+        }
+        Log.d("track_settings", "initialInterval: $initialInterval")
         LocationRequest.create().apply {
             // на адроид 8+, если приложение не в foreground'е, интервал может быть тольше, чем заданное значение
-            interval = 1000L
-            fastestInterval = 1000L
+            interval = initialInterval
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
     }
@@ -211,6 +234,7 @@ class TrackService : LifecycleService() {
                 onStartService(intent)
             }
             START_PLANNED_SERVICE -> {
+                Log.d("service_timers", "planned train started")
                 serviceLifecycleState.postValue(ServiceLifecycleState.CALIBRATING)
                 isCalibrating = true
                 val calibrationTime = intent.getLongExtra("calibration_time", 60 * SECOND_IN_MILLIS)
@@ -218,9 +242,11 @@ class TrackService : LifecycleService() {
                 Log.d("gps_calibration", "Delay: $delay")
                 if (delay != 0L) {
                     startForegroundService()
+                    Log.d("service_type", "is foreground: ${isForeground()}")
                     subscribeToLocationUpdates()
                     object : CountDownTimer(calibrationTime, SECOND_IN_MILLIS) {
                         override fun onTick(p0: Long) {
+                            Log.d("service_timers", "calibration timer starts")
                             calibrationTimeToNotification = p0 / SECOND_IN_MILLIS
                             calibrationTimeState.postValue(p0 / SECOND_IN_MILLIS)
                             Log.d(
@@ -238,6 +264,7 @@ class TrackService : LifecycleService() {
                     }.start()
                     Timer().schedule(object : TimerTask() {
                         override fun run() {
+                            Log.d("service_timers", "stopping service timer starts")
                             sensorManager.unregisterListener(sensorEventListener)
                             removeLocationUpdates()
                             stopSelf()
@@ -299,6 +326,11 @@ class TrackService : LifecycleService() {
     private fun onStartService(intent: Intent, isAlreadyForegroundStarted: Boolean = false) {
         eventId = intent.getLongExtra("eventId", -1L)
         serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
+        lifecycleScope.launch {
+            settingsPreferencesManager.get(false).collect {
+                distanceFilter = it
+            }
+        }
         val id = intent.getLongExtra("eventId", -1)
         if (id != -1L) {
             eventId = id
@@ -307,6 +339,7 @@ class TrackService : LifecycleService() {
         }
         if (!isAlreadyForegroundStarted) {
             startForegroundService()
+            Log.d("service_type", "is foreground: ${isForeground()}")
             subscribeToLocationUpdates()
         }
 

@@ -22,7 +22,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:layout_editor_absoluteX="16dp">
@@ -35,7 +35,6 @@
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_centerInParent="true"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -52,7 +51,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-        </RelativeLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.appcompat.widget.Toolbar>
 
@@ -66,29 +65,60 @@
         android:textColor="@color/app_theme_color"
         android:textSize="14sp" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/textViewFrequencySetting"
+    <LinearLayout
+        android:id="@+id/linearLayoutFrequencySetting"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:padding="16dp"
-        android:text="@string/frequency_setting_text"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
+        android:orientation="vertical"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="10dp">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/textViewDistanceSetting"
+        <TextView
+            android:layout_width="match_parent"
+            android:text="@string/frequency_setting_text"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:textSize="18sp"
+            android:textColor="@color/black"/>
+
+        <TextView
+            android:id="@+id/settingFrequencyValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="5 сек."/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutDistanceSetting"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:padding="16dp"
-        android:text="@string/distance_setting_text"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
+        android:orientation="vertical"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:text="@string/distance_setting_text"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:textSize="18sp"
+            android:textColor="@color/black"/>
+
+        <TextView
+            android:id="@+id/settingDistanceValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="5 м."/>
+
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:layout_marginTop="10dp"
         android:background="@android:color/darker_gray"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"/>

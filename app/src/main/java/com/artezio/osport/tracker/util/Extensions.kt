@@ -1,8 +1,12 @@
 package com.artezio.osport.tracker.util
 
+import android.app.ActivityManager
+import android.app.Service
+import android.content.Context
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import java.util.regex.Pattern
+
 
 fun <T> LiveData<T>.observeNonNull(owner: LifecycleOwner, observer: (t: T) -> Unit) {
     this.observe(owner) {
@@ -42,4 +46,14 @@ fun LongRange.hasIntersect(other: LongRange): Boolean {
 
 fun Long.between(start: Long, end: Long): Boolean {
     return this in start..end
+}
+
+fun Service.isForeground(): Boolean {
+    val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+        if (this.javaClass.name.equals(service.service.className)) {
+            return service.foreground
+        }
+    }
+    return false
 }

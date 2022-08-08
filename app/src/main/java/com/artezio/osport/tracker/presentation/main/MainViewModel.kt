@@ -35,7 +35,7 @@ class MainViewModel @Inject constructor(
     val eventsWithDataFlow: Flow<List<Item.Event>>
         get() {
             val events = getAllEventsWithDataUseCase.execute().map { events ->
-                events.map { domainToPresentationMapper.map(it) }.filter { it.startDate != it.endDate }
+                events.sortedByDescending {eventWithData -> eventWithData.event.id }.map { domainToPresentationMapper.map(it) }.filter { it.startDate != it.endDate }
             }
             return if ((TrackService.serviceLifecycleState.value == ServiceLifecycleState.RUNNING
                         || TrackService.serviceLifecycleState.value == ServiceLifecycleState.PAUSED)

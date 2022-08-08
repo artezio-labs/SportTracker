@@ -201,6 +201,9 @@ dependencies {
 
     // avatar-view
     implementation "io.getstream:avatarview-coil:1.0.4"
+
+    // prefs-datastore
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
 }
 
 kapt {

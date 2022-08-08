@@ -16,7 +16,7 @@ fun distanceBetween(firstLocation: LocationPointData, secondLocation: LocationPo
         longitude = secondLocation.longitude
         latitude = secondLocation.latitude
     }
-    return firstPoint.distanceTo(secondPoint)
+        return firstPoint.distanceTo(secondPoint)
 }
 
 fun calculateRouteDistance(locations: List<LocationPointData>): Double {
