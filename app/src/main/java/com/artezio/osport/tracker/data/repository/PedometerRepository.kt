@@ -22,4 +22,7 @@ class PedometerRepository @Inject constructor(
 
     override fun getAllPedometerDataFlow(): Flow<List<PedometerData>> =
         dao.getAllPedometerDataFlow()
+
+    override fun getAllPedometerDataFlowById(eventId: Long): Flow<List<PedometerData>> =
+        dao.getAllPedometerDataFlow(eventId)
 }

@@ -10,6 +10,7 @@ interface IRepository {
         suspend fun getStepCount(eventId: Long): PedometerData
         suspend fun getAllPedometerData(): List<PedometerData>
         fun getAllPedometerDataFlow(): Flow<List<PedometerData>>
+        fun getAllPedometerDataFlowById(eventId: Long): Flow<List<PedometerData>>
     }
 
     interface ILocationRepository {

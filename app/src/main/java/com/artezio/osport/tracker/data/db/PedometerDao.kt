@@ -28,4 +28,7 @@ interface PedometerDao {
 
     @Query("SELECT * FROM pedometer_data")
     fun getAllPedometerDataFlow(): Flow<List<PedometerData>>
+
+    @Query("SELECT * FROM pedometer_data WHERE eventId = :eventId")
+    fun getAllPedometerDataFlow(eventId: Long): Flow<List<PedometerData>>
 }

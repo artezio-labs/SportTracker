@@ -191,7 +191,6 @@ class TrackService : LifecycleService() {
             override fun step(timeNs: Long) {
                 if (!isPaused) {
                     stepCount += 1
-
                 }
                 stepsLiveData.postValue(stepCount)
                 Log.d(STEPS_TAG, "Steps: $stepCount time: $timeNs ns")
@@ -272,7 +271,7 @@ class TrackService : LifecycleService() {
                             serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
                         }
                     }, delay)
-                }
+                } else { Log.d("tracker_delay", "Delay: $delay") }
             }
             STOP_FOREGROUND_SERVICE -> {
                 Log.d(STEPS_TAG, "Service stopped!")
@@ -325,6 +324,7 @@ class TrackService : LifecycleService() {
 
     private fun onStartService(intent: Intent, isAlreadyForegroundStarted: Boolean = false) {
         eventId = intent.getLongExtra("eventId", -1L)
+        eventId?.let { currentEventIdLiveData.postValue(it) }
         serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
         lifecycleScope.launch {
             settingsPreferencesManager.get(false).collect {
@@ -402,7 +402,7 @@ class TrackService : LifecycleService() {
             val notificationChannel = NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.app_name),
-                NotificationManager.IMPORTANCE_NONE
+                NotificationManager.IMPORTANCE_HIGH
             )
             notificationChannel.description = STEPS
             notificationManager.createNotificationChannel(notificationChannel)
@@ -435,6 +435,7 @@ class TrackService : LifecycleService() {
         stepsLiveData.postValue(0)
         stepDetector = null
         timer.cancel()
+        currentEventIdLiveData.postValue(-1L)
     }
 
     inner class LocalBinder : Binder() {
@@ -473,6 +474,8 @@ class TrackService : LifecycleService() {
 
         val serviceLifecycleState =
             MutableLiveData(ServiceLifecycleState.NOT_STARTED)
+        val currentEventIdLiveData =
+            MutableLiveData(-1L)
         val timerValueLiveData = MutableLiveData(0.0)
         val stepsLiveData = MutableLiveData(0)
         val calibrationTimeState = MutableLiveData(0L)

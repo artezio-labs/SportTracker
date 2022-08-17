@@ -12,6 +12,7 @@ import androidx.navigation.findNavController
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.databinding.FragmentTrackerStatisticsBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
+import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.MapUtils
 import com.artezio.osport.tracker.util.getTimerStringFromDouble
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,6 +25,8 @@ class TrackerStatisticsFragment :
 
     override var bottomNavigationViewVisibility = View.GONE
     override val viewModel: TrackerViewModel by viewModels()
+
+    private var currentEventId: Long = -1L
 
     private var time = 0.0
     private var averageSpeed = 0.0
@@ -46,9 +49,7 @@ class TrackerStatisticsFragment :
         }
         binding.buttonClose.setOnClickListener {
             requireActivity().findNavController(R.id.fragmentContainerView)
-                .navigate(
-                    R.id.action_sessionRecordingFragment_to_mainFragment
-                )
+                .navigate(R.id.action_sessionRecordingFragment_to_mainFragment)
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -78,9 +79,11 @@ class TrackerStatisticsFragment :
     }
 
     private fun observeData() {
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.lastEventIdFlow.collectLatest { lastEventId ->
+                Log.d("cadence", "lastEventId: $lastEventId")
                 viewModel.getLocationsByEventIdWithAccuracy(lastEventId).collect { locations ->
+                    currentEventId = lastEventId
                     if (locations.isNotEmpty()) {
                         averageSpeed = locations.map { it.first.speed * 3.6 }.average()
                         binding.textViewAverageSpeedValue.text =
@@ -117,11 +120,14 @@ class TrackerStatisticsFragment :
                 binding.pauseStepsValue.text = stepsString
             }
         }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.pedometerDataForCadence.collectLatest { data ->
-                val cadence = viewModel.calculateCadence(data)
-                binding.textViewCadenceValue.text = cadence.toString()
-                pauseCadence = cadence
+        TrackService.currentEventIdLiveData.observe(viewLifecycleOwner) { eventId ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getDataForCadence(eventId).collect { data ->
+                    Log.d("cadence", "data: $data")
+                    val cadence = viewModel.calculateCadence(data)
+                    binding.textViewCadenceValue.text = cadence.toString()
+                    pauseCadence = cadence
+                }
             }
         }
     }

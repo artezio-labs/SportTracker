@@ -2,10 +2,14 @@ package com.artezio.osport.tracker.presentation.tracker.shedule
 
 import android.content.Context
 import android.util.Log
+import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
-import com.artezio.osport.tracker.util.*
+import com.artezio.osport.tracker.util.MINUTE_IN_MILLIS
+import com.artezio.osport.tracker.util.SECOND_IN_MILLIS
+import com.artezio.osport.tracker.util.WORK_TAG
+import com.artezio.osport.tracker.util.formatEventName
 import java.util.concurrent.TimeUnit
 
 object TrackerSchedulerLauncher {
@@ -33,7 +37,6 @@ object TrackerSchedulerLauncher {
                 .setInitialDelay(startTimeWithCalibrationTime, TimeUnit.MILLISECONDS)
                 .build()
         WorkManager.getInstance(context)
-            .beginWith(startPlannedTrainWork)
-            .enqueue()
+            .enqueue(startPlannedTrainWork)
     }
 }

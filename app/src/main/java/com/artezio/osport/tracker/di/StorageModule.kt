@@ -6,12 +6,12 @@ import com.artezio.osport.tracker.data.db.EventsDao
 import com.artezio.osport.tracker.data.db.LocationDao
 import com.artezio.osport.tracker.data.db.PedometerDao
 import com.artezio.osport.tracker.data.db.TrackerDb
+import com.artezio.osport.tracker.data.mappers.LocationToLocationPointDataMapper
 import com.artezio.osport.tracker.data.preferences.SettingsPreferencesManager
 import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
-import com.artezio.osport.tracker.domain.usecases.UpdateEventNameUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -55,13 +55,20 @@ object StorageModule {
     @Provides
     fun provideLocationRepository(dao: LocationDao) = LocationRepository(dao)
 
-    @Provides
-    fun providesGpsLocationRequester(@ApplicationContext context: Context) =
-        GpsLocationRequester(context)
-
     @Singleton
     @Provides
     fun providesSettingsPreferencesManager(@ApplicationContext context: Context) =
         SettingsPreferencesManager(context)
+
+    @Provides
+    fun providesLocationToLocationPointDataMapper() = LocationToLocationPointDataMapper()
+
+    @Provides
+    fun providesGpsLocationRequester(
+        @ApplicationContext context: Context,
+        preferencesManager: SettingsPreferencesManager,
+        mapper: LocationToLocationPointDataMapper
+    ) = GpsLocationRequester(context, preferencesManager, mapper)
+
 
 }

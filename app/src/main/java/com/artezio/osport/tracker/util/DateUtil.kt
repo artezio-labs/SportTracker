@@ -2,6 +2,7 @@ package com.artezio.osport.tracker.util
 
 import android.util.Log
 import com.artezio.osport.tracker.R
+import com.artezio.osport.tracker.domain.model.PedometerData
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -70,29 +71,6 @@ fun convertMillisTo(millis: Long, calendarTimeUnit: Int): Int {
     }
 }
 
-fun compareTimeWithNow(hour: Int, minute: Int): Boolean {
-    Log.d("pick_time", "Hour: $hour, Minute: $minute")
-    val calendar = Calendar.getInstance()
-    Log.d(
-        "pick_time",
-        "Calendar hour: ${calendar.get(Calendar.HOUR)}, minute: ${calendar.get(Calendar.MINUTE)}"
-    )
-    return calendar.get(Calendar.HOUR_OF_DAY) > hour ||
-            (calendar.get(Calendar.HOUR_OF_DAY) == hour && calendar.get(Calendar.MINUTE) >= minute)
-}
-
-fun getTimeFromMillis(millis: Long, calendarTimeUnit: Int): Int {
-    return when (calendarTimeUnit) {
-        Calendar.HOUR_OF_DAY -> (millis / HOUR_IN_MILLIS).toInt()
-        Calendar.MINUTE -> (millis / MINUTE_IN_MILLIS).toInt()
-        else -> 0
-    }
-}
-
-fun compareTimeWithNow(time: Long): Boolean {
-    return time < System.currentTimeMillis() % 1_000_000L
-}
-
 fun getTimeFromMillis(millis: Long): String {
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = millis
@@ -103,26 +81,8 @@ fun getTimeFromMillis(millis: Long): String {
     )
 }
 
-fun isTimeLowerThanNow(time: Long): Boolean {
-    val calendarTime = Calendar.getInstance()
-    val calendarNow = Calendar.getInstance()
-    calendarTime.timeInMillis = time
-    return calendarTime.get(Calendar.HOUR_OF_DAY) < calendarNow.get(Calendar.HOUR_OF_DAY) ||
-            (calendarTime.get(Calendar.HOUR_OF_DAY) == calendarNow.get(Calendar.HOUR_OF_DAY) &&
-                    calendarTime.get(Calendar.MINUTE) < calendarNow.get(Calendar.MINUTE))
-}
-
 fun getCurrentTimeMillis(plus: Long = 0L): Long {
     return Calendar.getInstance().timeInMillis + plus
-}
-
-fun getMillisFromTimeString(time: String): Long {
-    if (time.trim().isBlankOrEmpty()) return 0L
-    val calendar = Calendar.getInstance()
-    val timeArray = time.split(":")
-    calendar.set(Calendar.HOUR_OF_DAY, timeArray[0].toInt())
-    calendar.set(Calendar.MINUTE, timeArray[1].toInt())
-    return calendar.timeInMillis
 }
 
 // fun validate hour and minutes greater than now
@@ -162,6 +122,25 @@ fun formatTimeToNotification(time: Long): String {
         time / 60,
         time % 60
     )
+}
+
+fun List<PedometerData>.groupDataByMinutes(): Map<Int, List<PedometerData>> {
+    if (this.size == 1 || this.isEmpty()) return emptyMap()
+    val result = mutableMapOf<Int, MutableList<PedometerData>>()
+    for(i in 1 until this.size) {
+        val timeDiff = this[i].time - this[1].time
+        if (timeDiff <= MINUTE_IN_MILLIS) {
+            val dataPerMinute = result.getOrDefault(1, mutableListOf())
+            dataPerMinute.add(this[i])
+            result[1] = dataPerMinute
+        } else {
+            val minute = (timeDiff / MINUTE_IN_MILLIS).toInt()
+            val dataPerMinute = result.getOrDefault(minute, mutableListOf())
+            dataPerMinute.add(this[i])
+            result[minute] = dataPerMinute
+        }
+    }
+    return result
 }
 
 

@@ -1,6 +1,7 @@
 package com.artezio.osport.tracker.util
 
 import android.location.Location
+import com.artezio.osport.tracker.data.mappers.IMapper
 import com.artezio.osport.tracker.domain.model.LocationPointData
 
 fun distanceToString(distance: Double): String {
@@ -16,7 +17,7 @@ fun distanceBetween(firstLocation: LocationPointData, secondLocation: LocationPo
         longitude = secondLocation.longitude
         latitude = secondLocation.latitude
     }
-        return firstPoint.distanceTo(secondPoint)
+    return firstPoint.distanceTo(secondPoint)
 }
 
 fun calculateRouteDistance(locations: List<LocationPointData>): Double {
@@ -26,4 +27,17 @@ fun calculateRouteDistance(locations: List<LocationPointData>): Double {
         distance += distanceBetween(locations[i], locations[i + 1])
     }
     return distance
+}
+
+fun isLocationPassedFilter(
+    frequencyValue: Long,
+    distanceValue: Int,
+    currentLocation: Location,
+    prevLocation: Location,
+    mapper: IMapper<Location, LocationPointData>
+): Boolean {
+    if (currentLocation == prevLocation) return false
+    val distance = distanceBetween(mapper.map(currentLocation), mapper.map(prevLocation))
+    val timeBetween = currentLocation.time - prevLocation.time
+    return distance <= distanceValue && timeBetween <= frequencyValue
 }

@@ -260,7 +260,7 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
                                     dateStart
                                 )
                             }" else name,
-                            startDate = dateStart
+                            startDate = dateStart,
                         )
                         Log.d("eventId", eventId.toString())
                         TrackerSchedulerLauncher.schedule(

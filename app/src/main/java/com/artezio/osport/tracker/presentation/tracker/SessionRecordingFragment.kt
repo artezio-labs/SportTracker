@@ -1,8 +1,6 @@
 package com.artezio.osport.tracker.presentation.tracker
 
-import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +16,7 @@ import com.artezio.osport.tracker.databinding.FragmentSessionRecordingBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.DialogBuilder
-import com.google.android.gms.location.*
+import com.artezio.osport.tracker.util.FusedLocationProviderClientDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
@@ -31,34 +29,9 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
 
     override var onBackPressed: Boolean = false
 
-    private val fusedLocationProvider: FusedLocationProviderClient by lazy {
-        LocationServices.getFusedLocationProviderClient(requireContext())
-    }
-
-    private val locationRequest = LocationRequest.create().apply {
-        interval = 1000L
-        fastestInterval = 1000L
-        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-    }
+    private val locationRequester: LocationRequester? by FusedLocationProviderClientDelegate(this)
 
     private var eventId: Long = -1L
-
-    private var locationCallback: LocationCallback = object : LocationCallback() {
-        override fun onLocationResult(result: LocationResult) {
-            super.onLocationResult(result)
-            val currentLocation = result.lastLocation
-            Log.d("tracker_accuracy", "Accuracy: ${currentLocation.accuracy}")
-            val calculatedAccuracyPair = viewModel.calculateAccuracy(currentLocation)
-            binding.accuracyValue.text = calculatedAccuracyPair.first
-            binding.accuracyValue.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    calculatedAccuracyPair.second.color
-                )
-            )
-        }
-    }
-
 
     private val childFragmentNavController: NavController by lazy {
         val childNavHostFragment =
@@ -72,7 +45,18 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
 
         viewModel.observeServiceState(viewLifecycleOwner, binding)
 
-        requestLocationUpdates()
+        locationRequester?.locationLiveData?.observe(viewLifecycleOwner) { location ->
+            Log.d("tracker_accuracy", "Accuracy: ${location.accuracy}")
+            val calculatedAccuracyPair = viewModel.calculateAccuracy(location)
+            binding.accuracyValue.text = calculatedAccuracyPair.first
+            binding.accuracyValue.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    calculatedAccuracyPair.second.color
+                )
+            )
+        }
+
 
         binding.fabStart.setOnClickListener {
             Log.d("service_state", "Fab clicked, service is started")
@@ -109,11 +93,10 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
                     showFinishTrackingWarningDialog()
                 }
             }
-
         }
 
         binding.fabStart.setOnClickListener {
-            fusedLocationProvider.removeLocationUpdates(locationCallback)
+            locationRequester?.unsubscribeToLocationUpdates()
             viewModel.generateEvent()
             startService()
         }
@@ -121,7 +104,7 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
         binding.fabStopTracking.setOnClickListener {
             viewModel.stopService(requireContext())
             try {
-                requestLocationUpdates()
+                locationRequester?.subscribeToLocationUpdates()
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
@@ -168,18 +151,8 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
 
     override fun onDestroyView() {
         super.onDestroyView()
-        fusedLocationProvider.removeLocationUpdates(locationCallback)
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun requestLocationUpdates() {
-        if (TrackService.serviceLifecycleState.value == ServiceLifecycleState.NOT_STARTED) {
-            fusedLocationProvider.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-            )
-        }
+//        fusedLocationProvider.removeLocationUpdates(locationCallback)
+        locationRequester?.unsubscribeToLocationUpdates()
     }
 
     private fun startService() {

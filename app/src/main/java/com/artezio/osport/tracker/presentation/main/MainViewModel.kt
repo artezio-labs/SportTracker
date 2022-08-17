@@ -1,6 +1,7 @@
 package com.artezio.osport.tracker.presentation.main
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.mappers.DomainPlannedEventsToPresentationMapper
@@ -18,6 +19,7 @@ import com.artezio.osport.tracker.util.ResourceProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,16 +36,20 @@ class MainViewModel @Inject constructor(
 ) : BaseViewModel() {
     val eventsWithDataFlow: Flow<List<Item.Event>>
         get() {
-            val events = getAllEventsWithDataUseCase.execute().map { events ->
-                events.sortedByDescending {eventWithData -> eventWithData.event.id }.map { domainToPresentationMapper.map(it) }.filter { it.startDate != it.endDate }
-            }
-            return if ((TrackService.serviceLifecycleState.value == ServiceLifecycleState.RUNNING
-                        || TrackService.serviceLifecycleState.value == ServiceLifecycleState.PAUSED)
-            ) {
-                events.map { it.dropLast(1) }
-            } else {
-                events
-            }
+            return getAllEventsWithDataUseCase.execute()
+                .map { events ->
+                    events.sortedByDescending { eventWithData -> eventWithData.event.id }
+                        .map { domainToPresentationMapper.map(it) }
+                        .filter { it.startDate != it.endDate }
+                }
+//            return if ((TrackService.serviceLifecycleState.value == ServiceLifecycleState.RUNNING
+//                        || TrackService.serviceLifecycleState.value == ServiceLifecycleState.PAUSED
+//                        || TrackService.serviceLifecycleState.value == ServiceLifecycleState.CALIBRATING)
+//            ) {
+//                events.map { if (it.size == 1) emptyList() else it.dropLast(1) }
+//            } else {
+//                events
+//            }
         }
 
     val plannedEventsFlow: Flow<List<Item.PlannedEvent>>

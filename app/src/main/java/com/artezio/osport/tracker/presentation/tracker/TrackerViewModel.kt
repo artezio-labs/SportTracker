@@ -50,9 +50,6 @@ class TrackerViewModel @Inject constructor(
     val lastEventIdFlow: Flow<Long>
         get() = getLastEventIdUseCase.execute()
 
-    val pedometerDataForCadence: Flow<List<PedometerData>>
-        get() = getDataForCadenceUseCase.execute()
-
     val timerValueLiveData: LiveData<Double>
         get() = TrackService.timerValueLiveData
 
@@ -84,6 +81,8 @@ class TrackerViewModel @Inject constructor(
         Log.d("planner_worker_states", "Updated event (last): $updatedEvent")
         updateEventUseCase.execute(id, updatedEvent)
     }
+
+    fun getDataForCadence(id: Long) = getDataForCadenceUseCase.execute(id)
 
     suspend fun getLocationsByEventId(): Flow<List<Point>> {
         val id = getLastEventId()

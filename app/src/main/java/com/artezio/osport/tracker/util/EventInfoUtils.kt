@@ -8,11 +8,22 @@ object EventInfoUtils {
 
     fun calculateAvgCadence(data: List<PedometerData>): Int {
         if (data.size <= 1) return 0
-        val lastSteps = (data.last().stepCount * 60)
-        val time = (data.last().time - data.first().time) / 1000
-        val cadence = if (time == 0L) 0 else lastSteps / time
-        Log.d("cadence", "New cadence: $cadence")
-        return cadence.toInt()
+        val time = data.last().time - data.first().time
+        val dataPerLastMinute = data.filter { data.last().time - it.time <= MINUTE_IN_MILLIS }
+        return if (time < MINUTE_IN_MILLIS) {
+            val minute = time.toDouble() / MINUTE_IN_MILLIS
+            (dataPerLastMinute.last().stepCount / minute).toInt()
+        } else {
+            val stepCount = data.last().stepCount
+            val dataPerMinutes = data.groupDataByMinutes()
+            Log.d("cadence", "Data by minutes: $dataPerMinutes")
+            val lastMinuteData = dataPerMinutes.values.last()
+            return if (lastMinuteData.size <= 1) {
+                0
+            } else {
+                calculateDataPerMinute(lastMinuteData)
+            }
+        }
     }
 
     fun calculateDistance(locations: List<LocationPointData>): Double {
@@ -25,7 +36,7 @@ object EventInfoUtils {
         return totalDistance
     }
 
-    suspend fun filterData(id: Long, data: List<PedometerData>): List<PedometerData> {
+    fun filterData(id: Long, data: List<PedometerData>): List<PedometerData> {
         if (data.size <= 1) return data
         val filteredData = mutableListOf<PedometerData>().apply {
             add(data[0])
@@ -41,5 +52,15 @@ object EventInfoUtils {
     fun calculateAvgSpeed(data: List<LocationPointData>): Double {
         if (data.isEmpty()) return 0.0
         return data.map { it.speed }.average()
+    }
+
+    private fun calculateDataPerMinute(data: List<PedometerData>): Int {
+        val timeDiff = (data.last().time - data.first().time).toDouble() / MINUTE_IN_MILLIS
+        val stepPerMinute = data.last().stepCount - data.first().stepCount
+        Log.d(
+            "cadence_calc",
+            "calculateAvgCadence: stepPerMinute = $stepPerMinute, timeDiff = $timeDiff"
+        )
+        return (stepPerMinute / timeDiff).toInt()
     }
 }
