@@ -14,6 +14,7 @@ import android.location.Location
 import android.os.*
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.os.bundleOf
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
@@ -37,6 +38,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
 
@@ -100,6 +102,7 @@ class TrackService : LifecycleService() {
     private var timer = Timer()
     private var timeToNotification = 0.0
     private var distanceToNotification = 0.0
+    private var timerIsFinished = false
 
     private var distanceFilter = 0
     private var previousLocation: Location? = null
@@ -228,8 +231,10 @@ class TrackService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         Log.d("timer_value", "Service is started")
+        Timber.d("Service started")
         when (intent?.action) {
             START_FOREGROUND_SERVICE -> {
+                Timber.d("Service recording started")
                 onStartService(intent)
             }
             START_PLANNED_SERVICE -> {
@@ -256,14 +261,15 @@ class TrackService : LifecycleService() {
                         }
 
                         override fun onFinish() {
-                            isCalibrating = false
-                            onStartService(intent, true)
-                            serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
+                            Timber.d("Count down timer onFinish() was called")
+                            timerIsFinished = true
+                            notificationBuilder.notify(timeToNotification, distanceToNotification)
+                            runRecordingAfterCalibration(intent)
                         }
                     }.start()
                     Timer().schedule(object : TimerTask() {
                         override fun run() {
-                            Log.d("service_timers", "stopping service timer starts")
+                            Timber.d("Service stopped")
                             sensorManager.unregisterListener(sensorEventListener)
                             removeLocationUpdates()
                             stopSelf()
@@ -271,9 +277,12 @@ class TrackService : LifecycleService() {
                             serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
                         }
                     }, delay)
-                } else { Log.d("tracker_delay", "Delay: $delay") }
+                } else {
+                    Timber.d("Tracker delay: $delay")
+                }
             }
             STOP_FOREGROUND_SERVICE -> {
+                Timber.d("Service has been stopped")
                 Log.d(STEPS_TAG, "Service stopped!")
                 sensorManager.unregisterListener(sensorEventListener)
                 removeLocationUpdates()
@@ -295,6 +304,7 @@ class TrackService : LifecycleService() {
                 }
             }
             RESUME_FOREGROUND_SERVICE -> {
+                Timber.d("Service has been resumed")
                 Log.d(STEPS_TAG, "Service resumed!")
                 registerListener(sensorManager)
                 try {
@@ -322,6 +332,14 @@ class TrackService : LifecycleService() {
         return START_STICKY
     }
 
+    private fun runRecordingAfterCalibration(intent: Intent) {
+        if (serviceLifecycleState.value != ServiceLifecycleState.RUNNING) {
+            isCalibrating = false
+            onStartService(intent, true)
+            serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
+        }
+    }
+
     private fun onStartService(intent: Intent, isAlreadyForegroundStarted: Boolean = false) {
         eventId = intent.getLongExtra("eventId", -1L)
         eventId?.let { currentEventIdLiveData.postValue(it) }
@@ -346,6 +364,7 @@ class TrackService : LifecycleService() {
         eventId?.let {
             if (!isPaused) runPedometer(it)
         }
+
         startTimer(0.0, 0)
         eventId?.let {
             Log.d("observe_distance", "Event: $it")
@@ -428,6 +447,7 @@ class TrackService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(STEPS_TAG, "onDestroy: ")
+        Timber.d("Service onDestroy()")
         eventId?.let { trackServiceDataManager.updateEvent(it) }
         sensorManager.unregisterListener(sensorEventListener)
         serviceLifecycleState.postValue(ServiceLifecycleState.STOPPED)
@@ -455,6 +475,7 @@ class TrackService : LifecycleService() {
         override fun run() {
             if (!isPaused) {
                 time++
+                Timber.d("Timer recording onTick: $time")
                 timerValueLiveData.postValue(time)
                 timerValueLiveData.value?.let {
                     notificationBuilder.notify(

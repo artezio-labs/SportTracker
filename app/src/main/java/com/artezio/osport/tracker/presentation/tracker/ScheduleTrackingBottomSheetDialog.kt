@@ -188,6 +188,14 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
                 isValid = false
             }
         }
+
+        if (binding.buttonCalibrationTime.editText?.editableText.toString().isNotBlankOrEmpty()) {
+            val validationResult = viewModel.validateCalibrationTime(dateStart, calibrationTime)
+            if (!validationResult) {
+                isValid = validationResult
+                showErrorDialog(false)
+            }
+        }
         return isValid
     }
 
@@ -242,7 +250,7 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
                 .asFlow()
                 .collectLatest { hasIntersections ->
                     if (hasIntersections) {
-                        showHasIntersectionsDialog()
+                        showErrorDialog()
                     } else {
                         viewModel.generatePlannedEvent(
                             if (viewModel.validateInput(name)) "$eventNameDate ${
@@ -282,13 +290,16 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
         }
     }
 
-    private fun showHasIntersectionsDialog() {
+    private fun showErrorDialog(flag: Boolean = true) {
         DialogBuilder(
             context = requireContext(),
             title = "Внимание",
-            message = "Период, который вы выбрали пересекается с другими запланированными тренировками. Выберите другую дату старта или длительность.",
+            message = getString(
+                if (flag) R.string.warning_dialog_schedule_intersection_message_text
+                else R.string.warning_dialog_schedule_calibration_time_message_text
+            ),
             positiveButtonText = "Ок",
-            positiveButtonClick = { dialog, _ -> dialog.cancel() },
+            positiveButtonClick =  { dialog, _ -> dialog.cancel() },
             needsToShow = true
         ).build()
     }

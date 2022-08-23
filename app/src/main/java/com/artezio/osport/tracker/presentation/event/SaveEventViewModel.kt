@@ -44,6 +44,7 @@ open class SaveEventViewModel @Inject constructor(
         eventNameLiveData.postValue(lastEvent.name)
     }
 
+
     private suspend fun update(eventId: Long, eventName: String) {
         val event = getEventByIdUseCase.execute(eventId)
         Log.d("event_update", "Event from db to update: $event")

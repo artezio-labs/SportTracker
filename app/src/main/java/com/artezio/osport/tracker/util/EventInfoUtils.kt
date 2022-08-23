@@ -6,24 +6,11 @@ import com.artezio.osport.tracker.domain.model.PedometerData
 
 object EventInfoUtils {
 
-    fun calculateAvgCadence(data: List<PedometerData>): Int {
+    fun calculateCadence(data: List<PedometerData>): Int {
         if (data.size <= 1) return 0
         val time = data.last().time - data.first().time
-        val dataPerLastMinute = data.filter { data.last().time - it.time <= MINUTE_IN_MILLIS }
-        return if (time < MINUTE_IN_MILLIS) {
-            val minute = time.toDouble() / MINUTE_IN_MILLIS
-            (dataPerLastMinute.last().stepCount / minute).toInt()
-        } else {
-            val stepCount = data.last().stepCount
-            val dataPerMinutes = data.groupDataByMinutes()
-            Log.d("cadence", "Data by minutes: $dataPerMinutes")
-            val lastMinuteData = dataPerMinutes.values.last()
-            return if (lastMinuteData.size <= 1) {
-                0
-            } else {
-                calculateDataPerMinute(lastMinuteData)
-            }
-        }
+        val timeInMinutes = time.toDouble() / MINUTE_IN_MILLIS
+        return (data.last().stepCount / timeInMinutes).toInt()
     }
 
     fun calculateDistance(locations: List<LocationPointData>): Double {
@@ -51,16 +38,8 @@ object EventInfoUtils {
 
     fun calculateAvgSpeed(data: List<LocationPointData>): Double {
         if (data.isEmpty()) return 0.0
-        return data.map { it.speed }.average()
-    }
-
-    private fun calculateDataPerMinute(data: List<PedometerData>): Int {
-        val timeDiff = (data.last().time - data.first().time).toDouble() / MINUTE_IN_MILLIS
-        val stepPerMinute = data.last().stepCount - data.first().stepCount
-        Log.d(
-            "cadence_calc",
-            "calculateAvgCadence: stepPerMinute = $stepPerMinute, timeDiff = $timeDiff"
-        )
-        return (stepPerMinute / timeDiff).toInt()
+        val distance = calculateDistance(data)
+        val time = (data.last().time - data.first().time).toDouble() / HOUR_IN_MILLIS
+        return (distance / 1000) / time
     }
 }

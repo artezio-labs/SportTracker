@@ -27,9 +27,9 @@ class EventInfoUtilTest {
 
     @Test
     fun `test calculate average cadence`() = runBlocking {
-        assertEquals(1, EventInfoUtils.calculateAvgCadence(testPedometerData))
-        assertEquals(0, EventInfoUtils.calculateAvgCadence(emptyList()))
-        assertEquals(4, EventInfoUtils.calculateAvgCadence(testPedometerData.take(1)))
+        assertEquals(1, EventInfoUtils.calculateCadence(testPedometerData))
+        assertEquals(0, EventInfoUtils.calculateCadence(emptyList()))
+        assertEquals(4, EventInfoUtils.calculateCadence(testPedometerData.take(1)))
     }
 
     @Test

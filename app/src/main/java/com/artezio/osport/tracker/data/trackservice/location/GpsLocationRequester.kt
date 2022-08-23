@@ -11,6 +11,7 @@ import com.artezio.osport.tracker.util.SECOND_IN_MILLIS
 import com.artezio.osport.tracker.util.isLocationPassedFilter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.last
+import timber.log.Timber
 
 class GpsLocationRequester(
     context: Context,
@@ -37,6 +38,7 @@ class GpsLocationRequester(
             distance = prefsManager.get(false).last()
         }
         locationListener = LocationListener { location ->
+            Timber.d("Location changed: $location")
             if (frequency != 0L || distance != 0) {
                 if (lastLocation != null) {
                     if (isLocationPassedFilter(frequency, distance, location, lastLocation!!, mapper)) {

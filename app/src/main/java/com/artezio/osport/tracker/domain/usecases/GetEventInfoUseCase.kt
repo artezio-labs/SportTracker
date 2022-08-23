@@ -4,7 +4,7 @@ import com.artezio.osport.tracker.data.repository.EventsRepository
 import com.artezio.osport.tracker.data.repository.LocationRepository
 import com.artezio.osport.tracker.data.repository.PedometerRepository
 import com.artezio.osport.tracker.domain.model.EventInfo
-import com.artezio.osport.tracker.util.EventInfoUtils.calculateAvgCadence
+import com.artezio.osport.tracker.util.EventInfoUtils.calculateCadence
 import com.artezio.osport.tracker.util.EventInfoUtils.calculateAvgSpeed
 import com.artezio.osport.tracker.util.EventInfoUtils.calculateDistance
 import com.artezio.osport.tracker.util.EventInfoUtils.filterData
@@ -28,8 +28,8 @@ class GetEventInfoUseCase @Inject constructor(
         val time = event.timerValue
         val speed = calculateAvgSpeed(locations)
         val distance = calculateDistance(locations) / 1000
-        val tempo = ((time / 60) + (time % 60)) / distance
-        val cadence = calculateAvgCadence(wholePedometerData)
+        val tempo = (time / 60.0 + (time % 60.0) / 60.0) / distance
+        val cadence = calculateCadence(wholePedometerData)
         return EventInfo(
             title = title,
             time = formatTime(event.timerValue, resourceProvider),

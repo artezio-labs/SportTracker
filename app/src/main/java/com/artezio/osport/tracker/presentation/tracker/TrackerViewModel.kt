@@ -3,7 +3,6 @@ package com.artezio.osport.tracker.presentation.tracker
 import android.content.Context
 import android.content.Intent
 import android.location.Location
-import android.location.LocationManager
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
@@ -101,7 +100,7 @@ class TrackerViewModel @Inject constructor(
     fun generateEvent(eventName: String = "", startDate: Long = 0L) {
         viewModelScope.launch(Dispatchers.IO) {
             val currentTime = System.currentTimeMillis()
-            val newEventName = formatEventName(currentTime)
+            val newEventName = formatEventName(if (startDate == 0L) currentTime else startDate)
             val events = getAllEventsListUseCase.execute()
             val event = Event(
                 name = eventName.ifEmpty { buildEventName(newEventName, events) },
@@ -281,13 +280,7 @@ class TrackerViewModel @Inject constructor(
     }
 
     fun calculateCadence(data: List<PedometerData>): Int {
-        return EventInfoUtils.calculateAvgCadence(data)
-    }
-
-    fun observeGpsEnabled(context: Context): LiveData<Boolean> {
-        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        return liveData { emit(isGpsEnabled) }
+        return EventInfoUtils.calculateCadence(data)
     }
 
     fun insertPlannedEvent(event: PlannedEvent) = viewModelScope.launch(Dispatchers.IO) {
@@ -308,7 +301,12 @@ class TrackerViewModel @Inject constructor(
     fun checkScheduledTrainingForPeriod(startDate: Long, duration: Int, calibrationTime: Int) =
         liveData(Dispatchers.IO) {
             val plannedEvents = getAllPlannedEventsUseCase.execute()
-            emit(plannedEvents.any { it.hasIntersection(startDate - calibrationTime * SECOND_IN_MILLIS, duration) })
+            emit(plannedEvents.any {
+                it.hasIntersection(
+                    startDate - calibrationTime * SECOND_IN_MILLIS,
+                    duration
+                )
+            })
         }
 
     fun formatCalibrationTimeString(time: Long): String {
@@ -321,5 +319,10 @@ class TrackerViewModel @Inject constructor(
 
     fun validateInput(string: String): Boolean {
         return string.matches(EVENT_NAME_DATE_REGULAR_EXPRESSION)
+    }
+
+    fun validateCalibrationTime(startDate: Long, calibrationTime: Int): Boolean {
+        val diff = startDate - getCurrentTimeMillis()
+        return diff >= calibrationTime * SECOND_IN_MILLIS
     }
 }

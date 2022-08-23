@@ -55,12 +55,14 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
                     calculatedAccuracyPair.second.color
                 )
             )
+            binding.fabStart.isEnabled = location.accuracy >= 3F
         }
 
 
         binding.fabStart.setOnClickListener {
             Log.d("service_state", "Fab clicked, service is started")
             startService()
+            locationRequester?.unsubscribeToLocationUpdates()
         }
 
         binding.fabStopPause.setOnClickListener {
@@ -151,7 +153,6 @@ class SessionRecordingFragment : BaseFragment<FragmentSessionRecordingBinding, T
 
     override fun onDestroyView() {
         super.onDestroyView()
-//        fusedLocationProvider.removeLocationUpdates(locationCallback)
         locationRequester?.unsubscribeToLocationUpdates()
     }
 

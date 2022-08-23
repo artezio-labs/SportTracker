@@ -12,6 +12,7 @@ import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.presentation.MainActivity
 import com.artezio.osport.tracker.presentation.TrackService
 import com.artezio.osport.tracker.util.*
+import timber.log.Timber
 
 class ServiceNotificationBuilder(
     private val context: Context
@@ -46,7 +47,6 @@ class ServiceNotificationBuilder(
             )
             title = context.getString(R.string.notification_paused)
             NotificationCompat.Action(R.drawable.ic_resume, RESUME_RECORDING, pendingIntent)
-
         } else {
             val intent = Intent(context, TrackService::class.java).apply {
                 action = PAUSE_FOREGROUND_SERVICE
@@ -74,8 +74,7 @@ class ServiceNotificationBuilder(
     }
 
     fun buildNotification(time: Double, distance: Double): Notification {
-        notificationManager.cancelAll()
-        Log.d("notification_builder", "Time: $time, distance: $distance")
+        Timber.d("Notification was built")
         return buildNotificationView(
             getTimerStringFromDouble(time),
             distanceToString(distance),
@@ -84,6 +83,7 @@ class ServiceNotificationBuilder(
     }
 
     fun notify(time: Double, distance: Double) {
+        Timber.d("Recording notification updated")
         notificationManager.cancelAll()
         notificationManager.notify(
             FOREGROUND_SERVICE_ID,
@@ -95,6 +95,7 @@ class ServiceNotificationBuilder(
     }
 
     fun buildGpsCalibrationNotification(time: Long): Notification {
+        Timber.d("Gps calibration notification was built")
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_calibration)
             .setContentTitle("Калибровка GPS датчика")
@@ -105,6 +106,7 @@ class ServiceNotificationBuilder(
     }
 
     fun notify(time: Long) {
+        Timber.d("Notify time: $time")
         notificationManager.notify(
             FOREGROUND_SERVICE_ID,
             buildGpsCalibrationNotification(

@@ -101,6 +101,8 @@
     <string name="gps_setting_distance_input_hint_text">Дистанция (в метрах)</string>
     <string name="freq_setting_error_text">Значение должно быть от 1 до 60!</string>
     <string name="distance_setting_error_text">Значение должно быть в диапазоне от 3 до 200</string>
+    <string name="warning_dialog_schedule_intersection_message_text">Период, который вы выбрали пересекается с другими запланированными тренировками. Выберите другую дату старта или длительность.</string>
+    <string name="warning_dialog_schedule_calibration_time_message_text">Недостаточно времени для калибровки GPS датчика. Измените время калибровки или дату старта!</string>
 
 
     <string-array name="tabs_titles">

@@ -61,7 +61,6 @@ class TrackerStatisticsFragment :
         }
         observeCalibrationData()
         observeData()
-
     }
 
     private fun observeCalibrationData() {
@@ -125,8 +124,11 @@ class TrackerStatisticsFragment :
                 viewModel.getDataForCadence(eventId).collect { data ->
                     Log.d("cadence", "data: $data")
                     val cadence = viewModel.calculateCadence(data)
-                    binding.textViewCadenceValue.text = cadence.toString()
-                    pauseCadence = cadence
+                    binding.textViewCadenceValue.text =
+                        if (cadence == 0) pauseCadence.toString() else cadence.toString()
+                    if (cadence != 0) {
+                        pauseCadence = cadence
+                    }
                 }
             }
         }
