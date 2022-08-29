@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.navigation.NavDeepLinkBuilder
 import com.artezio.osport.tracker.R
@@ -32,10 +31,11 @@ class ServiceNotificationBuilder(
     private fun buildNotificationView(
         time: String,
         distance: String,
+        paused: Boolean,
         notificationPendingIntent: PendingIntent,
     ): NotificationCompat.Builder {
         val title: String
-        val action = if (TrackService.serviceLifecycleState.value == ServiceLifecycleState.PAUSED) {
+        val action = if (paused) {
             val intent = Intent(context, TrackService::class.java).apply {
                 action = RESUME_FOREGROUND_SERVICE
             }
@@ -73,23 +73,24 @@ class ServiceNotificationBuilder(
             .setContentIntent(notificationPendingIntent)
     }
 
-    fun buildNotification(time: Double, distance: Double): Notification {
+    fun buildNotification(time: Double, distance: Double, paused: Boolean): Notification {
         Timber.d("Notification was built")
         return buildNotificationView(
             getTimerStringFromDouble(time),
             distanceToString(distance),
+            paused,
             notificationPendingIntent,
         ).build()
     }
 
-    fun notify(time: Double, distance: Double) {
+    fun notify(time: Double, distance: Double, paused: Boolean = false) {
         Timber.d("Recording notification updated")
-        notificationManager.cancelAll()
         notificationManager.notify(
             FOREGROUND_SERVICE_ID,
             buildNotification(
                 time,
-                distance
+                distance,
+                paused
             )
         )
     }
@@ -104,6 +105,7 @@ class ServiceNotificationBuilder(
             .setAutoCancel(false)
             .build()
     }
+
 
     fun notify(time: Long) {
         Timber.d("Notify time: $time")

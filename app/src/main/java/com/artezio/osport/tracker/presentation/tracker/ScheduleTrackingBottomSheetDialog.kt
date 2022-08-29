@@ -26,6 +26,7 @@ import com.google.android.material.timepicker.TimeFormat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.*
 
 @AndroidEntryPoint
@@ -122,6 +123,7 @@ class ScheduleTrackingBottomSheetDialog : BottomSheetDialogFragment() {
         }
         binding.buttonSchedule.setOnClickListener {
             if (validateInputs()) {
+                Timber.d("Button update/generate planned event was clicked!")
                 if (alreadyExists) {
                     updateEvent()
                 } else {

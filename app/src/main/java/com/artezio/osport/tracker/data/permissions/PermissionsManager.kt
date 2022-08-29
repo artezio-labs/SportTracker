@@ -13,12 +13,11 @@ import androidx.core.app.ActivityCompat
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.presentation.MainActivity
 import com.artezio.osport.tracker.util.DialogBuilder
+import com.artezio.osport.tracker.util.hasForegroundPermissions
 
 class PermissionsManager(
     private val activity: MainActivity
 ) : IPermissionsManager {
-
-
 
     private val permissionsToBeRequested =
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) arrayOf(
@@ -46,16 +45,11 @@ class PermissionsManager(
     private val accessBackgroundLocationPermission =
         Manifest.permission.ACCESS_BACKGROUND_LOCATION
 
-    fun request() {
+    override fun request() {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
             requestPermissionsAndroidQAndBelow()
         } else {
             requestPermissionsAndroidRAndAbove()
-            ActivityCompat.requestPermissions(
-                activity,
-                arrayOf(accessBackgroundLocationPermission),
-                PERMISSIONS_REQUEST_CODE
-            )
         }
     }
 
@@ -90,42 +84,6 @@ class PermissionsManager(
             }
         }
         return true
-    }
-
-    override fun requestMultiplePermissions() {
-        val remainingPermissions: MutableList<String> = mutableListOf()
-        val permissionsToRequest = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            permissionsToBeRequested
-        } else {
-            permissionsForAndroidROrAbove
-        }
-        Log.d(
-            "permissions_states",
-            "Permissions, which needs to be granted: ${permissionsToRequest.contentToString()}"
-        )
-        permissionsToRequest.forEach { permission ->
-            if (!isPermissionGranted(permission)) {
-                remainingPermissions.add(permission)
-            }
-            if (isPermissionGranted(locationPermissions[0])
-                && isPermissionGranted(locationPermissions[1])
-                && !remainingPermissions.contains(accessBackgroundLocationPermission)
-            ) {
-                remainingPermissions.add(accessBackgroundLocationPermission)
-            }
-        }
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            ActivityCompat.requestPermissions(
-                activity,
-                remainingPermissions.toTypedArray(),
-                PERMISSIONS_REQUEST_CODE
-            )
-        }
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q
-            && !hasLocationPermissionsGranted()
-        ) {
-            requestAccessBackgroundLocationPermission()
-        }
     }
 
     override fun onRequestPermissionsResult(
@@ -225,14 +183,14 @@ class PermissionsManager(
         }
     }
 
-    private fun showAccessBackgroundLocationPermissionDialog() {
+    fun showAccessBackgroundLocationPermissionDialog() {
         DialogBuilder(
             activity,
             "Внимание",
             """
                 Приложению требуется разрешение на отслеживание местоположения в фоновом режиме, без этого разрешения приложение не сможет записывать данные о тренировках.
                 
-                Без этого разрешения вы не сможете записывать тренировки.
+                В настройках приложения нужно выбрать "Разрешить в любом режиме".
                 
                 Открыть настройки, чтобы выдать разрешение?
             """.trimIndent(),
@@ -243,7 +201,8 @@ class PermissionsManager(
             "Не сейчас",
             { dialog, _ ->
                 dialog.dismiss()
-            }
+            },
+            needsToShow = true
         ).build()
     }
 
@@ -255,7 +214,7 @@ class PermissionsManager(
         )
     }
 
-    fun isPermissionGranted(permission: String): Boolean {
+    private fun isPermissionGranted(permission: String): Boolean {
         val permissionState = ActivityCompat.checkSelfPermission(activity, permission)
         Log.d(
             "permissions_states",
@@ -266,6 +225,7 @@ class PermissionsManager(
 
     companion object {
         private const val PERMISSIONS_REQUEST_CODE = 1234
-        private const val NOTIFICATION_ANDROID13_PERMISSION = "android.permission.POST_NOTIFICATIONS"
+        private const val NOTIFICATION_ANDROID13_PERMISSION =
+            "android.permission.POST_NOTIFICATIONS"
     }
 }

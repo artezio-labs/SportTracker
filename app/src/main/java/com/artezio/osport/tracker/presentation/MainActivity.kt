@@ -18,7 +18,9 @@ import com.artezio.osport.tracker.data.permissions.chain.LocationPermissionLink
 import com.artezio.osport.tracker.data.permissions.chain.NotificationPermissionLink
 import com.artezio.osport.tracker.data.permissions.chain.PowerModePermissionLink
 import com.artezio.osport.tracker.databinding.ActivityMainBinding
+import com.artezio.osport.tracker.util.hasBackgroundLocationPermission
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -44,6 +46,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         changeStatusBarColor()
 
+        // Просто чтобы понять работают логи или нет
+        // если этого лога не будет, то значит логи в принципе не собираются на устройстве по какой-либо причине
+        Timber.d("Activity created")
+
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -55,24 +61,27 @@ class MainActivity : AppCompatActivity() {
                     Log.d("permissions_states", "$isNotificationsEnabled $isPowerSafeModeEnabled")
                     Log.d("permissions_states", "Manufacturer: ${Build.MANUFACTURER}")
                     if (permissionsManager.hasLocationPermissionsGranted()) {
-                        if (systemServicePermissionsManager.hasNotificationPermissionEnabled()) {
-                            if (!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
-                                Log.d("permissions_state", "All permissions is granted")
-                                navController.navigate(R.id.sessionRecordingFragment)
-                            } else {
-                                Toast.makeText(
-                                    this,
-                                    getString(R.string.warning_turn_off_doze_mode),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                systemServicePermissionsManager.sendUserToPowerSettings()
-                            }
+                        if (!hasBackgroundLocationPermission(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            permissionsManager.showAccessBackgroundLocationPermissionDialog()
                         } else {
-                            systemServicePermissionsManager.sendUserToAppNotificationSettings()
+                            if (systemServicePermissionsManager.hasNotificationPermissionEnabled()) {
+                                if (!systemServicePermissionsManager.hasPowerSafeModePermissionEnabled()) {
+                                    Log.d("permissions_state", "All permissions is granted")
+                                    navController.navigate(R.id.sessionRecordingFragment)
+                                } else {
+                                    Toast.makeText(
+                                        this,
+                                        getString(R.string.warning_turn_off_doze_mode),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    systemServicePermissionsManager.sendUserToPowerSettings()
+                                }
+                            } else {
+                                systemServicePermissionsManager.sendUserToAppNotificationSettings()
+                            }
                         }
                     } else {
                         permissionsManager.request()
-
                     }
                     Log.d("permissions_state", "onCreate: ")
                     false

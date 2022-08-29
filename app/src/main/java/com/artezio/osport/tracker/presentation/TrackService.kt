@@ -235,6 +235,7 @@ class TrackService : LifecycleService() {
         when (intent?.action) {
             START_FOREGROUND_SERVICE -> {
                 Timber.d("Service recording started")
+                Timber.d("Service is foreground: ${isForeground()}")
                 onStartService(intent)
             }
             START_PLANNED_SERVICE -> {
@@ -246,7 +247,7 @@ class TrackService : LifecycleService() {
                 Log.d("gps_calibration", "Delay: $delay")
                 if (delay != 0L) {
                     startForegroundService()
-                    Log.d("service_type", "is foreground: ${isForeground()}")
+                    Timber.d("Service is foreground: ${isForeground()}")
                     subscribeToLocationUpdates()
                     object : CountDownTimer(calibrationTime, SECOND_IN_MILLIS) {
                         override fun onTick(p0: Long) {
@@ -263,7 +264,6 @@ class TrackService : LifecycleService() {
                         override fun onFinish() {
                             Timber.d("Count down timer onFinish() was called")
                             timerIsFinished = true
-                            notificationBuilder.notify(timeToNotification, distanceToNotification)
                             runRecordingAfterCalibration(intent)
                         }
                     }.start()
@@ -299,7 +299,8 @@ class TrackService : LifecycleService() {
                 timerValueLiveData.value?.let {
                     notificationBuilder.notify(
                         it,
-                        distanceToNotification
+                        distanceToNotification,
+                        true
                     )
                 }
             }
@@ -341,6 +342,7 @@ class TrackService : LifecycleService() {
     }
 
     private fun onStartService(intent: Intent, isAlreadyForegroundStarted: Boolean = false) {
+        Timber.d("onStartService() was called, recording started")
         eventId = intent.getLongExtra("eventId", -1L)
         eventId?.let { currentEventIdLiveData.postValue(it) }
         serviceLifecycleState.postValue(ServiceLifecycleState.RUNNING)
@@ -381,6 +383,7 @@ class TrackService : LifecycleService() {
     }
 
     private fun subscribeToGpsLocationUpdates() {
+        Timber.d("Subscribed to location updates")
         locationRequester.subscribeToLocationUpdates { location ->
             val locationPoint = LocationPointData(
                 location.latitude,
@@ -398,18 +401,20 @@ class TrackService : LifecycleService() {
     }
 
     private fun startTimer(time: Double, steps: Int) {
+        Timber.d("Recording timer started")
         stepCount = steps
         lifecycleScope.launch(Dispatchers.IO) { timer.scheduleAtFixedRate(TimeTask(time), 0, 1000) }
     }
 
     private fun startForegroundService() {
+        Timber.d("startForegroundService() was called, foreground service started!")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
         val notification = if (isCalibrating) {
             notificationBuilder.buildGpsCalibrationNotification(calibrationTimeToNotification)
         } else {
-            notificationBuilder.buildNotification(timeToNotification, distanceToNotification)
+            notificationBuilder.buildNotification(timeToNotification, distanceToNotification, false)
         }
         startForeground(FOREGROUND_SERVICE_ID, notification)
     }
@@ -421,10 +426,11 @@ class TrackService : LifecycleService() {
             val notificationChannel = NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.app_name),
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_LOW
             )
             notificationChannel.description = STEPS
             notificationManager.createNotificationChannel(notificationChannel)
+            Timber.d("Notification channel was created")
         }
     }
 
