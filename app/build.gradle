@@ -49,6 +49,27 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'crea
 android {
     compileSdk 31
 
+    def versionPropsFile = file('version.properties')
+
+    if (versionPropsFile.canRead()) {
+        Properties versionProps = new Properties()
+        versionProps.load(new FileInputStream(versionPropsFile))
+        def name = versionProps['VERSION_NAME']
+        def code = versionProps['VERSION_CODE'].toInteger()
+        versionProps['VERSION_CODE'] = code.toString()
+        versionProps.store(versionPropsFile.newWriter(), null)
+        applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                output.versionNameOverride = name
+                output.versionCodeOverride = code
+            }
+        }
+    } else {
+        throw new GradleException("Could not read version.properties!")
+    }
+
+    increaseVersionCode()
+
     defaultConfig {
         applicationId "com.artezio.osport.tracker"
         minSdk 21
@@ -93,9 +114,31 @@ android {
     }
 }
 
+def increaseVersionCode() {
+    def versionPropsFile = file('version.properties')
+
+    gradle.taskGraph.whenReady { taskGraph ->
+        if (taskGraph.hasTask(assembleDebug)) {
+            if (versionPropsFile.canRead()) {
+                def Properties versionProps = new Properties()
+                versionProps.load(new FileInputStream(versionPropsFile))
+
+                def build = versionProps['VERSION_BUILD'].toInteger()
+                def code = versionProps['VERSION_CODE'].toInteger()
+
+                versionProps['VERSION_BUILD'] = build.toString()
+                versionProps['VERSION_CODE'] = code.toString()
+                versionProps.store(versionPropsFile.newWriter(), null)
+            } else {
+                throw new GradleException("Could not read version.properties!")
+            }
+        }
+    }
+}
+
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.core:core-ktx:1.8.0'
     implementation 'androidx.appcompat:appcompat:1.4.0'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
@@ -174,8 +217,8 @@ dependencies {
     androidTestImplementation "io.mockk:mockk-android:${mockk_version}"
 
     // mapbox
-    implementation ('com.mapbox.maps:android:10.4.2') { transitive = true }
-    implementation ("com.mapbox.navigation:android:2.4.0") {
+    implementation('com.mapbox.maps:android:10.4.2') { transitive = true }
+    implementation("com.mapbox.navigation:android:2.4.0") {
         exclude group: 'android.arch.core'
         transitive = true
     }
@@ -187,7 +230,7 @@ dependencies {
 
 
     // kakao
-    androidTestImplementation  'com.agoda.kakao:kakao:2.3.4'
+    androidTestImplementation 'com.agoda.kakao:kakao:2.3.4'
     // kaspresso
     def kaspresso_version = '1.4.1'
     androidTestImplementation "com.kaspersky.android-components:kaspresso:$kaspresso_version"

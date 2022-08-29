@@ -248,6 +248,7 @@ class TrackService : LifecycleService() {
                 if (delay != 0L) {
                     startForegroundService()
                     Timber.d("Service is foreground: ${isForeground()}")
+                    Log.d("service_type", "is foreground: ${isForeground()}")
                     subscribeToLocationUpdates()
                     object : CountDownTimer(calibrationTime, SECOND_IN_MILLIS) {
                         override fun onTick(p0: Long) {
