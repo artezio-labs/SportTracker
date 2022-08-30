@@ -1,11 +1,16 @@
 package com.artezio.osport.tracker.presentation.settings
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.preferences.SettingsPreferencesManager
+import com.artezio.osport.tracker.domain.model.BuildInfo
 import com.artezio.osport.tracker.presentation.BaseViewModel
+import com.artezio.osport.tracker.util.AssetsProvider
+import com.artezio.osport.tracker.util.BUILD_INFO_FILE_NAME
 import com.artezio.osport.tracker.util.ResourceProvider
 import com.artezio.osport.tracker.util.ValidationUtils
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -13,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsPreferencesManager: SettingsPreferencesManager,
-    private val resourceProvider: ResourceProvider
+    private val resourceProvider: ResourceProvider,
+    private val assetsProvider: AssetsProvider,
 ) : BaseViewModel() {
 
     fun setTitle(flag: Boolean): String {
@@ -51,5 +57,16 @@ class SettingsViewModel @Inject constructor(
         } else {
             "$value м."
         }
+    }
+
+    fun getBuildInfoFromAssets(): String {
+        val buildInfoString = assetsProvider.readJsonFileFromAssets(BUILD_INFO_FILE_NAME)
+        Log.d("build_info", "getBuildInfoFromAssetsString: $buildInfoString")
+        val buildInfo = if (!buildInfoString.isNullOrEmpty()) {
+            Gson().fromJson(buildInfoString, BuildInfo::class.java)
+        } else {
+            BuildInfo()
+        }
+        return "Сборка ${buildInfo.versionBuildName} (${buildInfo.versionBuildId})"
     }
 }

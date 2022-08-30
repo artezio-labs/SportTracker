@@ -30,3 +30,5 @@ const val EVENT_NAME_DATE_REGULAR_EXPRESSION = "^([1-9]|([012][0-9])|(3[01]))-([
 
 const val LOGGER_RETROFIT_CLIENT_NAME = "LOGGER_RETROFIT_CLIENT"
 const val LOGGER_BASE_URL_NAME = "LOGGER_BASE_URL"
+
+const val BUILD_INFO_FILE_NAME = "builds_info.json"

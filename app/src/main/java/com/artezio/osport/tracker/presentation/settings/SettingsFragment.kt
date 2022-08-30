@@ -13,11 +13,13 @@ import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.preferences.SettingsPreferencesManager
 import com.artezio.osport.tracker.databinding.FragmentSettingsBinding
 import com.artezio.osport.tracker.presentation.BaseFragment
+import com.artezio.osport.tracker.util.DialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.io.File
 
 @AndroidEntryPoint
 class SettingsFragment : BaseFragment<FragmentSettingsBinding, SettingsViewModel>() {
@@ -41,6 +43,10 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding, SettingsViewModel
 
         binding.buttonClose.setOnClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_profileFragment)
+        }
+
+        binding.textViewAboutApp.setOnClickListener {
+            showAboutAppDialog()
         }
     }
 
@@ -69,6 +75,25 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding, SettingsViewModel
         }
         dialog.show(childFragmentManager, GpsSettingInputBottomSheetDialog.TAG)
     }
+
+    private fun showAboutAppDialog() {
+        DialogBuilder(
+            context = requireContext(),
+            title = getString(R.string.dialog_about_app_title_text),
+            message = getAppVersionInfo(),
+            positiveButtonText = getString(R.string.button_close_text),
+            positiveButtonClick = { dialog, _ -> dialog.cancel() },
+            needsToShow = true
+        ).build()
+    }
+
+    private fun getAppVersionInfo(): String {
+        val packageInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+        val versionName = packageInfo.versionName
+        val versionCode = packageInfo.longVersionCode.toInt()
+        return "Версия $versionName ($versionCode)\n\n${viewModel.getBuildInfoFromAssets()}"
+    }
+
 
     override fun initBinding(
         inflater: LayoutInflater,
