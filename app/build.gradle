@@ -51,25 +51,6 @@ android {
 
     def versionPropsFile = file('version.properties')
 
-    if (versionPropsFile.canRead()) {
-        Properties versionProps = new Properties()
-        versionProps.load(new FileInputStream(versionPropsFile))
-        def name = versionProps['VERSION_NAME']
-        def code = versionProps['VERSION_CODE'].toInteger()
-        versionProps['VERSION_CODE'] = code.toString()
-        versionProps.store(versionPropsFile.newWriter(), null)
-        applicationVariants.all { variant ->
-            variant.outputs.each { output ->
-                output.versionNameOverride = name
-                output.versionCodeOverride = code
-            }
-        }
-    } else {
-        throw new GradleException("Could not read version.properties!")
-    }
-
-    increaseVersionCode()
-
     defaultConfig {
         applicationId "com.artezio.osport.tracker"
         minSdk 21
@@ -111,28 +92,6 @@ android {
 
     buildFeatures {
         viewBinding true
-    }
-}
-
-def increaseVersionCode() {
-    def versionPropsFile = file('version.properties')
-
-    gradle.taskGraph.whenReady { taskGraph ->
-        if (taskGraph.hasTask(assembleDebug)) {
-            if (versionPropsFile.canRead()) {
-                def Properties versionProps = new Properties()
-                versionProps.load(new FileInputStream(versionPropsFile))
-
-                def build = versionProps['VERSION_BUILD'].toInteger()
-                def code = versionProps['VERSION_CODE'].toInteger()
-
-                versionProps['VERSION_BUILD'] = build.toString()
-                versionProps['VERSION_CODE'] = code.toString()
-                versionProps.store(versionPropsFile.newWriter(), null)
-            } else {
-                throw new GradleException("Could not read version.properties!")
-            }
-        }
     }
 }
 
