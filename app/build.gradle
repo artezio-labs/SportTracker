@@ -49,8 +49,6 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'crea
 android {
     compileSdk 31
 
-    def versionPropsFile = file('version.properties')
-
     defaultConfig {
         applicationId "com.artezio.osport.tracker"
         minSdk 21
