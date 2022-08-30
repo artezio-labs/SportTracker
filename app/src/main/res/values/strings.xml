@@ -104,7 +104,6 @@
     <string name="warning_dialog_schedule_intersection_message_text">Период, который вы выбрали пересекается с другими запланированными тренировками. Выберите другую дату старта или длительность.</string>
     <string name="warning_dialog_schedule_calibration_time_message_text">Недостаточно времени для калибровки GPS датчика. Измените время калибровки или дату старта!</string>
     <string name="about_app_text_view_text">О приложении</string>
-    <string name="dialog_about_app_title_text">О программе</string>
 
 
     <string-array name="tabs_titles">

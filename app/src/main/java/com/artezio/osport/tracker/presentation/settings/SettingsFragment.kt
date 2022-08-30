@@ -79,7 +79,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding, SettingsViewModel
     private fun showAboutAppDialog() {
         DialogBuilder(
             context = requireContext(),
-            title = getString(R.string.dialog_about_app_title_text),
+            title = getString(R.string.about_app_text_view_text),
             message = getAppVersionInfo(),
             positiveButtonText = getString(R.string.button_close_text),
             positiveButtonClick = { dialog, _ -> dialog.cancel() },
