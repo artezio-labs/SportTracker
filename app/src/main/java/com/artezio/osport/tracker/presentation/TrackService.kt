@@ -27,7 +27,6 @@ import com.artezio.osport.tracker.data.trackservice.TrackServiceDataManager
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
-import com.artezio.osport.tracker.data.tts.Phrase
 import com.artezio.osport.tracker.data.tts.Speaker
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
@@ -73,6 +72,8 @@ class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
     private val speaker: Speaker by lazy {
         Speaker(this, this)
     }
+
+    private lateinit var tts: TextToSpeech
 
     private var eventId: Long? = null
 
@@ -246,6 +247,14 @@ class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
             }
             START_PLANNED_SERVICE -> {
                 Log.d("service_timers", "planned train started")
+                tts = TextToSpeech(this) { status ->
+                    if (status != TextToSpeech.ERROR) {
+                        tts.language = Locale.getDefault()
+                        Log.d("text_to_speech", "TTS SUCCESS")
+                    } else {
+                        Log.d("text_to_speech", "TTS ERROR")
+                    }
+                }
                 serviceLifecycleState.postValue(ServiceLifecycleState.CALIBRATING)
                 isCalibrating = true
                 val calibrationTime = intent.getLongExtra("calibration_time", 60 * SECOND_IN_MILLIS)
@@ -256,7 +265,8 @@ class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
                     Timber.d("Service is foreground: ${isForeground()}")
                     Log.d("service_type", "is foreground: ${isForeground()}")
                     subscribeToLocationUpdates()
-                    speaker.speak(Phrase("calibration_start", "Time to start: ${calibrationTime / SECOND_IN_MILLIS}"))
+//                    speaker.speak(Phrase("calibration_start", "Time to start: ${calibrationTime / SECOND_IN_MILLIS}"))
+                    tts.speak("До начала забега ${calibrationTime / SECOND_IN_MILLIS} секунд", TextToSpeech.QUEUE_FLUSH, null)
                     object : CountDownTimer(calibrationTime, SECOND_IN_MILLIS) {
                         override fun onTick(p0: Long) {
                             Log.d("service_timers", "calibration timer starts")
