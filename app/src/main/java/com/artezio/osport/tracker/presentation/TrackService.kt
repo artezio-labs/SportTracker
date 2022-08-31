@@ -5,19 +5,19 @@ import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Location
 import android.os.*
+import android.speech.tts.SynthesisCallback
+import android.speech.tts.SynthesisRequest
 import android.speech.tts.TextToSpeech
+import android.speech.tts.TextToSpeechService
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.artezio.osport.tracker.R
 import com.artezio.osport.tracker.data.preferences.SettingsPreferencesManager
@@ -35,19 +35,20 @@ import com.artezio.osport.tracker.domain.usecases.UpdateEventUseCase
 import com.artezio.osport.tracker.util.*
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
+class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
 
     private val serviceJob = Job()
     private val serviceIoScope = CoroutineScope(Dispatchers.IO + serviceJob)
+    private val lifecycleScope =
+        CoroutineScope(Dispatchers.Main + SupervisorJob() + CoroutineExceptionHandler { context, throwable ->
+            Log.e("service_lifecycle_scope", "Exception $throwable in context: $context")
+        })
 
     private val notificationManager: NotificationManager by lazy {
         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -73,7 +74,16 @@ class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
         Speaker(this, this)
     }
 
-    private lateinit var tts: TextToSpeech
+    private val tts: TextToSpeech by lazy {
+        TextToSpeech(this@TrackService) { status ->
+            if (status != TextToSpeech.ERROR) {
+                tts.language = Locale.getDefault()
+                Log.d("text_to_speech", "TTS SUCCESS")
+            } else {
+                Log.d("text_to_speech", "TTS ERROR")
+            }
+        }
+    }
 
     private var eventId: Long? = null
 
@@ -166,10 +176,6 @@ class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
 
     override fun onCreate() {
         super.onCreate()
-        LocalBroadcastManager
-            .getInstance(this)
-            .registerReceiver(ServiceEchoReceiver(), IntentFilter("ping"))
-
     }
 
     private fun subscribeToLocationUpdates() {
@@ -235,6 +241,28 @@ class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
 
     override fun onUnbind(intent: Intent?): Boolean = super.onUnbind(intent)
 
+    override fun onIsLanguageAvailable(lang: String?, country: String?, variant: String?): Int {
+        return tts.isLanguageAvailable(Locale.getDefault())
+    }
+
+    override fun onGetLanguage(): Array<String> {
+        return tts.availableLanguages.map { it.language }.toTypedArray()
+    }
+
+    override fun onLoadLanguage(lang: String?, country: String?, variant: String?): Int {
+        return tts.setLanguage(Locale.getDefault())
+    }
+
+    override fun onStop() {
+        if (tts != null) {
+            tts.stop()
+            tts.shutdown()
+        }
+    }
+
+    override fun onSynthesizeText(request: SynthesisRequest?, callback: SynthesisCallback?) {
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         Log.d("timer_value", "Service is started")
@@ -247,14 +275,6 @@ class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
             }
             START_PLANNED_SERVICE -> {
                 Log.d("service_timers", "planned train started")
-                tts = TextToSpeech(this) { status ->
-                    if (status != TextToSpeech.ERROR) {
-                        tts.language = Locale.getDefault()
-                        Log.d("text_to_speech", "TTS SUCCESS")
-                    } else {
-                        Log.d("text_to_speech", "TTS ERROR")
-                    }
-                }
                 serviceLifecycleState.postValue(ServiceLifecycleState.CALIBRATING)
                 isCalibrating = true
                 val calibrationTime = intent.getLongExtra("calibration_time", 60 * SECOND_IN_MILLIS)
@@ -266,7 +286,14 @@ class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
                     Log.d("service_type", "is foreground: ${isForeground()}")
                     subscribeToLocationUpdates()
 //                    speaker.speak(Phrase("calibration_start", "Time to start: ${calibrationTime / SECOND_IN_MILLIS}"))
-                    tts.speak("До начала забега ${calibrationTime / SECOND_IN_MILLIS} секунд", TextToSpeech.QUEUE_FLUSH, null)
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        tts.speak(
+                            "До начала забега ${calibrationTime / SECOND_IN_MILLIS} секунд",
+                            TextToSpeech.QUEUE_FLUSH,
+                            null,
+                            null
+                        )
+                    }, 3000)
                     object : CountDownTimer(calibrationTime, SECOND_IN_MILLIS) {
                         override fun onTick(p0: Long) {
                             Log.d("service_timers", "calibration timer starts")
