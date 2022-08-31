@@ -12,9 +12,9 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Location
 import android.os.*
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.os.bundleOf
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
@@ -27,6 +27,8 @@ import com.artezio.osport.tracker.data.trackservice.TrackServiceDataManager
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
+import com.artezio.osport.tracker.data.tts.Phrase
+import com.artezio.osport.tracker.data.tts.Speaker
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.domain.usecases.ObserveDistanceUseCase
@@ -43,7 +45,7 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TrackService : LifecycleService() {
+class TrackService : LifecycleService(), TextToSpeech.OnInitListener {
 
     private val serviceJob = Job()
     private val serviceIoScope = CoroutineScope(Dispatchers.IO + serviceJob)
@@ -66,6 +68,10 @@ class TrackService : LifecycleService() {
 
     private val stepSensor: Sensor by lazy {
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    }
+
+    private val speaker: Speaker by lazy {
+        Speaker(this, this)
     }
 
     private var eventId: Long? = null
@@ -250,6 +256,7 @@ class TrackService : LifecycleService() {
                     Timber.d("Service is foreground: ${isForeground()}")
                     Log.d("service_type", "is foreground: ${isForeground()}")
                     subscribeToLocationUpdates()
+                    speaker.speak(Phrase("calibration_start", "Time to start: ${calibrationTime / SECOND_IN_MILLIS}"))
                     object : CountDownTimer(calibrationTime, SECOND_IN_MILLIS) {
                         override fun onTick(p0: Long) {
                             Log.d("service_timers", "calibration timer starts")
@@ -461,6 +468,7 @@ class TrackService : LifecycleService() {
         serviceLifecycleState.postValue(ServiceLifecycleState.NOT_STARTED)
         stepsLiveData.postValue(0)
         stepDetector = null
+        speaker.onDestroy()
         timer.cancel()
         currentEventIdLiveData.postValue(-1L)
     }
@@ -508,5 +516,9 @@ class TrackService : LifecycleService() {
         val stepsLiveData = MutableLiveData(0)
         val calibrationTimeState = MutableLiveData(0L)
         val calibrationAccuracyState = MutableLiveData(0F)
+    }
+
+    override fun onInit(status: Int) {
+        speaker.onInit(status)
     }
 }
