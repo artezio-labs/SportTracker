@@ -27,7 +27,6 @@ import com.artezio.osport.tracker.data.trackservice.TrackServiceDataManager
 import com.artezio.osport.tracker.data.trackservice.location.GpsLocationRequester
 import com.artezio.osport.tracker.data.trackservice.location.LocationRequester
 import com.artezio.osport.tracker.data.trackservice.pedometer.StepDetector
-import com.artezio.osport.tracker.data.tts.Speaker
 import com.artezio.osport.tracker.domain.model.LocationPointData
 import com.artezio.osport.tracker.domain.model.PedometerData
 import com.artezio.osport.tracker.domain.usecases.ObserveDistanceUseCase
@@ -41,7 +40,7 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
+class TrackService : TextToSpeechService() {
 
     private val serviceJob = Job()
     private val serviceIoScope = CoroutineScope(Dispatchers.IO + serviceJob)
@@ -70,10 +69,6 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     }
 
-    private val speaker: Speaker by lazy {
-        Speaker(this, this)
-    }
-
     private val tts: TextToSpeech by lazy {
         TextToSpeech(this@TrackService) { status ->
             if (status != TextToSpeech.ERROR) {
@@ -99,6 +94,8 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
 
     private var isCalibrating: Boolean = false
 
+    private var isPlanned = false
+
     private var calibrationTimeToNotification: Long = 0
 
     @Inject
@@ -120,6 +117,7 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
     private var timeToNotification = 0.0
     private var distanceToNotification = 0.0
     private var timerIsFinished = false
+    private var continuation = 0.0
 
     private var distanceFilter = 0
     private var previousLocation: Location? = null
@@ -173,10 +171,6 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
     }
 
     private var stepCount = 0
-
-    override fun onCreate() {
-        super.onCreate()
-    }
 
     private fun subscribeToLocationUpdates() {
         if (hasLocationAndActivityRecordingPermission(this)) {
@@ -274,11 +268,13 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
                 onStartService(intent)
             }
             START_PLANNED_SERVICE -> {
+                isPlanned = true
                 Log.d("service_timers", "planned train started")
                 serviceLifecycleState.postValue(ServiceLifecycleState.CALIBRATING)
                 isCalibrating = true
                 val calibrationTime = intent.getLongExtra("calibration_time", 60 * SECOND_IN_MILLIS)
                 val delay = intent.getLongExtra("timer_delay", 0L)
+                continuation = delay.toDouble()
                 Log.d("gps_calibration", "Delay: $delay")
                 if (delay != 0L) {
                     startForegroundService()
@@ -293,7 +289,7 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
                             null,
                             null
                         )
-                    }, 3000)
+                    }, 1000)
                     object : CountDownTimer(calibrationTime, SECOND_IN_MILLIS) {
                         override fun onTick(p0: Long) {
                             Log.d("service_timers", "calibration timer starts")
@@ -310,10 +306,22 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
                             Timber.d("Count down timer onFinish() was called")
                             timerIsFinished = true
                             runRecordingAfterCalibration(intent)
+                            tts.speak(
+                                "Начало забега",
+                                TextToSpeech.QUEUE_FLUSH,
+                                null,
+                                null
+                            )
                         }
                     }.start()
                     Timer().schedule(object : TimerTask() {
                         override fun run() {
+                            tts.speak(
+                                "Завершение забега",
+                                TextToSpeech.QUEUE_FLUSH,
+                                null,
+                                null
+                            )
                             Timber.d("Service stopped")
                             sensorManager.unregisterListener(sensorEventListener)
                             removeLocationUpdates()
@@ -505,7 +513,6 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
         serviceLifecycleState.postValue(ServiceLifecycleState.NOT_STARTED)
         stepsLiveData.postValue(0)
         stepDetector = null
-        speaker.onDestroy()
         timer.cancel()
         currentEventIdLiveData.postValue(-1L)
     }
@@ -535,6 +542,14 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
                         distanceToNotification
                     )
                 }
+                if (isPlanned && continuation != 0.0 && ((continuation * 60) / time) == 2.0) {
+                    tts.speak(
+                        "Середина забега",
+                        TextToSpeech.QUEUE_FLUSH,
+                        null,
+                        null
+                    )
+                }
             }
         }
     }
@@ -553,9 +568,5 @@ class TrackService : TextToSpeechService(), TextToSpeech.OnInitListener {
         val stepsLiveData = MutableLiveData(0)
         val calibrationTimeState = MutableLiveData(0L)
         val calibrationAccuracyState = MutableLiveData(0F)
-    }
-
-    override fun onInit(status: Int) {
-        speaker.onInit(status)
     }
 }
